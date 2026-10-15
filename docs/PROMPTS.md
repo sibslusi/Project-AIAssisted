@@ -1,7 +1,7 @@
 # Prompts pro Phase – „Datenschutz am Schalter“
 
 Diese Prompts gibst du dem Coding-Agenten in VS Code, und zwar der Reihe nach. Jeder Prompt bearbeitet **einen** Schritt.
-Nach jedem Schritt prüfst du das Ergebnis, schreibst einen Eintrag in `docs/AI-LOG.md` und machst einen Commit.
+Am Ende jeder Phase führt der Agent automatisch den Quality Gate aus (`skills/ai-sdlc-quality-gate`): Er prüft eine Checkliste, belegt jeden Punkt, stellt Rückfragen und wartet auf dein OK. Danach prüfst du das Ergebnis, schreibst einen Eintrag in `docs/AI-LOG.md` und machst einen Commit.
 Den Projektkontext schreibst du nur in Phase 0 aus. Danach steht er in `docs/PROJECT.md`.
 
 ---
@@ -62,6 +62,7 @@ Out of Scope: Mobile App, SSO, E-Mail-Benachrichtigungen, echte Daten der Stadt 
 5. Schlage für die Stack-Wahl ein ADR vor (docs/adr/ADR-001-stack.md, Status: Proposed).
 6. Schlage MCP-Server für die Entwicklung vor (Context7 für aktuelle FastAPI-/SQLAlchemy-Doku, Playwright-MCP für E2E-Tests) und dokumentiere in README-Abschnitt "KI-Tooling" Zweck und Rechte.
 7. Liste offene Fragen und getroffene Annahmen auf. Lösche keine Dateien ohne meine Bestätigung.
+Schliesse mit dem Quality Gate gemäss skills/ai-sdlc-quality-gate ab und warte auf mein OK, bevor STATUS auf done gesetzt wird.
 ```
 
 Danach: PR öffnen → eine Person aus dem Team reviewt → Merge → ADR-001 auf „Accepted“ setzen.
@@ -80,6 +81,7 @@ Achte besonders auf:
 - Rollenrechte aus docs/PROJECT.md.
 - Im Abschnitt Tests: welche Kriterien als Unit-, Integrations- und E2E-Test geprüft werden.
 Stelle Rückfragen, wenn eine Regel unklar ist. Aktualisiere docs/TASKS.md.
+Schliesse mit dem Quality Gate gemäss skills/ai-sdlc-quality-gate ab und warte auf mein OK, bevor STATUS auf done gesetzt wird.
 ```
 
 Für UC-002 tauschst du Name und Fokus aus. Fokus dort: **Rechte der Abteilungsleitung** (nur Zusammenfassungen, nur die eigene Abteilung) und **Fristen** (offen, erledigt, Frist überschritten).
@@ -95,6 +97,7 @@ Phase 2 DESIGN für UC-001 gemäss skills/ai-sdlc-2-design. Kein Anwendungscode.
 3. Ergänze ein Mermaid-Diagramm der Schichten und Entitäten in docs/PROJECT.md, falls es noch fehlt.
 4. Wichtige Entscheide als ADR (Status Proposed).
 Aktualisiere docs/TASKS.md.
+Schliesse mit dem Quality Gate gemäss skills/ai-sdlc-quality-gate ab und warte auf mein OK, bevor STATUS auf done gesetzt wird.
 ```
 
 ---
@@ -110,6 +113,7 @@ Arbeite in kleinen Schritten und committe jeden Schritt einzeln, damit TDD in de
 Reihenfolge: Integrationstests, dann Unit-Tests, dann Implementierung.
 Domain-Schicht ohne Imports von fastapi, sqlalchemy oder jinja2. Prüfe das mit import-linter.
 Zeige mir am Ende die Testergebnisse und aktualisiere docs/TASKS.md.
+Schliesse mit dem Quality Gate gemäss skills/ai-sdlc-quality-gate ab und warte auf mein OK, bevor STATUS auf done gesetzt wird.
 ```
 
 ---
@@ -124,6 +128,7 @@ Phase 4 VALIDATE gemäss skills/ai-sdlc-4-validate.
 4. Prüfe .github/workflows/release.yml: Container bauen, E2E-Tests, Artefakt veröffentlichen.
 5. Ergänze einen Sicherheits-Check (pip-audit) im CI und aktiviere Dependabot.
 Erfasse Ergebnisse und fehlende Checks mit Begründung in docs/TASKS.md.
+Schliesse mit dem Quality Gate gemäss skills/ai-sdlc-quality-gate ab und warte auf mein OK, bevor STATUS auf done gesetzt wird.
 ```
 
 ---
@@ -137,6 +142,7 @@ Entscheid: Deploy nur bei einem Release, nicht bei jedem Merge.
 1. Schlage cd.yml vor (Trigger: Release, Deploy-Hook als GitHub Secret RENDER_DEPLOY_HOOK, danach Smoke-Test der öffentlichen URL).
 2. Liste die nötigen Umgebungsvariablen und Secrets auf (nur Namen, keine Werte).
 3. Erstelle nichts ohne meine Bestätigung. Erfasse das Ergebnis in docs/TASKS.md.
+Schliesse mit dem Quality Gate gemäss skills/ai-sdlc-quality-gate ab und warte auf mein OK, bevor STATUS auf done gesetzt wird.
 ```
 
 ---

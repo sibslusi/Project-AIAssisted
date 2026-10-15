@@ -50,6 +50,7 @@ DEPLOY → SPECIFY (feedback)
 3 → skills/ai-sdlc-3-develop  
 4 → skills/ai-sdlc-4-validate  
 5 → skills/ai-sdlc-5-deploy  
+End of every phase → skills/ai-sdlc-quality-gate (before STATUS done)  
 
 ---
 
@@ -94,5 +95,6 @@ If requirements or architecture are unclear → ask the user.
 - Login: passwords hashed with bcrypt/argon2, secure session cookie, CSRF protection on forms.
 - Secrets only in `.env` (gitignored) or GitHub Secrets; keep `.env.example` with placeholders.
 - LLM calls (UC-003) only via the `infrastructure` adapter to LiteLLM; tests use a fake adapter.
+- End every phase with `skills/ai-sdlc-quality-gate`: report checks with evidence, ask open questions, set STATUS done only after the user confirms.
 - Every agent session that changes code or docs: add one entry to `docs/AI-LOG.md`.
 - MCP servers in use and their permissions: see README section "KI-Tooling".
