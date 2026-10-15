@@ -11,7 +11,8 @@
   - UC-001 Szenario-Runde spielen
   - UC-002 Schulung steuern (Zuweisung mit Frist, Status, Auswertung, CSV-Schulungsnachweis)
   - UC-003 KI-Szenario-Entwurf (optional)
-  - Login mit Rollen, Seed-Daten für 3 Abteilungen mit je 5 Szenarien
+  - Login mit Rollen, Seed-Daten für 3 Abteilungen (Einwohnerdienste, Soziale Dienste, Finanzen und Informatik) mit je einem Modul aus 5 Szenarien und Demo-Benutzern pro Rolle
+  - Oberfläche auf Deutsch
 - **Out of Scope:** Mobile App, SSO, Selbstregistrierung, E-Mail-Benachrichtigungen, echte Daten der Stadt Grenchen, Mehrmandantenfähigkeit, Rechtsberatung
 
 ## Architecture
@@ -61,7 +62,8 @@ Die Schichtenregel wird mit import-linter in der CI geprüft (ab Phase 4).
 ```mermaid
 erDiagram
   ABTEILUNG ||--o{ MITARBEITENDE : beschaeftigt
-  ABTEILUNG ||--o{ SZENARIO : "ist zugeordnet"
+  ABTEILUNG |o--o{ SZENARIO : "ist zugeordnet"
+  SZENARIO |o--o| SZENARIO : "ersetzt Vorgaenger"
   SZENARIO ||--|{ ANTWORTOPTION : hat
   MODUL }o--o{ SZENARIO : enthaelt
   MODUL ||--o{ ZUWEISUNG : "wird zugewiesen"
@@ -77,12 +79,12 @@ erDiagram
 |---|---|
 | Abteilung | Name |
 | Mitarbeitende | Benutzername, Passwort-Hash, Anzeigename, Rolle, Abteilung |
-| Szenario | Titel, Situation, Erklärung, Rechtsgrundlage, Version, Abteilung, Status (Entwurf / freigegeben) |
+| Szenario | Titel, Situation, Erklärung, Rechtsgrundlage, Version, Vorgänger, Abteilung (leer = für alle), Status (Entwurf / freigegeben / archiviert) |
 | Antwortoption | Text, ist richtig |
-| Modul | Name, Szenarien |
+| Modul | Name, genau 5 freigegebene Szenarien |
 | Zuweisung | Modul, Abteilung, Frist |
 | Spielrunde | Mitarbeitende, Zuweisung, Start, Ende, Punkte |
-| Rundenantwort | Spielrunde, Szenario, Szenario-Version, gewählte Antwortoption, richtig ja/nein |
+| Rundenantwort | Spielrunde, Szenario (konkrete Version), gewählte Antwortoption, richtig ja/nein |
 | Abzeichen | Mitarbeitende, Modul, erhalten am |
 
 ## Roles and Permissions
@@ -91,21 +93,23 @@ Jede Person hat genau **eine Rolle** und **eine Abteilung**. Abteilungen sind St
 
 | Rolle | Darf |
 |---|---|
-| Mitarbeitende | Runden der eigenen Abteilung spielen; nur eigene Ergebnisse und Abzeichen sehen |
-| Abteilungsleitung | nur eigene Abteilung: Status pro Person (erledigt / offen / Frist überschritten); Punkte und Fehler nur aggregiert |
+| Mitarbeitende | Runden zu Zuweisungen der eigenen Abteilung spielen; nur eigene Ergebnisse und Abzeichen sehen |
+| Abteilungsleitung | nur eigene Abteilung: Status pro Person (erledigt / offen / Frist überschritten); Durchschnittspunkte und Fehlerquote pro Szenario nur aggregiert |
 | Datenschutzverantwortliche | Szenarien und Module verwalten, Zuweisungen mit Frist erstellen, Auswertung aller Abteilungen, CSV-Schulungsnachweis, KI-Entwürfe freigeben |
 
 Die Zugriffsregeln liegen in `application` und sind durch Unit-Tests abgedeckt.
 
 ## Domain Rules
 
-- **Bewertung:** Eine Runde umfasst 5 Szenarien der eigenen Abteilung. Pro richtige Antwort gibt es einen Punkt, nach jeder Antwort wird die Erklärung gezeigt.
-- **Abzeichen:** Ab einem Anteil richtiger Antworten von `BADGE_THRESHOLD` (Standard 0.8, also 4 von 5).
+- **Bewertung:** Eine Runde gehört zu einer Zuweisung und umfasst die 5 Szenarien des zugewiesenen Moduls. Pro richtige Antwort gibt es einen Punkt, nach jeder Antwort wird die Erklärung gezeigt. Eine Runde ist abgeschlossen, wenn alle 5 Szenarien beantwortet sind.
+- **Abzeichen:** Pro Person und Modul höchstens eines, ab einem Anteil richtiger Antworten von `BADGE_THRESHOLD` (Standard 0.8, also 4 von 5).
 - **Wiederholung:** Runden dürfen wiederholt werden. Für Status und Abzeichen zählt der beste Versuch, für die Fehlerauswertung zählen alle Versuche.
-- **Fristen:** Eine Zuweisung gilt pro Person als *erledigt*, wenn die Person die Schwelle erreicht hat. Sie ist *offen*, solange die Frist läuft, und *Frist überschritten* danach. Das aktuelle Datum kommt über den Clock-Port und nie direkt aus `datetime.now()`.
-- **Mindestgruppengrösse:** Aggregierte Auswertungen werden erst ab `MIN_GROUP_SIZE` Personen angezeigt (Standard 3), sonst erscheint „zu wenige Teilnehmende“.
-- **Versionierung:** Ändert jemand ein Szenario, entsteht eine neue Version. Bestehende Rundenantworten behalten ihre Version.
+- **Fristen:** Eine Zuweisung gilt pro Person als *erledigt*, wenn die Person die Schwelle erreicht hat. Sie ist *offen*, solange die Frist läuft, und *Frist überschritten* danach. *Erledigt* hat Vorrang, auch wenn erst nach der Frist erreicht. Ist die Frist überschritten, kann trotzdem weitergespielt werden. Das aktuelle Datum kommt über den Clock-Port und nie direkt aus `datetime.now()`.
+- **Mindestgruppengrösse:** Jeder aggregierte Wert (Durchschnitt, Fehlerquote pro Szenario) wird nur angezeigt, wenn mindestens `MIN_GROUP_SIZE` verschiedene Personen beigetragen haben (Standard 3). Sonst erscheint „zu wenige Teilnehmende“.
+- **Versionierung:** Ein Szenario, das schon beantwortet wurde, wird nie überschrieben. Eine Änderung erzeugt einen neuen Szenario-Datensatz mit Version + 1 und Verweis auf den Vorgänger. Der Vorgänger wird archiviert, die Module zeigen auf die neue Version. Bestehende Rundenantworten verweisen weiter auf ihre Version und deren Antwortoptionen.
 - **Löschfrist (Version 2, nur dokumentiert):** Rundenantworten werden nach 12 Monaten gelöscht, der Status „Schulung erledigt“ bleibt erhalten.
+
+- **Datenschutz in der App:** Spielergebnisse sind Personendaten der Mitarbeitenden (Privacy by Design). Der CSV-Schulungsnachweis enthält nur Name, Abteilung, Modul und das Datum „erledigt“, keine Punkte.
 
 ## Structure
 
