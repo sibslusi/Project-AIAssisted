@@ -80,7 +80,7 @@ If requirements or architecture are unclear → ask the user.
 
 ---
 
-## Project Rules — Datenschutz am Schalter
+## Project Rules — Datenschutzszenarien in der Gemeinde
 
 - Product, roles, entities and stack: `docs/PROJECT.md`. Decisions: `docs/adr/`.
 - `src/app/domain` must not import fastapi, sqlalchemy, jinja2 or httpx; enforced by import-linter in CI.

@@ -4,7 +4,7 @@ Pro Agenten-Sitzung ein kurzer Eintrag. Daraus entsteht am Schluss die Reflexion
 
 | Datum | Phase / UC | Agent + Modell | Auftrag (kurz) | Ergebnis | Was ich korrigieren musste | Lernpunkt |
 |---|---|---|---|---|---|---|
-| 2026-10-15 | 0 / – | z.B. Copilot + gpt-5.4-mini via LiteLLM | Bootstrap: PROJECT.md, Struktur | PROJECT.md erstellt | Entität „Rundenantwort“ fehlte | Rückfragen vor dem Schreiben verlangen |
+| 2026-10-15 | 0 / – | Claude Code (Cloud-Session, Anthropic-Modell) | Bootstrap: PROJECT.md, ADR-001, requirements, .env.example | Plan mit 3 Rückfragen, danach Dokumentation erstellt | Projektname geändert auf „Datenschutzszenarien in der Gemeinde“; Arbeitsweise allein | Plan und Rückfragen vor dem Schreiben verhindern falsche Annahmen |
 
 ## Modellvergleich (SW3-Aufgabe)
 
