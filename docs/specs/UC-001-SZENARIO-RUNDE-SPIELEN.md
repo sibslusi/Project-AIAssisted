@@ -16,8 +16,9 @@ Abteilungsleitung, Datenschutzverantwortliche, Anwendung
 ## Preconditions
 
 - Die Person ist angemeldet und einer Abteilung sowie einer Rolle zugeordnet.
-- Die E-Mail-Adresse wurde bei der Registrierung als hinterlegte
-  `@grenchen.example`-Adresse erkannt.
+- Die Person ist als fiktiver Seed-Demo-Benutzer mit einer hinterlegten
+  `@grenchen.example`-Adresse angemeldet. Eine Registrierung ist in V1 nicht
+  Teil dieses Use Cases.
 - Für die Abteilung der Person existiert eine `Assignment`, die das Modul
   dieser Abteilung mit einer Frist zuweist. Die Person muss der Zielabteilung
   dieser Zuweisung angehören.
@@ -201,6 +202,11 @@ einem zuständigen späteren Use Case und wird hier nicht entworfen.
   Szenario-ID-Liste in der Runde festgehalten. Eine offene Runde wird mit
   dieser gespeicherten Liste fortgesetzt, auch wenn ein Szenario später
   deaktiviert wird.
+- `Module` und `Scenario` werden über `module_scenarios` verbunden. `(module_id,
+  position)` ist eindeutig. Ein Ersatz aktualisiert die bestehende Position auf
+  die neue Szenario-ID und deaktiviert das alte Szenario. Eine neue Runde
+  startet nur bei genau fünf Positionen mit aktiven Szenarien. Die fünf
+  Positionen werden zusätzlich in `game_round_scenarios` gespeichert.
 - `RoundAnswer` enthält Runde, Szenario-Position, gewählte Option und
   Antwortzeitpunkt. Pro Position ist eine Antwort möglich; beantwortet wird
   die erste offene Position. Eine Option muss zum Szenario gehören.
