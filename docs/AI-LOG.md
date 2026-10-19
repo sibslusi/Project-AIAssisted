@@ -36,6 +36,7 @@ Pro Agenten-Sitzung ein kurzer Eintrag. Daraus entsteht am Schluss die Reflexion
 | 2026-10-19 | 1 / UC-002 | GitHub Copilot + gpt-6-luna via LiteLLM | Friststatus ohne gestartete Runde präzisieren | `Frist überschritten` gilt nach Ablauf der Frist auch ohne gestartete Runde | – | Friststatus an die Zuweisung und nicht nur an Spielaktivität koppeln |
 | 2026-10-19 | 1 / – | Copilot Chat + gpt 5.6 luna | AI-LOG-Vorlage bereinigen. Beispielzeile entfernen, echte Einträge unverändert lassen. | docs/AI-LOG.md | keine | TODO Sibslusi |
 | 2026-10-19 | Phase 2 Vorbereitung | Copilot Chat + gpt 5.6 luna | Prompt: Vorbereitete Dokumentationsänderungen committen, pushen und zwei Design-Worktrees anlegen. | Commit und Worktrees für UC-001 und UC-002 | keine | TODO Sibslusi |
+| 2026-10-19 | Phase 3 Vorbereitung | Codex CLI + azure_ai/gpt-6-luna (LiteLLM) | Prompt: Fiktive Startdaten als JSON für Abteilungen, Demo-Konten, 15 Szenarien und drei Module vorbereiten; ungeprüfte Artikelangaben markieren. | data/seed/departments.json, data/seed/users.json, data/seed/scenarios.json, data/seed/modules.json | Phase und Agent/Modell im AI-LOG-Vorschlag korrigiert | TODO Sibslusi |
 
 ## Phase-2-Vorbereitung
 
