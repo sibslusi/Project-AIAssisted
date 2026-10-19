@@ -1,0 +1,22 @@
+[importlinter]
+root_package = app
+include_external_packages = True
+
+[importlinter:contract:domain_forbidden]
+name = Domain does not import frameworks
+type = forbidden
+source_modules = app.domain
+forbidden_modules =
+    fastapi
+    sqlalchemy
+    jinja2
+    httpx
+    starlette
+
+[importlinter:contract:layers]
+name = Clean Architecture layers
+type = layers
+layers =
+    app.interfaces | app.infrastructure
+    app.application
+    app.domain
