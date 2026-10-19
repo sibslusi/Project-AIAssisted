@@ -1,0 +1,130 @@
+[
+  {
+    "id": "user-einwohnerdienste-leitung",
+    "first_name": "Liora",
+    "last_name": "Veylan",
+    "email": "liora.veylan@grenchen.example",
+    "role": "department_lead",
+    "department_id": "department-einwohnerdienste"
+  },
+  {
+    "id": "user-einwohnerdienste-01",
+    "first_name": "Marek",
+    "last_name": "Dalenor",
+    "email": "marek.dalenor@grenchen.example",
+    "role": "employee",
+    "department_id": "department-einwohnerdienste"
+  },
+  {
+    "id": "user-einwohnerdienste-02",
+    "first_name": "Elina",
+    "last_name": "Norveth",
+    "email": "elina.norveth@grenchen.example",
+    "role": "employee",
+    "department_id": "department-einwohnerdienste"
+  },
+  {
+    "id": "user-einwohnerdienste-03",
+    "first_name": "Tarin",
+    "last_name": "Belmar",
+    "email": "tarin.belmar@grenchen.example",
+    "role": "employee",
+    "department_id": "department-einwohnerdienste"
+  },
+  {
+    "id": "user-einwohnerdienste-04",
+    "first_name": "Nerina",
+    "last_name": "Solvek",
+    "email": "nerina.solvek@grenchen.example",
+    "role": "employee",
+    "department_id": "department-einwohnerdienste"
+  },
+  {
+    "id": "user-soziale-dienste-leitung",
+    "first_name": "Amira",
+    "last_name": "Kelvani",
+    "email": "amira.kelvani@grenchen.example",
+    "role": "department_lead",
+    "department_id": "department-soziale-dienste"
+  },
+  {
+    "id": "user-soziale-dienste-01",
+    "first_name": "Jorin",
+    "last_name": "Mavero",
+    "email": "jorin.mavero@grenchen.example",
+    "role": "employee",
+    "department_id": "department-soziale-dienste"
+  },
+  {
+    "id": "user-soziale-dienste-02",
+    "first_name": "Selma",
+    "last_name": "Rovelin",
+    "email": "selma.rovelin@grenchen.example",
+    "role": "employee",
+    "department_id": "department-soziale-dienste"
+  },
+  {
+    "id": "user-soziale-dienste-03",
+    "first_name": "Dario",
+    "last_name": "Fenvar",
+    "email": "dario.fenvar@grenchen.example",
+    "role": "employee",
+    "department_id": "department-soziale-dienste"
+  },
+  {
+    "id": "user-soziale-dienste-04",
+    "first_name": "Elara",
+    "last_name": "Monveth",
+    "email": "elara.monveth@grenchen.example",
+    "role": "employee",
+    "department_id": "department-soziale-dienste"
+  },
+  {
+    "id": "user-finanzen-informatik-leitung",
+    "first_name": "Nerio",
+    "last_name": "Avelor",
+    "email": "nerio.avelor@grenchen.example",
+    "role": "department_lead",
+    "department_id": "department-finanzen-informatik"
+  },
+  {
+    "id": "user-finanzen-informatik-01",
+    "first_name": "Mirel",
+    "last_name": "Tavren",
+    "email": "mirel.tavren@grenchen.example",
+    "role": "employee",
+    "department_id": "department-finanzen-informatik"
+  },
+  {
+    "id": "user-finanzen-informatik-02",
+    "first_name": "Aven",
+    "last_name": "Solmar",
+    "email": "aven.solmar@grenchen.example",
+    "role": "employee",
+    "department_id": "department-finanzen-informatik"
+  },
+  {
+    "id": "user-finanzen-informatik-03",
+    "first_name": "Kira",
+    "last_name": "Vandel",
+    "email": "kira.vandel@grenchen.example",
+    "role": "employee",
+    "department_id": "department-finanzen-informatik"
+  },
+  {
+    "id": "user-finanzen-informatik-04",
+    "first_name": "Orel",
+    "last_name": "Neravin",
+    "email": "orel.neravin@grenchen.example",
+    "role": "employee",
+    "department_id": "department-finanzen-informatik"
+  },
+  {
+    "id": "user-datenschutzverantwortlich",
+    "first_name": "Yara",
+    "last_name": "Merovan",
+    "email": "yara.merovan@grenchen.example",
+    "role": "data_protection_officer",
+    "department_id": "department-finanzen-informatik"
+  }
+]
