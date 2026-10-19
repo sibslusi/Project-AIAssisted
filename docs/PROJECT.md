@@ -158,10 +158,21 @@ The application uses Clean Architecture. Dependencies always point inward:
   badge at 80 percent and team values from three people. It imports no
   FastAPI, SQLAlchemy, Jinja2 or HTTPX code.
 - **Application** contains use cases, access-control rules and ports for
-  repositories, the clock and the optional KI integration.
+  repositories, the clock, CSV export and the optional KI integration.
 - **Interfaces** provides API endpoints, HTML pages with Jinja2 and CSV export.
 - **Infrastructure** implements the ports: SQLAlchemy database access,
-  authentication, session management and the LiteLLM adapter.
+  authentication, session management, system clock, CSV export and the
+  LiteLLM adapter.
+
+```mermaid
+flowchart LR
+  Interfaces[Schnittstellen: FastAPI, Jinja2, CSV-Download] --> UseCases
+  subgraph Application[Application]
+    UseCases[Use Cases und Zugriffsregeln] --> Ports[Ports: Repository, CurrentActor, Clock, KI, CSV-Export]
+  end
+  UseCases --> Domain[Domain: Entitäten und Regeln]
+  Infrastructure[Infrastructure-Adapter: SQLAlchemy, Session/Auth, System Clock, LiteLLM, CSV-Export] -->|implementieren| Ports
+```
 
 The dependency direction is checked automatically in CI. Important architecture
 decisions are documented as ADRs under `docs/adr/`, especially the choice of
@@ -198,7 +209,9 @@ The domain model contains these entities:
 `GameRound` stores the `attempt_number`, completion data, calculated score and
 whether the attempt passed. The score and pass status are stored when the round
 is completed, which simplifies department reports and CSV exports. If a module
-is played more than once, the best attempt determines the training status.
+is played more than once, the best passing attempt determines the training
+status; attempts with the same score are ordered by completion time, earliest
+first.
 
 Published scenarios and their answer options are immutable. A faulty scenario
 is deactivated and replaced by a new scenario; new rounds use only active
@@ -213,8 +226,9 @@ in the web interface.
 - Team aggregates are available only for groups of at least three people.
 - The current date is supplied through a clock port; domain and application
 	code never call `datetime.now()` directly.
-- A repeated round is allowed. The best attempt determines status and badges;
-	all attempts remain available for error analysis.
+- A repeated round is allowed. The best passing attempt determines training
+  status and badges; for equal scores, the first completed attempt wins. All
+  attempts remain available for error analysis.
 - A published scenario cannot be edited or deleted; deactivation and a new
 	replacement scenario are used for corrections.
 - Passwords use Argon2. Forms use CSRF protection. Session cookies

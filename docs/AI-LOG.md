@@ -56,3 +56,6 @@ Pro Agenten-Sitzung ein kurzer Eintrag. Daraus entsteht am Schluss die Reflexion
 - Modell(e): gpt-6-luna via LiteLLM
 - Warum: verfügbarer Coding-Agent mit repository-lokalem Kontext, Skills und
 	nachvollziehbaren Quality-Gate-Prüfungen.
+| 2026-10-19 | Phase 2 Vorbereitung | Copilot Chat + gpt 5.6 luna | Agent-Sandbox auf `workspace-write` mit `on-request` konfigurieren. | Untitled-Konfiguration angepasst | Mensch entschied sich gegen `danger-full-access` | TODO Sibslusi |
+| 2026-10-19 | Phase 2 / UC-001 | Codex + GPT-6 | Prompt: Architekturentwurf UC-001 in der Spezifikation ergänzen; keine Code- oder Testdateien. | UC-001-SZENARIO-RUNDE-SPIELEN.md, docs/TASKS.md | keine | TODO Sibslusi |
+| 2026-10-19 | Phase 2 / UC-001, UC-002 | Codex + GPT-6 | Entwürfe integrieren, Beziehung zwischen Abteilungszuweisung und eigener Abteilung klären, gemeinsames Architekturbild und Fristgrenze prüfen; keine Implementierung oder Tests. | UC-001/UC-002 integriert; Abteilungszuweisung, bester bestandener Versuch/Gleichstandsregel und Fristgrenze vereinheitlicht; PROJECT-Diagramm mit Ports und Adaptern ergänzt; TASKS auf UC-001 gesetzt. | – | TODO Sibslusi |

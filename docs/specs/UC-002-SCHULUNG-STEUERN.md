@@ -164,26 +164,154 @@ berechnet wird
 erledigt` oder `Frist überschritten`, ohne die Systemzeit direkt in Domain oder
 Application aufzurufen.
 
-## Tests
+## Entwurf (Phase 2)
 
-- **Unit:** Zuweisungsvalidierung; Status `offen`, `erledigt`, `verspätet
-  erledigt` und `Frist überschritten`, auch ohne gestartete Runde; Clock-Port;
-  bester Versuch; Rollen- und
-  Abteilungszugriffsregeln; Mindestgruppengrösse von drei Personen mit
-  abgeschlossenem Versuch;
-  Aggregation ohne individuelle Punkte oder Fehler; CSV-Datensätze; Verbot des
-  CSV-Exports für Abteilungsleitungen.
-- **Integration:** Zuweisung über den FastAPI-TestClient; Persistenz von
-  `Assignment`; Statusabfrage für Mitarbeitende und Abteilungsleitung;
-  Schutz fremder Abteilungen; Teamwerte ab drei Personen; vollständige
-  Datenschutzverantwortlichen-Auswertung; CSV-Export mit HTTP-403-Prüfung für
-  Abteilungsleitungen.
-- **E2E API:** Datenschutzverantwortliche weist ein Modul zu; Mitarbeitende
-  sehen ihren Status; eine Abteilungsleitung sieht nur Statuswerte ihrer
-  Abteilung; Teamwerte erscheinen ab drei Personen und nicht darunter; eine
-  abgelaufene Zuweisung wird als `Frist überschritten` angezeigt; ein nach
-  Frist bestandener Abschluss als `verspätet erledigt`; die
-  Datenschutzverantwortliche exportiert den Schulungsnachweis als CSV und eine
-  Abteilungsleitung erhält dafür HTTP 403.
-- **Optional Playwright:** Browser-Ablauf für Modulzuweisung, Statusansicht
-  und CSV-Export, falls die Zeit für Browser-Tests ausreicht.
+### Domain
+
+- `Assignment` bindet ein vorhandenes `Module` an genau eine `Department` und
+  hält ein Fristdatum als lokales Kalenderdatum. `TrainingStatus` hat genau die
+  Werte `offen`, `erledigt`, `verspätet erledigt` und `Frist überschritten`.
+  Die Zuweisungsregeln verlangen Modul, Zielabteilung und ein gültiges Datum;
+  fachlich wird vor dem Speichern geprüft.
+- Die Statusregel erhält einen Zeitpunkt als Argument. Das Fristdatum gilt in
+  `Europe/Zurich` einschliesslich 23:59:59 Uhr am angegebenen lokalen Datum;
+  der Zeitpunkt des Versuchsabschlusses wird vor dem Vergleich in diese
+  Zeitzone umgerechnet. Für den Status zählt der beste bestandene Versuch unter
+  den abgeschlossenen Versuchen der Person für die Zuweisung; bei gleicher
+  Punktzahl gilt der zuerst abgeschlossene bestandene Versuch. Bis zum
+  Fristende `erledigt`, danach `verspätet erledigt`. Gibt es keinen bestandenen
+  Versuch, gilt bis zum Fristende `offen`, danach `Frist überschritten`.
+- Für persönliche Punkte/Fehler und Teamwerte werden je Person die Werte des
+  abgeschlossenen Versuchs mit der höchsten Punktzahl verwendet; bei
+  Punktgleichstand gilt der zuerst abgeschlossene Versuch. Eine Teamaggregation zählt
+  unterschiedliche Personen mit mindestens einem abgeschlossenen Versuch.
+  Unter drei Personen wird kein Punkte- oder Fehlerwert gebildet; ab drei
+  Personen werden die Werte aggregiert.
+- Ein Datensatz für den Schulungsnachweis enthält Person, Modul und
+  Abschlusszeitpunkt. Individuelle Punkte und Fehler gehören nicht in die
+  Abteilungsleitungs-Ausgabe.
+- Domain-Objekte und Regeln kennen weder HTTP noch Persistenzframeworks und
+  lesen keine Systemzeit.
+
+### Application
+
+Alle Services erhalten eine authentifizierte Principal-Identität. Rolle und
+Abteilung stammen aus serverseitig geladenen Employee-Daten, nie aus
+eingereichten Rollen- oder Abteilungswerten. Die Application erzwingt die
+Zugriffsregeln und validiert Eingaben vor dem Aufruf der Repository-Ports.
+
+| Service | Eingabe | Ausgabe |
+|---|---|---|
+| `AssignModule` | Principal, Modul-ID, Abteilungs-ID, Fristdatum (`YYYY-MM-DD`) | gespeicherte `Assignment` |
+| `GetPersonalStatus` | Principal, optional Zuweisungsfilter, Zeitpunkt vom Clock-Port | eigene Statuswerte und eigene beste Ergebnisse |
+| `GetDepartmentStatus` | Principal, angeforderte Abteilungs-ID, optional Zuweisungsfilter, Zeitpunkt | Status pro Person; keine Einzelpunkte oder Einzelfehler |
+| `CreateTeamAggregation` | Principal, Abteilungs-ID, optional Zuweisungsfilter | Aggregat aus Punkte- und Fehlerwerten oder `zu wenige Teilnehmende` |
+| `GetOverallEvaluation` | Principal, optional Filter, Zeitpunkt vom Clock-Port | Status und zulässige Auswertungen aller Abteilungen |
+| `ExportTrainingEvidence` | Principal, Zuweisungs-ID | CSV-Inhalt mit Person, Modul und Abschlusszeitpunkt |
+
+`AssignModule` ist nur für Datenschutzverantwortliche erlaubt. Mitarbeitende
+erhalten ausschliesslich eigene Status- und Ergebnisdaten. Abteilungsleitungen
+erhalten Status pro Person nur für ihre hinterlegte Abteilung; Punkte und
+Fehler erhalten sie ausschliesslich als Teamaggregation ab drei Personen mit
+abgeschlossenem Versuch. Datenschutzverantwortliche können alle Abteilungen
+auswerten und Nachweise exportieren. Der CSV-Service verweigert andere Rollen
+serverseitig.
+
+Repository-Ports liegen in `application`: `AssignmentRepository` zum Speichern
+und Lesen von Zuweisungen, `EmployeeRepository` für Mitarbeitende einer
+Abteilung, `DepartmentRepository` und `ModuleRepository` für Existenz- und
+Stammdatenprüfungen sowie `GameRoundRepository` für abgeschlossene Runden und
+den besten Versuch. `ClockPort` liefert einen zeitzonenbewussten Zeitpunkt;
+die Application übergibt diesen der Domainregel und liest keine Systemzeit
+direkt. `TrainingEvidenceCsvPort` nimmt die zulässigen Nachweisdaten entgegen
+und liefert CSV-Inhalt für den HTTP-Download.
+
+### Interfaces
+
+Die minimale Schnittstelle ist eine HTTP-API für die E2E-API-Fälle:
+
+| Endpoint | Zweck | Erfolg |
+|---|---|---|
+| `POST /api/assignments` | Modul einer Abteilung mit Frist zuweisen (nur Datenschutzverantwortliche) | `201` |
+| `GET /api/me/training-status` | persönlichen Status und eigene Ergebnisse lesen | `200` |
+| `GET /api/departments/{department_id}/training-status` | Status der Abteilung lesen | `200` |
+| `GET /api/departments/{department_id}/training-aggregation` | geschützte Teamwerte lesen | `200` |
+| `GET /api/training/evaluation` | Gesamtauswertung lesen | `200` |
+| `GET /api/assignments/{assignment_id}/training-evidence.csv` | Schulungsnachweis exportieren | `200`, `text/csv` |
+
+Die API antwortet mit `401` bei fehlender Anmeldung, `403` bei falscher Rolle
+oder fremder Abteilung, `422` bei ungültiger Eingabe oder ungültigem
+Fristdatum und `404` bei unbekanntem
+Modul, unbekannter Abteilung oder unbekannter Zuweisung. Der CSV-Export durch
+eine Abteilungsleitung liefert ausdrücklich `403`. Unter drei Personen liefert
+die Aggregationsressource `200` mit `zu wenige Teilnehmende` und ohne Teamwerte.
+
+### Infrastructure
+
+- Persistence-Adapter implementieren die Application-Ports für `Assignment`,
+  `Employee`, `Department`, `Module` und abgeschlossene `GameRound`-Daten.
+  Zu UC-002 gehört hier nur die Adaptergrenze; SQLAlchemy-Implementierung und
+  Datenbankschema werden nicht entworfen.
+- Ein System-Clock-Adapter liefert einen zeitzonenbewussten UTC-Zeitpunkt an
+  den `ClockPort`; Domain und Application greifen nicht direkt auf die
+  Systemzeit zu.
+- Ein CSV-Export-Adapter implementiert `TrainingEvidenceCsvPort` und
+  serialisiert die zulässigen Nachweisdaten. Der HTTP-Endpunkt liefert den
+  erzeugten Inhalt als `text/csv`-Download.
+
+```mermaid
+flowchart LR
+  Interfaces[HTTP API] --> App[Application Services]
+  App --> Domain[Domain-Regeln]
+  App --> Ports[Repository-, Clock- und CSV-Ports]
+  Adapters[Persistence-, Clock- und CSV-Adapter] --> Ports
+```
+
+## Tests (Entwurf)
+
+Die folgenden konkreten E2E-API-Fälle decken die Akzeptanzkriterien ab. Sie
+verwenden ausschliesslich fiktive Mitarbeitende, Abteilungen, Module und Runden
+sowie kontrollierte Zeitpunkte; dies beschreibt Tests, legt aber keine
+Testdateien oder Implementierung an.
+
+| Kriterium | E2E-API-Fall und erwartetes Ergebnis |
+|---|---|
+| AC-001 | Als Datenschutzverantwortliche ein vorhandenes Modul mit Abteilung und gültiger Frist via `POST /api/assignments` zuweisen; `201`, danach enthält der Datensatz Modul, Abteilung und Frist. |
+| AC-002 | Je einen POST mit fehlender Modul-ID, Abteilungs-ID oder Fristdatum sowie ungültigem Datumsformat senden; alle liefern `422` und erzeugen keine Zuweisung. |
+| AC-003 | Eine Zuweisung ohne bestandenen Versuch mit kontrollierter Zeit vor und genau am lokalen Fristende (23:59:59 Europe/Zurich) abfragen; beide Male `offen`. |
+| AC-004 | Eine Zuweisung mit bestandenem Versuch bis einschliesslich 23:59:59 Uhr am Fristdatum in `Europe/Zurich` abfragen; Status `erledigt`. |
+| AC-005 | Zuweisung ohne bestandenen Versuch ab dem Folgetag in `Europe/Zurich` abfragen, einmal ohne gestartete Runde und einmal mit nicht abgeschlossener Runde; Status jeweils `Frist überschritten`. |
+| AC-006 | Zuweisung ohne früheren bestandenen Versuch mit bestandenem Abschluss am Folgetag nach dem lokalen Fristdatum abfragen; Status `verspätet erledigt`. |
+| AC-007 | Als Mitarbeitende den eigenen Status abrufen und eine fremde Mitarbeiter-ID als Filter übermitteln; die Antwort enthält nur eigene Status- und Ergebnisdaten, der fremde Filter wird abgewiesen. Nicht angemeldet liefert `401`. |
+| AC-008 | Als Abteilungsleitung die eigene Abteilung abfragen; Antwort enthält pro Person nur einen der vier Statuswerte und keine individuellen Punkte oder Fehler. |
+| AC-009 | Als Leitung von Abteilung A den Status von Abteilung B anfordern; `403` und keine Statusdaten von B. |
+| AC-010 | Für drei verschiedene Personen der eigenen Abteilung abgeschlossene Versuche bereitstellen und die Teamaggregation abrufen; aggregierte Punkte und Fehler erscheinen, keine Einzelwerte oder identifizierbaren Versuchsdaten. |
+| AC-011 | Aggregation zunächst mit zwei, dann mit null abgeschlossenen Personen abrufen; jeweils `200` mit `zu wenige Teilnehmende` und ohne Punkte- oder Fehlerwerte. |
+| AC-012 | Als Datenschutzverantwortliche Gesamtauswertung abrufen; Status und zulässige Auswertung enthalten alle fiktiven Abteilungen und Zuweisungen. |
+| AC-013 | Als Datenschutzverantwortliche für eine gültige Zuweisung CSV exportieren; `200`, `text/csv`, mit Person, Modul und Abschlusszeitpunkt für abgeschlossene Nachweise. |
+| AC-014 | Als Abteilungsleitung denselben CSV-Endpunkt aufrufen; `403`, ohne CSV-Inhalt. |
+| AC-015 | Dieselbe Zuweisung ohne bestandenen Versuch mit kontrolliertem Zeitpunkt vor, genau am Fristende (23:59:59) und ab dem Folgetag in `Europe/Zurich` abfragen; der Status wechselt von `offen` zu `Frist überschritten`, ohne direkte Systemzeitabhängigkeit. |
+
+Zusätzlicher E2E-Fall: Zwei bestandene Versuche mit gleicher Punktzahl und
+unterschiedlichen Abschlusszeitpunkten bereitstellen. Status und Nachweis
+verwenden den zuerst abgeschlossenen Versuch.
+
+Zusätzlich werden die Fehlerverträge durch E2E-Aufrufe geprüft: unangemeldete
+Zugriffe `401`, unzulässige Rollen und fremde Abteilungen `403`, ungültige
+Eingaben `422`, unbekannte Modul-/Abteilungs-/Zuweisungs-IDs `404` und
+CSV-Export ohne gültige Zuweisung `404`. Diese Fälle verwenden dieselben
+Endpunkte wie die Akzeptanzfälle oben.
+
+## Quality Gate Phase 2
+
+| Prüfung | Befund | Evidenz |
+|---|---|---|
+| UC-002-Akzeptanzkriterien und E2E-Fälle | Abgedeckt | Die Tabelle oben ordnet AC-001 bis AC-015 je einem konkreten API-Fall zu. |
+| Schichten, Ports und Datenschutzregeln | Abgedeckt | Entwurf benennt Domain, Application, Interfaces und Infrastructure; Rollen, Abteilungen, Aggregationsschwelle und CSV-Recht sind explizit. |
+| Implementierung/Testdateien | Keine erstellt | Änderung beschränkt sich auf diesen Entwurf in der UC-Spezifikation. |
+| Lifecycle-Router | Erfüllt | `docs/TASKS.md` steht auf PHASE 2 / STATUS in-progress und führt UC-001 als Current Use Case; UC-002 bleibt als entworfener Use Case im Backlog. |
+| Gemeinsames Architekturdiagramm | Erfüllt | `docs/PROJECT.md` enthält jetzt das gemeinsame Mermaid-Diagramm; dieser Entwurf zeigt zusätzlich die UC-002-Komponenten. |
+
+Der Quality Gate ist geprüft; STATUS bleibt gemäss Auftrag `in-progress`.
+Die Frist ist ein lokales Kalenderdatum in `Europe/Zurich` und gilt bis
+einschliesslich 23:59:59 Uhr.
