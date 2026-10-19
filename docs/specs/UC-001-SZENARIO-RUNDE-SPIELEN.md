@@ -17,18 +17,19 @@ Abteilungsleitung, Datenschutzverantwortliche, Anwendung
 
 - Die Person ist angemeldet und einer Abteilung sowie einer Rolle zugeordnet.
 - Die E-Mail-Adresse wurde bei der Registrierung als hinterlegte
-  `@grenchen.ch`-Adresse erkannt.
+  `@grenchen.example`-Adresse erkannt.
 - Der Person ist ein Modul ihrer eigenen Abteilung zugewiesen.
-- Das Modul enthält fünf veröffentlichte Datenschutzfälle.
-- Jeder Fall ist veröffentlicht und aktiv und besitzt drei bis vier
+- Das Modul enthält genau fünf aktive Datenschutzfälle.
+- Jeder Fall ist aktiv und besitzt drei bis vier
   Antwortmöglichkeiten, genau eine richtige Antwort, eine Erklärung und eine
   Rechtsgrundlage.
 
 ## Flow
 
 1. Die Mitarbeitende öffnet ein ihr zugewiesenes Modul.
-2. Die Anwendung startet eine neue `GameRound` mit der nächsten
-  `attempt_number` und verwendet die aktuell aktiven, veröffentlichten Fälle.
+2. Wenn keine offene `GameRound` existiert, startet die Anwendung eine neue
+  `GameRound` mit der nächsten `attempt_number` und verwendet genau fünf
+  aktive Fälle.
 3. Die Anwendung zeigt nacheinander die fünf Fälle und die jeweiligen
    Antwortmöglichkeiten.
 4. Die Mitarbeitende wählt eine Antwort und bestätigt sie.
@@ -44,7 +45,8 @@ Abteilungsleitung, Datenschutzverantwortliche, Anwendung
 10. Die Mitarbeitende kann das Modul später erneut spielen. Für den
     Schulungsstatus zählt der beste Versuch; frühere Versuche bleiben erhalten.
 11. Ist die Frist des `Assignment` abgelaufen, darf die Mitarbeitende das Modul
-  weiterhin spielen. Der Abschluss wird zusätzlich als `verspätet` markiert;
+  weiterhin spielen. Der Abschluss wird zusätzlich als `verspätet erledigt`
+  markiert;
   Bewertung und Bestehensgrenze bleiben unverändert.
 12. Schliesst die Mitarbeitende den Browser während der Runde, bleibt die
   `GameRound` mit dem Status `offen` gespeichert. Bereits gespeicherte
@@ -65,8 +67,8 @@ Abteilungsleitung, Datenschutzverantwortliche, Anwendung
   nicht nochmals bewertet werden.
 - Nicht gefunden: Ein unbekanntes Modul oder ein unbekannter Fall führt zu
   einer kontrollierten Fehlermeldung.
-- Nicht veröffentlichter Fall: Ein Modul mit einem nicht veröffentlichten oder
-  unvollständigen Fall kann nicht gestartet werden.
+- Zu wenige aktive Fälle: Ein Modul mit weniger als fünf aktiven Fällen kann
+  nicht gestartet werden.
 
 ## Acceptance
 
@@ -74,8 +76,8 @@ Abteilungsleitung, Datenschutzverantwortliche, Anwendung
 
 **Given** eine angemeldete Mitarbeitende mit einem Modul ihrer Abteilung  
 **When** sie das Modul öffnet  
-**Then** startet die Anwendung eine neue `GameRound` mit fünf veröffentlichten
-Fällen und der nächsten `attempt_number`.
+**Then** startet die Anwendung eine neue `GameRound` mit genau fünf aktiven
+Fällen und der nächsten `attempt_number`, sofern keine offene Runde existiert.
 
 ### AC-002: Nur eigene Abteilung
 
@@ -139,7 +141,7 @@ fremden Moduls preiszugeben.
 **Given** ein der Mitarbeitenden zugewiesenes Modul mit abgelaufener Frist  
 **When** sie das Modul startet und abschliesst  
 **Then** bewertet die Anwendung die Runde normal, markiert den Abschluss als
-`verspätet` und wendet weiterhin die Bestehensgrenze von 80 Prozent an.
+`verspätet erledigt` und wendet weiterhin die Bestehensgrenze von 80 Prozent an.
 
 ### AC-011: Offene Runde fortsetzen
 
@@ -154,24 +156,25 @@ Frage fort und bewertet sie erst nach der letzten Antwort.
 **When** eine neue Runde startet  
 **Then** wird das deaktivierte Szenario nicht verwendet.
 
-### AC-013: Veröffentlichtes Szenario unveränderlich
+### AC-013: Angelegtes Szenario unveränderlich
 
-**Given** ein veröffentlichtes Szenario mit Antwortoptionen  
+**Given** ein angelegtes aktives Szenario mit Antwortoptionen
 **When** eine Änderung oder Löschung des Szenarios angefordert wird  
-**Then** weist die Anwendung die Änderung ab; der Fall wird bei Bedarf
-deaktiviert und durch ein neues Szenario ersetzt.
+**Then** weist die Anwendung die Änderung ab; der Fall kann deaktiviert und
+durch ein neues Szenario ersetzt werden.
 
 ## Tests
 
 - **Unit:** Bewertung von richtigen Antworten und Punktzahl; Bestehensgrenze
   von 80 Prozent; Status aus dem besten Versuch; `attempt_number`; Nutzung nur
-  aktiver Szenarien; Unveränderlichkeit veröffentlichter Szenarien; Friststatus
-  `verspätet`; Zugriffsregeln für eigene und fremde Abteilungen; Rollen;
+  aktiver Szenarien; Unveränderlichkeit angelegter Szenarien; Friststatus
+  `verspätet erledigt`; Zugriffsregeln für eigene und fremde Abteilungen;
+  Rollen;
   Validierung angebotener Antwortoptionen.
 - **Integration:** Start einer Runde über den FastAPI-TestClient; Persistenz
   von `GameRound` und `RoundAnswer`; sofortiges Feedback mit Erklärung und
   Rechtsgrundlage; Abschluss mit gespeicherter Punktzahl; Wiederholung und
-  Auswahl des besten Versuchs; Friststatus `verspätet`; Fortsetzung einer
+  Auswahl des besten Versuchs; Friststatus `verspätet erledigt`; Fortsetzung einer
   offenen Runde; Ausschluss deaktivierter Szenarien; Zugriffsschutz auf
   Repository- und Application-Ebene.
 - **E2E API:** angemeldete Mitarbeitende starten ein eigenes Modul,

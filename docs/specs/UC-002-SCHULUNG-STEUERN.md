@@ -17,8 +17,8 @@ Abteilungsleitung, Mitarbeitende, Anwendung
 ## Preconditions
 
 - Die Datenschutzverantwortliche ist angemeldet und ihrer hinterlegten
-  `@grenchen.ch`-Adresse zugeordnet.
-- Module und veröffentlichte, aktive Datenschutzfälle existieren.
+  `@grenchen.example`-Adresse zugeordnet.
+- Module und aktive Datenschutzfälle existieren.
 - Mitarbeitende gehören jeweils genau einer Abteilung an.
 - Für jede Zuweisung sind Modul, Zielabteilung und Frist festgelegt.
 - Der aktuelle Zeitpunkt wird über einen Clock-Port oder als Parameter an die
@@ -38,7 +38,8 @@ Abteilungsleitung, Mitarbeitende, Anwendung
    aller Abteilungen.
 7. Die Abteilungsleitung sieht nur den Status pro Person der eigenen Abteilung.
    Punkte und Fehler werden nur als Teamwerte aggregiert angezeigt.
-8. Teamwerte werden erst ab mindestens drei Personen angezeigt.
+8. Teamwerte werden erst ab mindestens drei Personen mit abgeschlossenem
+  Versuch angezeigt.
 9. Ausschliesslich die Datenschutzverantwortliche kann einen Schulungsnachweis
   als CSV mit Person, Modul und Abschlusszeitpunkt exportieren.
 
@@ -121,15 +122,16 @@ erledigt` oder `Frist überschritten`.
 
 ### AC-010: Teamwerte ab drei Personen
 
-**Given** eine Abteilungsleitung und mindestens drei Personen in ihrer Abteilung  
+**Given** eine Abteilungsleitung und mindestens drei Personen mit
+abgeschlossenem Versuch in ihrer Abteilung
 **When** sie die Team-Auswertung abfragt  
 **Then** sieht sie aggregierte Punkte und Fehler der Abteilung, aber keine
 individuellen Punkte oder Fehler.
 
 ### AC-011: Teamwerte unter drei Personen schützen
 
-**Given** eine Abteilungsleitung und weniger als drei Personen mit einer
-Zuweisung  
+**Given** eine Abteilungsleitung und weniger als drei Personen mit einem
+abgeschlossenen Versuch
 **When** sie die Team-Auswertung abfragt  
 **Then** zeigt die Anwendung keine Teamwerte und den Hinweis `zu wenige
 Teilnehmende`.
@@ -167,7 +169,8 @@ Application aufzurufen.
 - **Unit:** Zuweisungsvalidierung; Status `offen`, `erledigt`, `verspätet
   erledigt` und `Frist überschritten`, auch ohne gestartete Runde; Clock-Port;
   bester Versuch; Rollen- und
-  Abteilungszugriffsregeln; Mindestgruppengrösse von drei Personen;
+  Abteilungszugriffsregeln; Mindestgruppengrösse von drei Personen mit
+  abgeschlossenem Versuch;
   Aggregation ohne individuelle Punkte oder Fehler; CSV-Datensätze; Verbot des
   CSV-Exports für Abteilungsleitungen.
 - **Integration:** Zuweisung über den FastAPI-TestClient; Persistenz von

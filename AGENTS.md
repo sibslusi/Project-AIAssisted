@@ -70,8 +70,8 @@ Use the project-specific install, test, run and release commands documented in
 - Keep artifacts **minimal**.
 - Avoid unnecessary comments in code.
 - Follow **TDD** (tests before code).
-- Respect **Clean Architecture**  
-  domain ← application ← interfaces ← infrastructure
+- Respect **Clean Architecture**. Dependencies point inward:
+  Interfaces / Infrastructure → Application → Domain
 - Prefer **small vertical slices** (one UC end-to-end).
 - Read the [canonical AI-SDLC documentation](https://docs.aisl.science/learning-and-resources/ai-sdlc)
   when terminology or lifecycle responsibilities are unclear.
@@ -80,7 +80,7 @@ If requirements or architecture are unclear → ask the user.
 
 ---
 
-## Project Rules — Datenschutz am Schalter
+## Project Rules — Datenschutzfälle im Gemeindewesen
 
 - Product, roles, entities and stack: `docs/PROJECT.md`. Decisions: `docs/adr/`.
 - `src/app/domain` must not import fastapi, sqlalchemy, jinja2 or httpx; enforced by import-linter in CI.
@@ -88,11 +88,12 @@ If requirements or architecture are unclear → ask the user.
 - Access rules are business logic in `application`, covered by unit tests:
   employees see only their own results; department leads see only their department,
   per-person status only, scores aggregated; data protection officers see all.
-- Domain rules with unit tests: team aggregates only for groups of 3 or more;
-  current date passed in (clock port), never `datetime.now()` in domain/application;
-  scenario edits create a new version, answered rounds keep their version.
+- Domain rules with unit tests: team aggregates only for groups of 3 or more
+  completed attempts; current date passed in (clock port), never
+  `datetime.now()` in domain/application; created scenarios and answer options
+  are immutable, and faulty scenarios are deactivated and replaced.
 - Fictional data only. No real names, no real data of Stadt Grenchen.
-- Login: passwords hashed with bcrypt/argon2, secure session cookie, CSRF protection on forms.
+- Login: passwords hashed with Argon2, secure session cookie, CSRF protection on forms.
 - Secrets only in `.env` (gitignored) or GitHub Secrets; keep `.env.example` with placeholders.
 - LLM calls (UC-003) only via the `infrastructure` adapter to LiteLLM; tests use a fake adapter.
 - End every phase with `skills/ai-sdlc-quality-gate`: report checks with evidence, ask open questions, set STATUS done only after the user confirms.

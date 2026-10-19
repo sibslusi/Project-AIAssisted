@@ -1,4 +1,4 @@
-# Prompts pro Phase – „Datenschutz am Schalter“
+# Prompts pro Phase – „Datenschutzfälle im Gemeindewesen“
 
 Diese Prompts gibst du dem Coding-Agenten in VS Code, und zwar der Reihe nach. Jeder Prompt bearbeitet **einen** Schritt.
 Am Ende jeder Phase führt der Agent automatisch den Quality Gate aus (`skills/ai-sdlc-quality-gate`): Er prüft eine Checkliste, belegt jeden Punkt, stellt Rückfragen und wartet auf dein OK. Danach prüfst du das Ergebnis, schreibst einen Eintrag in `docs/AI-LOG.md` und machst einen Commit.
@@ -17,10 +17,10 @@ Vorgehen in zwei Schritten:
 
 ## Rahmen
 Capstone-Projekt im Modul "AI-assisted Software Development" (FHNW), Abgabe 29.10.2026, also wenig Zeit: Halte alles minimal.
-Anforderungen: Enterprise-Full-Stack-Anwendung, Clean Architecture (domain ← application ← interfaces ← infrastructure), mindestens 5 Entitäten mit ORM, mindestens 2 Use Cases, TDD mit Unit-, Integrations- und E2E-Tests, CI/CD mit Docker und Cloud-Deployment (Render für die App, Neon für PostgreSQL).
+Anforderungen: Enterprise-Full-Stack-Anwendung, Clean Architecture (Interfaces / Infrastructure → Application → Domain), mindestens 5 Entitäten mit ORM, mindestens 2 Use Cases, TDD mit Unit-, Integrations- und E2E-Tests, CI/CD mit Docker und Cloud-Deployment (Render für die App, Neon für PostgreSQL).
 
 ## Produkt
-Compliance-Schulungsplattform für Gemeinden: "Datenschutz am Schalter".
+Compliance-Schulungsplattform für Gemeinden: "Datenschutzfälle im Gemeindewesen".
 Mitarbeitende einer fiktiven Schweizer Stadtverwaltung (Vorbild: Stadt Grenchen, Kanton Solothurn, kantonales InfoDG) trainieren Datenschutz mit realistischen Alltagsszenarien im Spielformat. Die Gemeinde kann nachweisen, dass geschult wurde, und sieht, wo Risiken bestehen. Sprache der Oberfläche: Deutsch.
 
 ## Abteilungen (Stammdaten, keine Rollen)
@@ -32,13 +32,13 @@ Erste Version mit Szenarien nur für: Einwohnerdienste, Soziale Dienste, Finanze
 2. Abteilungsleitung: sieht nur die eigene Abteilung; pro Person nur den Status (erledigt / offen / Frist überschritten), Punkte und Fehler nur aggregiert fürs Team.
 3. Datenschutzverantwortliche: verwaltet Szenarien, weist Module mit Frist zu, sieht Auswertung aller Abteilungen.
 Abteilung und Rolle sind getrennt: Eine Person hat genau eine Abteilung und eine Rolle.
-Login: einfacher Login mit Benutzername und Passwort (bcrypt oder argon2) und Session-Cookie (HttpOnly, Secure, SameSite), CSRF-Schutz für Formulare, Demo-Benutzer pro Rolle als Seed-Daten. Kein SSO.
+Login: einfacher Login mit Benutzername und Passwort (Argon2) und Session-Cookie (HttpOnly, Secure, SameSite), CSRF-Schutz für Formulare, Demo-Benutzer pro Rolle als fiktive Seed-Daten. Kein SSO.
 
 ## Entitäten (Vorschlag, bitte prüfen)
 Abteilung, Mitarbeitende, Szenario (mit aktiv/inaktiv und Feld "Rechtsgrundlage", z.B. "InfoDG SO, Art. …"), Antwortoption, Modul (Gruppe von Szenarien), Zuweisung (Modul an Abteilung mit Frist), Spielrunde, Rundenantwort (gewählte Antwort pro Szenario), Abzeichen als berechneter Status.
 
 ## Fachregeln (Domain, mit Unit-Tests)
-- Mindestgruppengrösse: Aggregierte Team-Auswertungen werden erst ab 3 Personen angezeigt, sonst "zu wenige Teilnehmende" (Schutz vor Rückschluss auf Einzelpersonen).
+- Mindestgruppengrösse: Aggregierte Team-Auswertungen werden erst ab 3 Personen mit abgeschlossenem Versuch angezeigt, sonst "zu wenige Teilnehmende" (Schutz vor Rückschluss auf Einzelpersonen).
 - Fristen: Das aktuelle Datum wird der Logik als Parameter bzw. über einen Clock-Port übergeben, nie direkt datetime.now() in domain oder application.
 - Wiederholung: Eine Runde darf wiederholt werden; für Status und Abzeichen zählt der beste Versuch, für die Fehlerauswertung alle Versuche. (Bitte als Annahme bestätigen lassen.)
 - Veröffentlichte Szenarien und Antwortoptionen sind unveränderlich. Fehlerhafte Szenarien werden deaktiviert und durch neue Szenarien ersetzt; neue Runden verwenden nur aktive Szenarien.

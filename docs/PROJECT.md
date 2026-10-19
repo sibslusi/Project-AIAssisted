@@ -24,7 +24,7 @@ verwalten sowie den Schulungsstand der Gemeinde kontrollieren.
 
 1. Login für Mitarbeitende, Abteilungsleitungen und
 	Datenschutzverantwortliche. Die Registrierung erfolgt mit einer
-	`@grenchen.ch`-E-Mail-Adresse; danach werden Benutzer, Abteilung und Rolle
+	`@grenchen.example`-E-Mail-Adresse; danach werden Benutzer, Abteilung und Rolle
 	anhand der hinterlegten Adresse zugeordnet.
 2. Datenschutzfälle als interaktive Szenarien lösen.
 3. Sofortige Bewertung mit Erklärung.
@@ -32,7 +32,7 @@ verwalten sowie den Schulungsstand der Gemeinde kontrollieren.
 5. Aggregierte Abteilungsauswertung anzeigen.
 6. Fälle und Schulungsmodule verwalten.
 
-### Target audience and roles
+### Zielgruppe und Rollen
 
 Die Anwendung richtet sich primär an Mitarbeitende der Gemeinde Grenchen und
 ist auf deren Verwaltungsalltag zugeschnitten. Die Grundstruktur soll später
@@ -47,7 +47,8 @@ auch von anderen Gemeinden übernommen werden können.
 
 ### In scope
 
-- Selbst erstelltes Konto mit E-Mail-Adresse im Format `@grenchen.ch` und
+- Selbst erstelltes Konto mit einer fiktiven Demo-E-Mail-Adresse im Format
+	`@grenchen.example` und
 	Passwort. Nach `Create account` werden Benutzer, Abteilung und Rolle anhand
 	einer hinterlegten Grenchen-E-Mail-Adresse zugeordnet.
 - Die erste Version enthält realistische, fiktive Datenschutzfälle aus dem
@@ -81,8 +82,9 @@ auch von anderen Gemeinden übernommen werden können.
 - Abteilungsleitungen sehen den Status ihrer eigenen Abteilung.
 - Punkte und Fehler werden für Abteilungsleitungen nur als aggregierte
 	Teamwerte angezeigt.
-- Die Auswertung wird erst ab mindestens drei Personen eingeblendet, damit
-	keine Rückschlüsse auf einzelne Personen möglich sind.
+- Die Auswertung wird erst ab mindestens drei Personen mit abgeschlossenem
+	Versuch eingeblendet, damit keine Rückschlüsse auf Einzelpersonen möglich
+	sind.
 - Datenschutzverantwortliche sehen die Auswertung aller Abteilungen.
 
 ### Verwaltung von Fällen und Modulen
@@ -91,8 +93,9 @@ Datenschutzverantwortliche können neue Datenschutzfälle erstellen und bestehen
 Fälle deaktivieren. Veröffentliche Szenarien und ihre Antwortoptionen werden
 nicht bearbeitet oder gelöscht. Sie können mehrere Fälle zu einem Schulungsmodul
 zusammenfassen, das Modul einer Abteilung zuweisen und eine Frist festlegen.
-- Fiktive Seed-Daten, automatisierte Tests und lokaler Betrieb mit PostgreSQL
-  oder SQLite fuer die Entwicklung.
+
+Fiktive Seed-Daten, automatisierte Tests und lokaler Betrieb mit PostgreSQL oder
+SQLite fuer die Entwicklung gehören zum Projektumfang.
 
 ### Sicherheit und Datenschutz
 
@@ -214,7 +217,7 @@ in the web interface.
 	all attempts remain available for error analysis.
 - A published scenario cannot be edited or deleted; deactivation and a new
 	replacement scenario are used for corrections.
-- Passwords use bcrypt or Argon2. Forms use CSRF protection. Session cookies
+- Passwords use Argon2. Forms use CSRF protection. Session cookies
 	are HttpOnly, Secure and SameSite. Die Zuordnung von Benutzer, Abteilung und
 	Rolle wird serverseitig geprüft und nicht aus frei eingegebenen Formularwerten
 	übernommen.
@@ -251,7 +254,7 @@ activated.
 | Optional browser tests | `playwright test` |
 | Run locally | `uvicorn app.interfaces.http:app --reload` |
 | Coverage | `pytest --cov=src/app --cov-report=term-missing` |
-| Build/release | `docker build -t datenschutz-am-schalter .` |
+| Build/release | `docker build -t datenschutzfaelle-gemeindewesen .` |
 
 These commands describe the target project structure. The test and application
 paths become executable during DEVELOP after the corresponding vertical slices
