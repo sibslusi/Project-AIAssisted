@@ -1,0 +1,14 @@
+[
+  {
+    "id": "department-einwohnerdienste",
+    "name": "Einwohnerdienste"
+  },
+  {
+    "id": "department-soziale-dienste",
+    "name": "Soziale Dienste"
+  },
+  {
+    "id": "department-finanzen-informatik",
+    "name": "Finanzen und Informatik"
+  }
+]

@@ -1,0 +1,437 @@
+[
+  {
+    "id": "scenario-einwohnerdienste-01",
+    "active": true,
+    "situation": "Am Schalter beantragt eine Person eine Änderung ihrer Adresse und zeigt ein Foto eines Ausweises auf dem Mobiltelefon. Im Wartebereich kann die nächste Person den geöffneten Bildschirm der Sachbearbeitung teilweise sehen.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Die Identität und die nötigen Nachweise im vorgesehenen Verfahren prüfen, den Bildschirm vor Einblicken schützen und nur die erforderlichen Angaben erfassen.",
+        "correct": true
+      },
+      {
+        "id": "b",
+        "text": "Die Änderung sofort eintragen und den Nachweis später prüfen, damit die wartende Person nicht länger warten muss.",
+        "correct": false
+      },
+      {
+        "id": "c",
+        "text": "Den Ausweis auf dem privaten Mobiltelefon fotografieren, damit die Unterlagen für die spätere Bearbeitung verfügbar sind.",
+        "correct": false
+      },
+      {
+        "id": "d",
+        "text": "Die Adresse und den fehlenden Nachweis vor dem Schalterpublikum laut besprechen, um die Angaben gemeinsam zu kontrollieren.",
+        "correct": false
+      }
+    ],
+    "explanation": "Die Identität und die für die Änderung erforderlichen Belege sind vor einer Anpassung zu prüfen. Angaben und Bildschirm sollen so behandelt werden, dass wartende Personen sie nicht unnötig mitsehen oder mithören.",
+    "legal_basis": "InfoDG SO (Artikel zu prüfen)"
+  },
+  {
+    "id": "scenario-einwohnerdienste-02",
+    "active": true,
+    "situation": "Am Telefon bittet eine anrufende Person um die aktuelle Adresse ihres Ehepartners und sagt, sie organisiere einen überraschenden Umzug. Die Identität des Anrufers ist nicht verifiziert und eine Vollmacht liegt nicht vor.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Nur bestätigen, ob die genannte Adresse noch aktuell ist, ohne eine neue Adresse zu nennen.",
+        "correct": false
+      },
+      {
+        "id": "b",
+        "text": "Keine Auskunft über die Person bestätigen oder herausgeben und zuerst eine gültige Berechtigung oder eine passende Rechtsgrundlage über den vorgesehenen Weg prüfen.",
+        "correct": true
+      },
+      {
+        "id": "c",
+        "text": "Die Adresse nennen, wenn der Anrufer genügend persönliche Einzelheiten über den Ehepartner weiss.",
+        "correct": false
+      },
+      {
+        "id": "d",
+        "text": "Die gewünschte Adresse per E-Mail senden, nachdem der Anrufer seine Kontaktadresse am Telefon buchstabiert hat.",
+        "correct": false
+      }
+    ],
+    "explanation": "Eine plausible Geschichte und Kenntnisse über eine Person belegen noch keine Berechtigung zur Auskunft. Auch eine blosse Bestätigung kann eine Information über die betroffene Person offenbaren.",
+    "legal_basis": "InfoDG SO (Artikel zu prüfen)"
+  },
+  {
+    "id": "scenario-einwohnerdienste-03",
+    "active": true,
+    "situation": "Eine Person schickt dem Einwohnerdienst per E-Mail eine Ausweiskopie und verlangt eine Korrektur ihrer Daten. Die Nachricht ging an ein gemeinsam genutztes Postfach, auf das auch Mitarbeitende ohne Bearbeitungsauftrag Zugriff haben.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Die Ausweiskopie an alle Mitarbeitenden im Postfach weiterleiten und um eine rasche Prüfung bitten.",
+        "correct": false
+      },
+      {
+        "id": "b",
+        "text": "Die Kopie dauerhaft im allgemeinen Postfach ablegen, damit sie bei späteren Fragen wiedergefunden werden kann.",
+        "correct": false
+      },
+      {
+        "id": "c",
+        "text": "Die Bearbeitung auf einen zuständigen Zugriff beschränken, die Identität und den nötigen Nachweis im vorgesehenen Verfahren prüfen und eine nicht benötigte Kopie nicht weiter aufbewahren.",
+        "correct": true
+      },
+      {
+        "id": "d",
+        "text": "Die Änderung sofort vornehmen und die E-Mail anschliessend löschen, ohne den Eingang oder das weitere Vorgehen festzuhalten.",
+        "correct": false
+      }
+    ],
+    "explanation": "Zugriff auf die Nachricht sollen nur Personen mit einem Bearbeitungsauftrag haben. Für die Korrektur ist die Identität zu prüfen; eine Ausweiskopie soll nicht länger oder breiter verfügbar bleiben als erforderlich.",
+    "legal_basis": "InfoDG SO (Artikel zu prüfen)"
+  },
+  {
+    "id": "scenario-einwohnerdienste-04",
+    "active": true,
+    "situation": "Eine Person verlangt Akteneinsicht in Unterlagen zu einem laufenden Verwaltungsverfahren. In der Akte stehen auch Kontaktdaten und Angaben zu einer weiteren beteiligten Person.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Die gesamte Akte unverändert übermitteln, weil eine beteiligte Person stets Anspruch auf alle darin enthaltenen Informationen hat.",
+        "correct": false
+      },
+      {
+        "id": "b",
+        "text": "Die Einsicht vollständig ablehnen, weil die Akte Angaben zu mehr als einer Person enthält.",
+        "correct": false
+      },
+      {
+        "id": "c",
+        "text": "Eine interne Zusammenfassung mit den Namen aller beteiligten Personen an weitere Stellen schicken und die anfragende Person später informieren.",
+        "correct": false
+      },
+      {
+        "id": "d",
+        "text": "Berechtigung und Umfang des Einsichtsbegehrens prüfen, schutzbedürftige Angaben Dritter beurteilen und nötigenfalls vor der Einsicht schwärzen.",
+        "correct": true
+      }
+    ],
+    "explanation": "Vor einer Akteneinsicht sind Anspruch und Umfang im konkreten Verfahren zu klären. Angaben weiterer Personen sind gesondert zu beurteilen und bei Bedarf vor der Einsicht zu schützen.",
+    "legal_basis": "InfoDG SO (Artikel zu prüfen)"
+  },
+  {
+    "id": "scenario-einwohnerdienste-05",
+    "active": true,
+    "situation": "Ein anderes Amt bittet per E-Mail um eine vollständige Liste aller kürzlich umgezogenen Personen, um eigene Unterlagen abzugleichen. Die Anfrage nennt weder einen konkreten Zeitraum noch die benötigten Datenfelder oder eine Rechtsgrundlage.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Zweck, Zuständigkeit und erforderliche Daten mit dem anfragenden Amt klären, die Rechtsgrundlage prüfen und nur nötige Angaben über einen geeigneten sicheren Weg weitergeben.",
+        "correct": true
+      },
+      {
+        "id": "b",
+        "text": "Die vollständige Liste sofort an die bekannte Amtsadresse senden, weil beide Stellen zur Gemeinde gehören.",
+        "correct": false
+      },
+      {
+        "id": "c",
+        "text": "Die Liste an alle Leitungen beider Ämter senden und die Empfänger entscheiden lassen, welche Angaben sie brauchen.",
+        "correct": false
+      },
+      {
+        "id": "d",
+        "text": "Nur Namen und Geburtsdaten senden; diese Angaben gelten als ausreichend eingeschränkt, auch ohne geklärten Zweck.",
+        "correct": false
+      }
+    ],
+    "explanation": "Eine interne Weitergabe braucht ebenfalls einen geklärten Zweck und eine passende Berechtigung. Umfang und Übermittlungsweg sollen auf das Erforderliche begrenzt und nachvollziehbar sein.",
+    "legal_basis": "InfoDG SO (Artikel zu prüfen)"
+  },
+  {
+    "id": "scenario-soziale-dienste-01",
+    "active": true,
+    "situation": "Am Empfang der Sozialen Dienste fragt ein Familienangehöriger, ob eine bestimmte Person bereits finanzielle Unterstützung erhält. Er sagt, er wolle bei einem Formular helfen, und kennt die Fallnummer.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Den Empfang der Unterstützung bestätigen, aber keine Beträge oder Termine nennen.",
+        "correct": false
+      },
+      {
+        "id": "b",
+        "text": "Weder den Fall noch den Leistungsbezug bestätigen und um eine nachgewiesene Vollmacht oder die direkte Kontaktaufnahme der betroffenen Person bitten.",
+        "correct": true
+      },
+      {
+        "id": "c",
+        "text": "Die Auskunft geben, wenn der Angehörige den gleichen Familiennamen trägt und die Fallnummer kennt.",
+        "correct": false
+      },
+      {
+        "id": "d",
+        "text": "Die betroffene Person im Wartebereich aufrufen und vor dem Angehörigen fragen, ob die Auskunft erteilt werden darf.",
+        "correct": false
+      }
+    ],
+    "explanation": "Familienbeziehung und Kenntnis einer Fallnummer begründen für sich keine Berechtigung, einen Leistungsbezug offenzulegen. Eine Vollmacht oder andere zulässige Grundlage ist über einen geeigneten Weg zu prüfen.",
+    "legal_basis": "InfoDG SO (Artikel zu prüfen)"
+  },
+  {
+    "id": "scenario-soziale-dienste-02",
+    "active": true,
+    "situation": "Eine Arbeitgeberin ruft bei einer fallführenden Person an und möchte wissen, ob eine Mitarbeiterin Sozialhilfe bezieht. Sie sagt, sie brauche die Information für eine Lohnpfändung und könne die Personalnummer der betroffenen Person nennen.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Den Bezug bestätigen, aber auf Angaben zur Höhe und Dauer der Unterstützung verzichten.",
+        "correct": false
+      },
+      {
+        "id": "b",
+        "text": "Die Anfrage an eine private E-Mail-Adresse der Arbeitgeberin beantworten, damit sie die Information rasch weiterverwenden kann.",
+        "correct": false
+      },
+      {
+        "id": "c",
+        "text": "Keine Auskunft bestätigen oder erteilen, die Befugnis der anfragenden Stelle und die passende Rechtsgrundlage prüfen und nötige Rückfragen über einen offiziellen Kanal klären.",
+        "correct": true
+      },
+      {
+        "id": "d",
+        "text": "Den Fall an die Personalstelle weiterleiten, damit diese die verlangte Information direkt aus dem Dossier entnimmt.",
+        "correct": false
+      }
+    ],
+    "explanation": "Eine Personalnummer oder ein geschilderter Zweck reicht nicht aus, um einen Sozialhilfebezug zu bestätigen. Vor einer Auskunft ist die Befugnis zu prüfen; bis dahin bleibt der Sachverhalt vertraulich.",
+    "legal_basis": "InfoDG SO (Artikel zu prüfen)"
+  },
+  {
+    "id": "scenario-soziale-dienste-03",
+    "active": true,
+    "situation": "In einem Team-Postfach geht eine E-Mail mit einem Bericht über die Gesundheit und finanzielle Lage einer Klientin ein. Eine nicht fallbeteiligte Person wurde versehentlich in Kopie gesetzt und meldet den Fehler.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Den Bericht an das ganze Team senden, damit alle prüfen können, ob die Nachricht für ihren Arbeitsbereich wichtig ist.",
+        "correct": false
+      },
+      {
+        "id": "b",
+        "text": "Die Nachricht im Postfach belassen und den Vorfall nicht dokumentieren, sofern niemand auf den Anhang reagiert hat.",
+        "correct": false
+      },
+      {
+        "id": "c",
+        "text": "Die Klientin direkt um Erlaubnis bitten und bis zu einer Antwort den Bericht intern frei zugänglich lassen.",
+        "correct": false
+      },
+      {
+        "id": "d",
+        "text": "Den Zugriff auf zuständige Personen begrenzen, die ungewollt adressierte Person um Löschung bitten und den Vorfall gemäss internem Meldeverfahren beurteilen und dokumentieren.",
+        "correct": true
+      }
+    ],
+    "explanation": "Der Bericht enthält besonders schutzbedürftige Angaben und darf nur für die nötige Fallbearbeitung zugänglich sein. Eine Fehlzustellung ist nach dem internen Verfahren einzudämmen, zu beurteilen und nachvollziehbar zu behandeln.",
+    "legal_basis": "InfoDG SO (Artikel zu prüfen)"
+  },
+  {
+    "id": "scenario-soziale-dienste-04",
+    "active": true,
+    "situation": "Eine Klientin verlangt Einsicht in ihr Dossier und möchte auch Notizen zu Gesprächen mit einer Drittperson sehen. Die Notizen enthalten Aussagen dieser Person sowie Angaben, die für den aktuellen Unterstützungsentscheid nicht mehr benötigt werden.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Den Anspruch und Umfang für die einzelnen Dokumente prüfen, Drittangaben und nicht erforderliche Inhalte beurteilen und eine passende Einsicht oder begründete Einschränkung vorbereiten.",
+        "correct": true
+      },
+      {
+        "id": "b",
+        "text": "Das komplette Dossier einschliesslich aller Drittangaben sofort aushändigen, weil die Klientin darin erwähnt wird.",
+        "correct": false
+      },
+      {
+        "id": "c",
+        "text": "Jede Einsicht ablehnen, sobald sich in einem Dokument Angaben zu einer Drittperson finden.",
+        "correct": false
+      },
+      {
+        "id": "d",
+        "text": "Die Drittperson anrufen und deren mündliche Zustimmung als einzige Prüfung für alle Dossierteile verwenden.",
+        "correct": false
+      }
+    ],
+    "explanation": "Ein Einsichtsgesuch ist bezogen auf Anspruch, Dokumente und betroffene Interessen zu beurteilen. Angaben Dritter und Inhalte ohne Bezug zum Einsichtsanspruch dürfen nicht pauschal mitoffengelegt werden.",
+    "legal_basis": "InfoDG SO (Artikel zu prüfen)"
+  },
+  {
+    "id": "scenario-soziale-dienste-05",
+    "active": true,
+    "situation": "Ein anderes Amt bittet um Angaben zu einer Familie, die dort Unterstützung beantragt hat. Die Anfrage nennt mehrere Familienmitglieder, enthält aber keine Einwilligung, keinen konkreten Bearbeitungszweck und keinen Hinweis auf eine gesetzliche Zuständigkeit.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Die Fallnotizen vollständig übermitteln und das andere Amt bitten, irrelevante Angaben selbst zu löschen.",
+        "correct": false
+      },
+      {
+        "id": "b",
+        "text": "Den konkreten Zweck, die Zuständigkeit und die Berechtigung klären; erst danach den erforderlichen Umfang bestimmen und gegebenenfalls sicher sowie dokumentiert weitergeben.",
+        "correct": true
+      },
+      {
+        "id": "c",
+        "text": "Nur Informationen zu den Erwachsenen weitergeben, weil Angaben über Kinder grundsätzlich nicht in die Anfrage gehören.",
+        "correct": false
+      },
+      {
+        "id": "d",
+        "text": "Die Daten telefonisch durchgeben, weil ein Gespräch keine dauerhafte Weitergabe von Unterlagen erzeugt.",
+        "correct": false
+      }
+    ],
+    "explanation": "Amtliche Zusammenarbeit hebt die Pflicht zur Prüfung von Zweck und Berechtigung nicht auf. Eine allfällige Weitergabe bleibt auf die nötigen Angaben und einen nachvollziehbaren, geeigneten Übermittlungsweg beschränkt.",
+    "legal_basis": "InfoDG SO (Artikel zu prüfen)"
+  },
+  {
+    "id": "scenario-finanzen-informatik-01",
+    "active": true,
+    "situation": "Eine Lieferantin sendet eine Rechnung mit Kontaktdaten einer anderen Kundin an die zentrale Finanzadresse. Mehrere Mitarbeitende erhalten die Nachricht, obwohl nur eine Person für die Rechnung zuständig ist.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Die Rechnung an alle Mitarbeitenden der Finanzabteilung weiterleiten, damit die richtige Person sie erkennt.",
+        "correct": false
+      },
+      {
+        "id": "b",
+        "text": "Die vollständige Rechnung an die betroffene Kundin senden und fragen, ob ihre Angaben korrekt sind.",
+        "correct": false
+      },
+      {
+        "id": "c",
+        "text": "Die Nachricht nur der zuständigen Person zugänglich machen, unnötige Kopien vermeiden und die fehlgeleiteten Angaben gemäss internem Verfahren behandeln.",
+        "correct": true
+      },
+      {
+        "id": "d",
+        "text": "Die Rechnung im allgemeinen Ablageordner speichern, damit sie bei einer späteren Prüfung vollständig verfügbar ist.",
+        "correct": false
+      }
+    ],
+    "explanation": "Auch bei einer gewöhnlichen Rechnung sollen nur zuständige Personen Zugriff auf darin enthaltene Personendaten haben. Eine Fehlübermittlung ist einzudämmen und nach dem vorgesehenen internen Verfahren zu behandeln.",
+    "legal_basis": "InfoDG SO (Artikel zu prüfen)"
+  },
+  {
+    "id": "scenario-finanzen-informatik-02",
+    "active": true,
+    "situation": "Am Telefon verlangt eine Person, die sich als externer IT-Dienstleister vorstellt, eine Zurücksetzung der Mehrfaktor-Anmeldung für ein Konto mit Zugriff auf Lohndaten. Sie verweist auf eine dringende Störung und kennt den Namen der zuständigen Mitarbeitenden.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Den temporären Zugangscode nennen und nach Abschluss der Störung eine schriftliche Bestätigung verlangen.",
+        "correct": false
+      },
+      {
+        "id": "b",
+        "text": "Die Anmeldung für alle Finanzkonten vorübergehend abschalten, damit der Dienstleister ohne Verzögerung arbeiten kann.",
+        "correct": false
+      },
+      {
+        "id": "c",
+        "text": "Die angegebene Person zurückrufen und am Telefon nach ihrem Passwort fragen, um ihre Identität zu bestätigen.",
+        "correct": false
+      },
+      {
+        "id": "d",
+        "text": "Keine Zugangsdaten oder Zurücksetzung freigeben, Identität und Auftrag über bekannte unabhängige Kontaktwege prüfen und den Vorgang im vorgesehenen Ticket- oder Meldeprozess festhalten.",
+        "correct": true
+      }
+    ],
+    "explanation": "Dringlichkeit und Kenntnis interner Namen belegen weder Identität noch Auftrag. Änderungen an einem Konto mit Lohndaten müssen über verifizierte, dokumentierte Sicherheitsabläufe erfolgen.",
+    "legal_basis": "InfoDG SO (Artikel zu prüfen)"
+  },
+  {
+    "id": "scenario-finanzen-informatik-03",
+    "active": true,
+    "situation": "Eine Mitarbeitende bemerkt, dass ein Ordner mit Abrechnungsunterlagen über eine allgemeine Freigabe für viele Konten erreichbar ist. Sie weiss nicht, ob Unbefugte die Dateien bereits geöffnet haben.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Die Dateien sofort löschen, ohne die zuständige IT-Stelle zu informieren, damit kein weiterer Zugriff möglich ist.",
+        "correct": false
+      },
+      {
+        "id": "b",
+        "text": "Eine Nachricht mit einer Liste der betroffenen Personen an alle Konten mit Ordnerzugriff senden.",
+        "correct": false
+      },
+      {
+        "id": "c",
+        "text": "Die Freigabe und mögliche Zugriffe gemäss internem Sicherheitsprozess prüfen lassen, den Zugriff nötigenfalls beschränken und den Vorfall dokumentieren.",
+        "correct": true
+      },
+      {
+        "id": "d",
+        "text": "Zunächst abwarten, ob jemand die Unterlagen erwähnt, und erst dann die Freigabe überprüfen.",
+        "correct": false
+      }
+    ],
+    "explanation": "Eine zu weit gefasste Freigabe kann zu unberechtigtem Zugriff führen und soll zeitnah geprüft und begrenzt werden. Die zuständige Stelle kann Zugriffsprotokolle sichern, den Umfang beurteilen und weitere Schritte dokumentieren.",
+    "legal_basis": "InfoDG SO (Artikel zu prüfen)"
+  },
+  {
+    "id": "scenario-finanzen-informatik-04",
+    "active": true,
+    "situation": "Ein anderes Amt bittet die Finanzstelle um einen Export mit Namen, Privatadressen, Geburtsdaten und offenen Gebühren aller Haushalte für eine allgemeine Planung. Es wird kein konkreter Einzelfall oder erforderlicher Datenumfang genannt.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Den Export direkt über den gemeinsamen Ablagebereich bereitstellen, auf den beide Ämter Zugriff haben.",
+        "correct": false
+      },
+      {
+        "id": "b",
+        "text": "Zweck und Befugnis klären und prüfen, ob anonymisierte oder zusammengefasste Werte genügen; personenbezogene Daten nur im nötigen Umfang über einen geeigneten Weg bereitstellen.",
+        "correct": true
+      },
+      {
+        "id": "c",
+        "text": "Geburtsdaten weglassen, aber alle übrigen personenbezogenen Felder vollständig weitergeben, ohne den Zweck weiter zu prüfen.",
+        "correct": false
+      },
+      {
+        "id": "d",
+        "text": "Den Export an die Amtsleitung schicken und davon ausgehen, dass die Weitergabe durch ihre Stellung gedeckt ist.",
+        "correct": false
+      }
+    ],
+    "explanation": "Für Planungszwecke können aggregierte oder anonymisierte Werte genügen. Vor einer personenbezogenen Weitergabe sind Zweck, Befugnis und erforderlicher Umfang zu klären sowie ein angemessener Übermittlungsweg zu wählen.",
+    "legal_basis": "InfoDG SO (Artikel zu prüfen)"
+  },
+  {
+    "id": "scenario-finanzen-informatik-05",
+    "active": true,
+    "situation": "Am öffentlichen Drucker liegen ausgedruckte Lohnabrechnungen, die eine Mitarbeitende versehentlich dort abgeholt hat. Eine Person am Empfang sagt, sie habe kurz auf die Blätter geschaut, und bietet an, sie ins Finanzbüro zu bringen.",
+    "options": [
+      {
+        "id": "a",
+        "text": "Die Blätter sicher übernehmen, den möglichen Einblick und den Vorfall intern melden und prüfen, ob weitere Schutzmassnahmen nötig sind.",
+        "correct": true
+      },
+      {
+        "id": "b",
+        "text": "Die Person am Empfang bitten, die Abrechnungen ungesehen ins Finanzbüro zu bringen, und den Vorfall nicht weiter festhalten.",
+        "correct": false
+      },
+      {
+        "id": "c",
+        "text": "Die Abrechnungen sofort im Empfangsbereich schreddern, ohne zu prüfen, ob alle Seiten vorhanden sind oder ein Vorfall vorliegt.",
+        "correct": false
+      },
+      {
+        "id": "d",
+        "text": "Alle betroffenen Mitarbeitenden in einer Rundmail über die aufgefundenen Unterlagen informieren und Namen der Abgebildeten nennen.",
+        "correct": false
+      }
+    ],
+    "explanation": "Die Unterlagen sollen rasch wieder gesichert und der mögliche Einblick nach dem internen Verfahren beurteilt werden. Die Information wird auf zuständige Stellen begrenzt und der Vorfall nachvollziehbar dokumentiert.",
+    "legal_basis": "InfoDG SO (Artikel zu prüfen)"
+  }
+]

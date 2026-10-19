@@ -1,0 +1,35 @@
+[
+  {
+    "id": "module-einwohnerdienste",
+    "name": "Datenschutz in den Einwohnerdiensten",
+    "scenario_ids": [
+      "scenario-einwohnerdienste-01",
+      "scenario-einwohnerdienste-02",
+      "scenario-einwohnerdienste-03",
+      "scenario-einwohnerdienste-04",
+      "scenario-einwohnerdienste-05"
+    ]
+  },
+  {
+    "id": "module-soziale-dienste",
+    "name": "Datenschutz in den Sozialen Diensten",
+    "scenario_ids": [
+      "scenario-soziale-dienste-01",
+      "scenario-soziale-dienste-02",
+      "scenario-soziale-dienste-03",
+      "scenario-soziale-dienste-04",
+      "scenario-soziale-dienste-05"
+    ]
+  },
+  {
+    "id": "module-finanzen-informatik",
+    "name": "Datenschutz in Finanzen und Informatik",
+    "scenario_ids": [
+      "scenario-finanzen-informatik-01",
+      "scenario-finanzen-informatik-02",
+      "scenario-finanzen-informatik-03",
+      "scenario-finanzen-informatik-04",
+      "scenario-finanzen-informatik-05"
+    ]
+  }
+]
