@@ -20,11 +20,12 @@ docs/specs/UC-001-SZENARIO-RUNDE-SPIELEN.md
 | Datum | Ziel |
 |---|---|
 | 16.10. | Phase 0 auf main (PROJECT.md, Struktur, ADR-001) |
-| 19.10. | UC-001 durch SPECIFY → DEVELOP, Tests grün |
-| 21.10. | CI, Docker, erstes Release auf Render + Neon |
-| 24.10. | UC-002 fertig, deployt |
-| 26.10. | UC-003 (optional) oder Feinschliff |
-| 28.10. | README, Präsentation, Probelauf |
+| 19.–21.10. | UC-001 entwickeln, TDD und CI |
+| 22.10. | UC-001-PR prüfen und mergen |
+| 23.10. | UC-001 validieren, deployen, Smoke-Test |
+| 24.–25.10. | UC-002 entwickeln, TDD und CI |
+| 26.10. | UC-002-PR, mergen, deployen |
+| 27.–28.10. | README, AI-LOG, Modellvergleich, Präsentation |
 | 29.10. | Abgabe und Präsentation |
 
 ## Working agreement

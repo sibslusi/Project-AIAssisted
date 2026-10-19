@@ -23,9 +23,7 @@ verwalten sowie den Schulungsstand der Gemeinde kontrollieren.
 ### Kernfunktionen der ersten Version
 
 1. Login für Mitarbeitende, Abteilungsleitungen und
-	Datenschutzverantwortliche. Die Registrierung erfolgt mit einer
-	`@grenchen.example`-E-Mail-Adresse; danach werden Benutzer, Abteilung und Rolle
-	anhand der hinterlegten Adresse zugeordnet.
+	Datenschutzverantwortliche mit fiktiven Seed-Demo-Benutzern.
 2. Datenschutzfälle als interaktive Szenarien lösen.
 3. Sofortige Bewertung mit Erklärung.
 4. Schulungsfortschritt und Abschlussstatus anzeigen.
@@ -47,10 +45,10 @@ auch von anderen Gemeinden übernommen werden können.
 
 ### In scope
 
-- Selbst erstelltes Konto mit einer fiktiven Demo-E-Mail-Adresse im Format
-	`@grenchen.example` und
-	Passwort. Nach `Create account` werden Benutzer, Abteilung und Rolle anhand
-	einer hinterlegten Grenchen-E-Mail-Adresse zugeordnet.
+- Login mit fiktiven Seed-Demo-Benutzern im Format `@grenchen.example` und
+	Passwort. Benutzer, Abteilung und Rolle werden serverseitig aus dem Seed
+	geladen. Eine öffentliche Registrierung beziehungsweise `Create account` ist
+	nicht Teil der V1 und bleibt eine spätere Erweiterung.
 - Die erste Version enthält realistische, fiktive Datenschutzfälle aus dem
 	Arbeitsalltag einer Gemeinde nach dem Vorbild von Grenchen (Kanton
 	Solothurn, InfoDG).
@@ -64,12 +62,20 @@ auch von anderen Gemeinden übernommen werden können.
 	richtigen Antworten als bestanden.
 - UC-002: Module mit Frist zuweisen, Status anzeigen, aggregiert auswerten und
 	einen Schulungsnachweis als CSV exportieren.
-- Szenarien werden initial als Seed-Daten geladen. Veröffentliche Szenarien und
+- Szenarien werden initial als Seed-Daten geladen. Veröffentlichte Szenarien und
 	ihre Antwortoptionen sind unveränderlich. Die Datenschutzverantwortliche kann
 	neue Szenarien anlegen und bestehende über `Scenario.active` deaktivieren.
 	Ein fehlerhafter Fall wird deaktiviert und durch ein neues Szenario ersetzt.
 - Neue Runden verwenden nur aktive Szenarien. Laufende Runden und alte
 	`RoundAnswer`-Einträge bleiben gültig, weil sich ihr Szenario nicht ändert.
+- `Module` und `Scenario` werden über `module_scenarios` verbunden. Die
+	Kombination `(module_id, position)` ist eindeutig; ein Szenario kann in
+	mehreren Modulen vorkommen. Eine neue Runde startet nur bei genau fünf
+	Positionen, deren fünf Szenarien aktiv sind.
+- Beim Ersatz wird die bestehende `module_scenarios`-Zeile auf die neue
+	`scenario_id` umgestellt und das alte Szenario auf `active = false` gesetzt.
+	`game_round_scenarios` speichert pro Runde die fünf Szenario-IDs und
+	Positionen für historische Runden.
 - Eine separate Szenario-Versionierung ist nur eine mögliche spätere Erweiterung.
 - Es werden keine echten Personendaten verwendet.
 - Mitarbeitende dürfen eine Runde wiederholen. Für den Schulungsstatus zählt
@@ -90,7 +96,7 @@ auch von anderen Gemeinden übernommen werden können.
 ### Verwaltung von Fällen und Modulen
 
 Datenschutzverantwortliche können neue Datenschutzfälle erstellen und bestehende
-Fälle deaktivieren. Veröffentliche Szenarien und ihre Antwortoptionen werden
+Fälle deaktivieren. Veröffentlichte Szenarien und ihre Antwortoptionen werden
 nicht bearbeitet oder gelöscht. Sie können mehrere Fälle zu einem Schulungsmodul
 zusammenfassen, das Modul einer Abteilung zuweisen und eine Frist festlegen.
 
@@ -148,6 +154,20 @@ keinen echten KI-Aufruf aus.
 - Automatisch veröffentlichte KI-Inhalte und die Übermittlung von Personendaten
   an ein KI-Modell.
 
+### Authentifizierung
+
+V1 verwendet fiktive Seed-Demo-Benutzer für Mitarbeitende,
+Abteilungsleitungen und Datenschutzverantwortliche. Der Login akzeptiert
+E-Mail und Passwort; Passwörter werden mit Argon2 geprüft. Eine erfolgreiche
+Anmeldung erzeugt eine geschützte Session mit `HttpOnly`, `Secure` und
+`SameSite`-Cookie. Schreibende Requests verwenden CSRF-Schutz.
+
+Die Application-Schicht definiert `CurrentActorPort`; Infrastructure liest die
+serverseitige Session und liefert Benutzer, Rolle und Abteilung. Rollen und
+Abteilungen werden nie aus frei eingegebenen Formularwerten übernommen. Eine
+öffentliche Registrierung ist für V1 ausgeschlossen und als spätere
+Erweiterung vorgemerkt.
+
 ## Architecture
 
 The application uses Clean Architecture. Dependencies always point inward:
@@ -196,15 +216,42 @@ The domain model contains these entities:
 
 1. `Department` - department of the municipality.
 2. `Employee` - person with a role who belongs to exactly one department.
-3. `Scenario` - immutable published privacy case with situation, explanation,
+3. `Scenario` - immutable created privacy case with situation, explanation,
    legal basis and `active` flag.
 4. `AnswerOption` - answer option for a scenario; exactly one option is
 	correct.
-5. `Module` - groups several scenarios.
+5. `Module` - groups several scenarios through ordered `module_scenarios`
+	rows.
 6. `Assignment` - assigns a module to a department with a due date.
 7. `GameRound` - one attempt by an employee to complete a module.
 8. `RoundAnswer` - an employee's answer to a scenario, including the selected
    option and answer timestamp.
+
+The entity relationships are:
+
+```mermaid
+erDiagram
+	DEPARTMENT ||--o{ EMPLOYEE : contains
+	DEPARTMENT ||--o{ ASSIGNMENT : receives
+	MODULE ||--o{ ASSIGNMENT : assigned
+	MODULE ||--o{ MODULE_SCENARIO : orders
+	SCENARIO ||--o{ MODULE_SCENARIO : appears_in
+	SCENARIO ||--|{ ANSWER_OPTION : offers
+	EMPLOYEE ||--o{ GAME_ROUND : plays
+	ASSIGNMENT ||--o{ GAME_ROUND : scopes
+	GAME_ROUND ||--|{ GAME_ROUND_SCENARIO : snapshots
+	SCENARIO ||--o{ GAME_ROUND_SCENARIO : recorded_as
+	GAME_ROUND ||--o{ ROUND_ANSWER : contains
+	SCENARIO ||--o{ ROUND_ANSWER : answered
+	ANSWER_OPTION ||--o{ ROUND_ANSWER : selected
+```
+
+`module_scenarios` has a unique `(module_id, position)` key and records the
+ordered scenario used by a module. A new round requires exactly five rows with
+active scenarios. `game_round_scenarios` stores the five scenario IDs and
+positions copied at round start, so deactivation or replacement cannot change
+historical rounds. Replacing a scenario updates the existing module row to the
+new scenario ID and deactivates the old scenario; no new position is created.
 
 `GameRound` stores the `attempt_number`, completion data, calculated score and
 whether the attempt passed. The score and pass status are stored when the round
@@ -213,7 +260,7 @@ is played more than once, the best passing attempt determines the training
 status; attempts with the same score are ordered by completion time, earliest
 first.
 
-Published scenarios and their answer options are immutable. A faulty scenario
+Created scenarios and their answer options are immutable. A faulty scenario
 is deactivated and replaced by a new scenario; new rounds use only active
 scenarios. Existing rounds and answers remain valid because their scenarios do
 not change. A badge is not stored as a separate entity; it is calculated from
@@ -223,13 +270,14 @@ in the web interface.
 
 ### Required business rules
 
-- Team aggregates are available only for groups of at least three people.
+- Team aggregates are available only for groups of at least three people with
+	a completed attempt.
 - The current date is supplied through a clock port; domain and application
 	code never call `datetime.now()` directly.
 - A repeated round is allowed. The best passing attempt determines training
   status and badges; for equal scores, the first completed attempt wins. All
   attempts remain available for error analysis.
-- A published scenario cannot be edited or deleted; deactivation and a new
+- A created scenario cannot be edited or deleted; deactivation and a new
 	replacement scenario are used for corrections.
 - Passwords use Argon2. Forms use CSRF protection. Session cookies
 	are HttpOnly, Secure and SameSite. Die Zuordnung von Benutzer, Abteilung und
