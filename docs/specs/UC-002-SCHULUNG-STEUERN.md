@@ -16,8 +16,9 @@ Abteilungsleitung, Mitarbeitende, Anwendung
 
 ## Preconditions
 
-- Die Datenschutzverantwortliche ist angemeldet und ihrer hinterlegten
-  `@grenchen.example`-Adresse zugeordnet.
+- Die Datenschutzverantwortliche ist als fiktiver Seed-Demo-Benutzer mit ihrer
+  hinterlegten `@grenchen.example`-Adresse angemeldet. Eine Registrierung ist in
+  V1 nicht Teil dieses Use Cases.
 - Module und aktive Datenschutzfälle existieren.
 - Mitarbeitende gehören jeweils genau einer Abteilung an.
 - Für jede Zuweisung sind Modul, Zielabteilung und Frist festgelegt.
@@ -157,12 +158,13 @@ Zuweisung
 
 ### AC-015: Aktuellen Zeitpunkt verwenden
 
-**Given** eine Zuweisung ohne bestandenen Versuch  
+**Given** eine Zuweisung mit oder ohne bestandenen Versuch
 **When** der Status mit einem übergebenen Zeitpunkt vor oder nach der Frist
 berechnet wird  
-**Then** ist das Ergebnis entsprechend `offen`, `erledigt`, `verspätet
-erledigt` oder `Frist überschritten`, ohne die Systemzeit direkt in Domain oder
-Application aufzurufen.
+**Then** ist das Ergebnis bei einem bestandenen Versuch `erledigt` oder
+`verspätet erledigt` und ohne bestandenen Versuch `offen` oder `Frist
+überschritten`, ohne die Systemzeit direkt in Domain oder Application
+aufzurufen.
 
 ## Entwurf (Phase 2)
 
@@ -301,17 +303,3 @@ Zugriffe `401`, unzulässige Rollen und fremde Abteilungen `403`, ungültige
 Eingaben `422`, unbekannte Modul-/Abteilungs-/Zuweisungs-IDs `404` und
 CSV-Export ohne gültige Zuweisung `404`. Diese Fälle verwenden dieselben
 Endpunkte wie die Akzeptanzfälle oben.
-
-## Quality Gate Phase 2
-
-| Prüfung | Befund | Evidenz |
-|---|---|---|
-| UC-002-Akzeptanzkriterien und E2E-Fälle | Abgedeckt | Die Tabelle oben ordnet AC-001 bis AC-015 je einem konkreten API-Fall zu. |
-| Schichten, Ports und Datenschutzregeln | Abgedeckt | Entwurf benennt Domain, Application, Interfaces und Infrastructure; Rollen, Abteilungen, Aggregationsschwelle und CSV-Recht sind explizit. |
-| Implementierung/Testdateien | Keine erstellt | Änderung beschränkt sich auf diesen Entwurf in der UC-Spezifikation. |
-| Lifecycle-Router | Erfüllt | `docs/TASKS.md` steht auf PHASE 2 / STATUS in-progress und führt UC-001 als Current Use Case; UC-002 bleibt als entworfener Use Case im Backlog. |
-| Gemeinsames Architekturdiagramm | Erfüllt | `docs/PROJECT.md` enthält jetzt das gemeinsame Mermaid-Diagramm; dieser Entwurf zeigt zusätzlich die UC-002-Komponenten. |
-
-Der Quality Gate ist geprüft; STATUS bleibt gemäss Auftrag `in-progress`.
-Die Frist ist ein lokales Kalenderdatum in `Europe/Zurich` und gilt bis
-einschliesslich 23:59:59 Uhr.

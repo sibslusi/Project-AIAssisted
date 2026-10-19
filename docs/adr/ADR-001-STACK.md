@@ -1,6 +1,6 @@
 # ADR-001: Python-FastAPI-Stack und Clean Architecture
 
-Status: Proposed
+Status: Accepted
 Datum: 2026-10-19
 Entschieden von: Projektteam
 
