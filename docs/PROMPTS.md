@@ -35,13 +35,13 @@ Abteilung und Rolle sind getrennt: Eine Person hat genau eine Abteilung und eine
 Login: einfacher Login mit Benutzername und Passwort (bcrypt oder argon2) und Session-Cookie (HttpOnly, Secure, SameSite), CSRF-Schutz für Formulare, Demo-Benutzer pro Rolle als Seed-Daten. Kein SSO.
 
 ## Entitäten (Vorschlag, bitte prüfen)
-Abteilung, Mitarbeitende, Szenario (mit Versionsnummer und Feld "Rechtsgrundlage", z.B. "InfoDG SO, Art. …"), Antwortoption, Modul (Gruppe von Szenarien), Zuweisung (Modul an Abteilung mit Frist), Spielrunde, Rundenantwort (gewählte Antwort pro Szenario inkl. beantworteter Szenario-Version, nötig für die Fehlerauswertung), Abzeichen.
+Abteilung, Mitarbeitende, Szenario (mit aktiv/inaktiv und Feld "Rechtsgrundlage", z.B. "InfoDG SO, Art. …"), Antwortoption, Modul (Gruppe von Szenarien), Zuweisung (Modul an Abteilung mit Frist), Spielrunde, Rundenantwort (gewählte Antwort pro Szenario), Abzeichen als berechneter Status.
 
 ## Fachregeln (Domain, mit Unit-Tests)
 - Mindestgruppengrösse: Aggregierte Team-Auswertungen werden erst ab 3 Personen angezeigt, sonst "zu wenige Teilnehmende" (Schutz vor Rückschluss auf Einzelpersonen).
 - Fristen: Das aktuelle Datum wird der Logik als Parameter bzw. über einen Clock-Port übergeben, nie direkt datetime.now() in domain oder application.
 - Wiederholung: Eine Runde darf wiederholt werden; für Status und Abzeichen zählt der beste Versuch, für die Fehlerauswertung alle Versuche. (Bitte als Annahme bestätigen lassen.)
-- Szenario-Versionen: Wird ein Szenario geändert, entsteht eine neue Version; alte Rundenantworten bleiben unverändert gültig.
+- Veröffentlichte Szenarien und Antwortoptionen sind unveränderlich. Fehlerhafte Szenarien werden deaktiviert und durch neue Szenarien ersetzt; neue Runden verwenden nur aktive Szenarien.
 - Löschfrist (Version 2, nur dokumentieren): Detailantworten nach 12 Monaten löschen, Status "Schulung erledigt" bleibt.
 
 ## Use Cases

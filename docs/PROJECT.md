@@ -63,8 +63,13 @@ auch von anderen Gemeinden übernommen werden können.
 	richtigen Antworten als bestanden.
 - UC-002: Module mit Frist zuweisen, Status anzeigen, aggregiert auswerten und
 	einen Schulungsnachweis als CSV exportieren.
-- Fälle sind versioniert, damit bestehende Resultate gültig bleiben, wenn ein
-	Fall geändert wird.
+- Szenarien werden initial als Seed-Daten geladen. Veröffentliche Szenarien und
+	ihre Antwortoptionen sind unveränderlich. Die Datenschutzverantwortliche kann
+	neue Szenarien anlegen und bestehende über `Scenario.active` deaktivieren.
+	Ein fehlerhafter Fall wird deaktiviert und durch ein neues Szenario ersetzt.
+- Neue Runden verwenden nur aktive Szenarien. Laufende Runden und alte
+	`RoundAnswer`-Einträge bleiben gültig, weil sich ihr Szenario nicht ändert.
+- Eine separate Szenario-Versionierung ist nur eine mögliche spätere Erweiterung.
 - Es werden keine echten Personendaten verwendet.
 - Mitarbeitende dürfen eine Runde wiederholen. Für den Schulungsstatus zählt
 	der beste bestandene Versuch. Frühere Versuche bleiben gespeichert, damit
@@ -82,10 +87,10 @@ auch von anderen Gemeinden übernommen werden können.
 
 ### Verwaltung von Fällen und Modulen
 
-Datenschutzverantwortliche können Datenschutzfälle erstellen, bearbeiten und
-versionieren. Sie können mehrere Fälle zu einem Schulungsmodul zusammenfassen,
-das Modul einer Abteilung zuweisen und eine Frist festlegen. Bereits
-abgeschlossene Runden bleiben mit der damals gültigen Fallversion verknüpft.
+Datenschutzverantwortliche können neue Datenschutzfälle erstellen und bestehende
+Fälle deaktivieren. Veröffentliche Szenarien und ihre Antwortoptionen werden
+nicht bearbeitet oder gelöscht. Sie können mehrere Fälle zu einem Schulungsmodul
+zusammenfassen, das Modul einer Abteilung zuweisen und eine Frist festlegen.
 - Fiktive Seed-Daten, automatisierte Tests und lokaler Betrieb mit PostgreSQL
   oder SQLite fuer die Entwicklung.
 
@@ -177,27 +182,28 @@ The domain model contains these entities:
 
 1. `Department` - department of the municipality.
 2. `Employee` - person with a role who belongs to exactly one department.
-3. `Scenario` - versioned privacy case with situation, explanation and legal
-	basis.
+3. `Scenario` - immutable published privacy case with situation, explanation,
+   legal basis and `active` flag.
 4. `AnswerOption` - answer option for a scenario; exactly one option is
 	correct.
 5. `Module` - groups several scenarios.
 6. `Assignment` - assigns a module to a department with a due date.
 7. `GameRound` - one attempt by an employee to complete a module.
-8. `RoundAnswer` - an employee's answer to a scenario, including the scenario
-	version, selected option and answer timestamp.
+8. `RoundAnswer` - an employee's answer to a scenario, including the selected
+   option and answer timestamp.
 
 `GameRound` stores the `attempt_number`, completion data, calculated score and
 whether the attempt passed. The score and pass status are stored when the round
 is completed, which simplifies department reports and CSV exports. If a module
 is played more than once, the best attempt determines the training status.
 
-`Scenario.version` is sufficient for scenario versioning. `RoundAnswer` stores
-the answered scenario version so existing results remain valid after a scenario
-changes. A badge is not stored as a separate entity; it is calculated from the
-best attempt when the score reaches 80 percent. Access rules are enforced in
-application use cases and covered by application-layer unit tests, not only in
-the web interface.
+Published scenarios and their answer options are immutable. A faulty scenario
+is deactivated and replaced by a new scenario; new rounds use only active
+scenarios. Existing rounds and answers remain valid because their scenarios do
+not change. A badge is not stored as a separate entity; it is calculated from
+the best attempt when the score reaches 80 percent. Access rules are enforced
+in application use cases and covered by application-layer unit tests, not only
+in the web interface.
 
 ### Required business rules
 
@@ -206,7 +212,8 @@ the web interface.
 	code never call `datetime.now()` directly.
 - A repeated round is allowed. The best attempt determines status and badges;
 	all attempts remain available for error analysis.
-- Editing a scenario creates a new version and does not alter answered rounds.
+- A published scenario cannot be edited or deleted; deactivation and a new
+	replacement scenario are used for corrections.
 - Passwords use bcrypt or Argon2. Forms use CSRF protection. Session cookies
 	are HttpOnly, Secure and SameSite. Die Zuordnung von Benutzer, Abteilung und
 	Rolle wird serverseitig geprüft und nicht aus frei eingegebenen Formularwerten
