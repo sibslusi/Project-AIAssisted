@@ -12,7 +12,6 @@ from app.domain.models import (
 )
 from app.domain.rules import team_aggregation
 
-
 ZURICH = ZoneInfo("Europe/Zurich")
 
 
