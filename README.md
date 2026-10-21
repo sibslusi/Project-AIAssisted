@@ -28,6 +28,21 @@ läuft im Compose-Netzwerk unter dem Hostnamen `db`. Zum Beenden:
 docker compose down
 ```
 
+## Oberfläche
+
+Nach dem Start ist die Anmeldung unter `http://localhost:8000/` erreichbar.
+Alle Demo-Konten sind fiktiv (`@grenchen.example`); das Demo-Passwort steht
+nur in der eigenen `.env` (`DEMO_PASSWORD`).
+
+| Rolle | Demo-Konto | Seiten |
+|---|---|---|
+| Mitarbeitende | `marek.dalenor@grenchen.example` | `/mitarbeitende/module` (Module, Frist, Status, Abzeichen), `/mitarbeitende/module/{modul}` (Runde spielen mit Feedback) |
+| Abteilungsleitung | `liora.veylan@grenchen.example` | `/abteilungsleitung/auswertung` (Status pro Person, Teamwerte ab 3 Personen) |
+| Datenschutzverantwortliche | `yara.merovan@grenchen.example` | `/datenschutz/auswertung` (Gesamtauswertung), `/datenschutz/zuweisungen` (Modul zuweisen, CSV-Nachweis) |
+
+Jede Seite zeigt den Hinweis „Schulungsplattform mit fiktiven Daten. Keine
+Rechtsberatung.“
+
 ## Create a project
 
 1. Select **Use this template** on GitHub and create a new repository.
