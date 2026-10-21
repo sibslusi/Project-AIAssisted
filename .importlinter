@@ -17,6 +17,7 @@ forbidden_modules =
 name = Clean Architecture layers
 type = layers
 layers =
+    app.main
     app.interfaces | app.infrastructure
     app.application
     app.domain
