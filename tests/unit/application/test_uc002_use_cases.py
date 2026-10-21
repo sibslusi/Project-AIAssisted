@@ -186,7 +186,7 @@ def test_data_protection_officer_gets_overall_evaluation():
     )
 
     result = GetOverallEvaluation(
-        assignments, FakeEmployees(), FakeRounds(), FakeClock()
+        assignments, FakeEmployees(), FakeDepartments(), FakeRounds(), FakeClock()
     ).execute(employee(Role.DATA_PROTECTION_OFFICER))
 
     assert [item.department_id for item in result.departments] == [

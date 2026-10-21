@@ -6,13 +6,21 @@ from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, FastAPI, Form, Request, Response
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from itsdangerous import BadSignature, URLSafeSerializer
 
 from app.application.models import Actor, Role
 from app.application.use_cases import (
     AccessDenied,
+    AssignModule,
+    CreateTeamAggregation,
+    ExportTrainingEvidence,
+    GetDepartmentStatus,
+    GetOverallEvaluation,
+    GetPersonalStatus,
     GetTrainingProgress,
+    InvalidRequest,
     ListAssignedModules,
     NotFound,
     StartOrResumeGameRound,
@@ -26,6 +34,10 @@ class Services:
     assignment_repository: Callable[[Any], Any]
     scenario_repository: Callable[[Any], Any]
     game_round_repository: Callable[[Any], Any]
+    employee_repository: Callable[[Any], Any]
+    department_repository: Callable[[Any], Any]
+    module_repository: Callable[[Any], Any]
+    csv_adapter: Any
     authenticate: Callable[[Any, str, str], Actor | None]
     session_secret: str
 
@@ -222,6 +234,131 @@ def progress(request: Request, module_id: str):
         except NotFound as error:
             raise HTTPExceptionResponse(404, str(error)) from error
         return result.__dict__
+
+
+@router.post("/api/assignments")
+async def assign_module(request: Request):
+    actor = _require_actor(request)
+    _check_csrf(request)
+    try:
+        payload = await request.json()
+        from datetime import date
+
+        due_date = date.fromisoformat(payload["due_date"])
+        module_id = payload["module_id"]
+        department_id = payload["department_id"]
+    except (KeyError, TypeError, ValueError) as error:
+        raise HTTPExceptionResponse(422, "Ungültige Zuweisung") from error
+    with _session(request) as session:
+        services = _services(request)
+        try:
+            result = AssignModule(
+                services.assignment_repository(session),
+                services.module_repository(session),
+                services.department_repository(session),
+            ).execute(actor, module_id, department_id, due_date)
+        except AccessDenied as error:
+            raise HTTPExceptionResponse(403, str(error)) from error
+        except NotFound as error:
+            raise HTTPExceptionResponse(404, str(error)) from error
+        except InvalidRequest as error:
+            raise HTTPExceptionResponse(422, str(error)) from error
+        return JSONResponse(jsonable_encoder(result.__dict__), status_code=201)
+
+
+@router.get("/api/me/training-status")
+def personal_status(request: Request):
+    actor = _require_actor(request)
+    with _session(request) as session:
+        services = _services(request)
+        try:
+            result = GetPersonalStatus(
+                services.assignment_repository(session),
+                services.game_round_repository(session),
+                SystemClock(),
+            ).execute(actor)
+        except AccessDenied as error:
+            raise HTTPExceptionResponse(403, str(error)) from error
+        return [item.__dict__ for item in result]
+
+
+@router.get("/api/departments/{department_id}/training-status")
+def department_status(request: Request, department_id: str):
+    actor = _require_actor(request)
+    with _session(request) as session:
+        services = _services(request)
+        try:
+            result = GetDepartmentStatus(
+                services.assignment_repository(session),
+                services.employee_repository(session),
+                services.game_round_repository(session),
+                SystemClock(),
+            ).execute(actor, department_id)
+        except AccessDenied as error:
+            raise HTTPExceptionResponse(403, str(error)) from error
+        return {
+            "department_id": result.department_id,
+            "persons": [item.__dict__ for item in result.persons],
+        }
+
+
+@router.get("/api/departments/{department_id}/training-aggregation")
+def training_aggregation(request: Request, department_id: str):
+    actor = _require_actor(request)
+    with _session(request) as session:
+        services = _services(request)
+        try:
+            result = CreateTeamAggregation(
+                services.assignment_repository(session),
+                services.game_round_repository(session),
+                SystemClock(),
+            ).execute(actor, department_id)
+        except AccessDenied as error:
+            raise HTTPExceptionResponse(403, str(error)) from error
+        return result.__dict__
+
+
+@router.get("/api/training/evaluation")
+def overall_evaluation(request: Request):
+    actor = _require_actor(request)
+    with _session(request) as session:
+        services = _services(request)
+        try:
+            result = GetOverallEvaluation(
+                services.assignment_repository(session),
+                services.employee_repository(session),
+                services.department_repository(session),
+                services.game_round_repository(session),
+                SystemClock(),
+            ).execute(actor)
+        except AccessDenied as error:
+            raise HTTPExceptionResponse(403, str(error)) from error
+        return {"departments": [item.__dict__ for item in result.departments]}
+
+
+@router.get("/api/assignments/{assignment_id}/training-evidence.csv")
+def training_evidence(request: Request, assignment_id: str):
+    actor = _require_actor(request)
+    with _session(request) as session:
+        services = _services(request)
+        try:
+            records = ExportTrainingEvidence(
+                services.assignment_repository(session),
+                services.game_round_repository(session),
+            ).execute(actor, assignment_id)
+        except AccessDenied as error:
+            raise HTTPExceptionResponse(403, str(error)) from error
+        except NotFound as error:
+            raise HTTPExceptionResponse(404, str(error)) from error
+        return Response(
+            content=services.csv_adapter.render(records),
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": (
+                    f"attachment; filename=schulungsnachweis-{assignment_id}.csv"
+                )
+            },
+        )
 
 
 def create_app(services: Services) -> FastAPI:
