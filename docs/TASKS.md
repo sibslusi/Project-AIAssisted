@@ -7,7 +7,7 @@ STATUS: in-progress
 
 ## Current Use Case
 
-docs/specs/UC-002-SCHULUNG-STEUERN.md
+HTML-Oberfläche UC-001/UC-002
 
 ### Fast Track: Architektur-Review
 
