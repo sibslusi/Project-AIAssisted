@@ -1,12 +1,20 @@
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.application.models import Assignment
+from app.application.models import (
+    Assignment,
+    DepartmentRecord,
+    EmployeeRecord,
+    ModuleRecord,
+)
 from app.domain.models import AnswerOption, GameRound, RoundAnswer, Scenario
 from app.infrastructure.models import (
     AssignmentModel,
+    DepartmentModel,
+    EmployeeModel,
     GameRoundModel,
     GameRoundScenarioModel,
+    ModuleModel,
     ModuleScenarioModel,
     RoundAnswerModel,
     ScenarioModel,
@@ -55,6 +63,87 @@ class SqlAlchemyAssignmentRepository:
             if row is None
             else Assignment(row.id, row.module_id, row.department_id, row.due_date)
         )
+
+    def save(self, assignment: Assignment) -> Assignment:
+        self.session.merge(
+            AssignmentModel(
+                id=assignment.id,
+                module_id=assignment.module_id,
+                department_id=assignment.department_id,
+                due_date=assignment.due_date,
+            )
+        )
+        self.session.flush()
+        return assignment
+
+    def for_employee(self, employee_id: str) -> tuple[Assignment, ...]:
+        rows = self.session.scalars(
+            select(AssignmentModel)
+            .join(
+                EmployeeModel,
+                EmployeeModel.department_id == AssignmentModel.department_id,
+            )
+            .where(EmployeeModel.id == employee_id)
+            .order_by(AssignmentModel.id)
+        )
+        return tuple(
+            Assignment(row.id, row.module_id, row.department_id, row.due_date)
+            for row in rows
+        )
+
+
+class SqlAlchemyEmployeeRepository:
+    def __init__(self, session: Session):
+        self.session = session
+
+    def get(self, employee_id: str) -> EmployeeRecord | None:
+        row = self.session.get(EmployeeModel, employee_id)
+        return (
+            None
+            if row is None
+            else EmployeeRecord(
+                row.id, row.department_id, row.first_name, row.last_name
+            )
+        )
+
+    def for_department(self, department_id: str) -> tuple[EmployeeRecord, ...]:
+        rows = self.session.scalars(
+            select(EmployeeModel).where(EmployeeModel.department_id == department_id)
+        )
+        return tuple(
+            EmployeeRecord(row.id, row.department_id, row.first_name, row.last_name)
+            for row in rows
+        )
+
+    def all(self) -> tuple[EmployeeRecord, ...]:
+        return tuple(
+            EmployeeRecord(row.id, row.department_id, row.first_name, row.last_name)
+            for row in self.session.scalars(select(EmployeeModel))
+        )
+
+
+class SqlAlchemyDepartmentRepository:
+    def __init__(self, session: Session):
+        self.session = session
+
+    def get(self, department_id: str) -> DepartmentRecord | None:
+        row = self.session.get(DepartmentModel, department_id)
+        return None if row is None else DepartmentRecord(row.id)
+
+    def all(self) -> tuple[DepartmentRecord, ...]:
+        return tuple(
+            DepartmentRecord(row.id)
+            for row in self.session.scalars(select(DepartmentModel))
+        )
+
+
+class SqlAlchemyModuleRepository:
+    def __init__(self, session: Session):
+        self.session = session
+
+    def get(self, module_id: str) -> ModuleRecord | None:
+        row = self.session.get(ModuleModel, module_id)
+        return None if row is None else ModuleRecord(row.id)
 
 
 class SqlAlchemyScenarioRepository:

@@ -28,6 +28,7 @@ class EvidenceRecord:
     employee_id: str
     module_id: str
     completed_at: datetime
+    department_id: str | None = None
 
 
 @dataclass(frozen=True)

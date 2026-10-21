@@ -256,6 +256,7 @@ class ExportTrainingEvidence:
                 employee_id,
                 assignment.module_id,
                 best_attempt(tuple(attempts)).completed_at,
+                assignment.department_id,
             )
             for employee_id, attempts in by_employee.items()
         )
