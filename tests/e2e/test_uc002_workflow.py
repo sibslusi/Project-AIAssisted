@@ -1,6 +1,34 @@
+import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import delete
 
+from app.infrastructure.models import (
+    AssignmentModel,
+    GameRoundModel,
+    GameRoundScenarioModel,
+    RoundAnswerModel,
+)
 from app.main import app
+
+
+@pytest.fixture(autouse=True)
+def isolate_database():
+    yield
+    with app.state.engine.begin() as connection:
+        connection.execute(delete(RoundAnswerModel))
+        connection.execute(delete(GameRoundScenarioModel))
+        connection.execute(delete(GameRoundModel))
+        connection.execute(
+            delete(AssignmentModel).where(
+                AssignmentModel.id.not_in(
+                    (
+                        "assignment-einwohnerdienste",
+                        "assignment-soziale-dienste",
+                        "assignment-finanzen-informatik",
+                    )
+                )
+            )
+        )
 
 
 def login(client, email):
