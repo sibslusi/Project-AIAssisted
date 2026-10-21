@@ -2,7 +2,7 @@ from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, inspect, select
 from sqlalchemy.orm import Session
 
 from app.domain.models import AnswerOption, GameRound, Scenario
@@ -100,3 +100,13 @@ def test_game_round_repository_persists_snapshot_and_answers():
         scenario.id for scenario in scenarios
     )
     assert loaded.answers[1].option_id == "right"
+
+
+def test_module_scenario_position_has_named_unique_constraint():
+    engine = database()
+
+    constraints = inspect(engine).get_unique_constraints("module_scenarios")
+
+    assert {"uq_module_scenarios_module_position"} in [
+        {constraint["name"]} for constraint in constraints
+    ]
