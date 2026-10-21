@@ -21,6 +21,16 @@ def test_home_page_contains_login_form_csrf_and_required_footer():
     assert FOOTER in response.text
 
 
+def test_html_employee_modules_page_is_denied_for_department_lead():
+    test_client = client()
+    _login(test_client, "liora.veylan@grenchen.example")
+
+    response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
+
+    assert response.status_code == 403
+    assert "Zugriff verweigert" in response.text
+
+
 def test_html_login_requires_csrf_and_redirects_employee_to_modules():
     test_client = client()
     page = test_client.get("/", headers=HTML_HEADERS)
@@ -124,6 +134,8 @@ def test_html_employee_page_shows_only_assigned_modules_and_csrf_forms():
     assert "module-einwohnerdienste" in response.text
     assert "module-soziale-dienste" not in response.text
     assert 'name="csrf_token"' in response.text
+    assert "Frist: 2026-11-30" in response.text
+    assert "Status:" in response.text
     assert FOOTER in response.text
 
 
@@ -191,6 +203,9 @@ def test_html_employee_can_play_round_with_feedback_and_badge():
     assert "Punktzahl: 4/5" in responses[-1].text
     assert "Ergebnis: bestanden" in responses[-1].text
     assert "Abzeichen" in responses[-1].text
+    modules = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
+    assert "Abzeichen" in modules.text
+    assert re.search(r"Bester Versuch: [45]/5", modules.text)
 
 
 def test_html_answer_requires_csrf():
@@ -201,6 +216,23 @@ def test_html_answer_requires_csrf():
     response = test_client.post(
         f"/mitarbeitende/runden/{_hidden(round_page.text, 'round_id')}/antworten",
         data={"position": _hidden(round_page.text, "position"), "option_id": "a"},
+        headers=HTML_HEADERS,
+    )
+
+    assert response.status_code == 403
+
+
+def test_html_assignment_form_requires_csrf():
+    test_client = client()
+    _login(test_client, "yara.merovan@grenchen.example")
+
+    response = test_client.post(
+        "/datenschutz/zuweisungen",
+        data={
+            "module_id": "module-finanzen-informatik",
+            "department_id": "department-finanzen-informatik",
+            "due_date": "2026-12-15",
+        },
         headers=HTML_HEADERS,
     )
 
