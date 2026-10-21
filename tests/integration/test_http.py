@@ -8,6 +8,7 @@ client = TestClient(app, base_url="https://testserver")
 
 
 def login(email):
+    client.cookies.delete("session")
     login_page = client.get("/login")
     response = client.post(
         "/login",

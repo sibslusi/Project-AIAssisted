@@ -98,6 +98,25 @@ def test_game_round_repository_persists_snapshot_and_answers():
 
     with Session(engine) as session:
         load_seed_data(session, SEED_DIR)
+        for scenario in scenarios:
+            session.add(
+                ScenarioModel(
+                    id=scenario.id,
+                    situation=scenario.situation,
+                    explanation=scenario.explanation,
+                    legal_basis=scenario.legal_basis,
+                    active=scenario.active,
+                    options=[
+                        {
+                            "id": option.id,
+                            "text": option.text,
+                            "correct": option.correct,
+                        }
+                        for option in scenario.options
+                    ],
+                )
+            )
+        session.flush()
         repository = SqlAlchemyGameRoundRepository(session)
         repository.save(game_round)
         session.commit()
