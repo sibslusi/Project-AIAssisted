@@ -64,7 +64,7 @@ def test_ac001_full_workflow_login_start_five_answers_status_logout():
     assert result["score"] == 5
     assert result["passed"] is True
     progress = test_client.get("/api/modules/module-einwohnerdienste/progress")
-    assert progress.json()["status"] == "bestanden"
+    assert progress.json()["status"] == "erledigt"
 
     logged_out = test_client.post("/logout", headers=csrf(test_client))
     assert logged_out.status_code == 200

@@ -21,6 +21,7 @@ from app.application.use_cases import (
     GetPersonalStatus,
 )
 from app.domain.models import AnswerOption, GameRound, Scenario
+from app.domain.models import Assignment as DomainAssignment
 
 ZURICH = ZoneInfo("Europe/Zurich")
 
@@ -208,3 +209,49 @@ def test_evidence_export_contains_person_module_and_completion_only():
 
     assert result[0].module_id == "module-a"
     assert not hasattr(result[0], "score")
+
+
+def test_personal_status_returns_each_assignment():
+    assignments = FakeAssignments(
+        [
+            DomainAssignment("a", "module-a", "department-a", date(2026, 12, 31)),
+            DomainAssignment("b", "module-b", "department-a", date(2026, 12, 31)),
+        ]
+    )
+    result = GetPersonalStatus(assignments, FakeRounds(), FakeClock()).execute(employee())
+    assert [item.assignment_id for item in result] == ["a", "b"]
+
+
+def test_department_status_returns_each_assignment_for_each_person():
+    assignments = FakeAssignments(
+        [
+            DomainAssignment("a", "module-a", "department-a", date(2026, 12, 31)),
+            DomainAssignment("b", "module-b", "department-a", date(2026, 12, 31)),
+        ]
+    )
+    result = GetDepartmentStatus(
+        assignments, FakeEmployees(), FakeRounds(), FakeClock()
+    ).execute(employee(Role.DEPARTMENT_LEAD), "department-a")
+    assert len(result.persons) == 6
+    assert {person.assignment_id for person in result.persons} == {"a", "b"}
+
+
+def test_team_aggregation_is_separate_for_each_assignment():
+    assignments = FakeAssignments(
+        [
+            DomainAssignment("a", "module-a", "department-a", date(2026, 12, 31)),
+            DomainAssignment("b", "module-b", "department-a", date(2026, 12, 31)),
+        ]
+    )
+    rounds = FakeRounds(
+        tuple(
+            completed_round(employee_id, 5, datetime(2026, 10, 21, 12, tzinfo=ZURICH))
+            for employee_id in ("employee-1", "employee-2", "employee-3")
+        )
+    )
+    for item in rounds.items:
+        item.assignment_id = "a"
+    result = CreateTeamAggregation(assignments, rounds, FakeClock()).execute(
+        employee(Role.DEPARTMENT_LEAD), "department-a"
+    )
+    assert {item.assignment_id for item in result} == {"a", "b"}
