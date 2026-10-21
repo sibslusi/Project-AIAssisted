@@ -21,7 +21,9 @@ def _read(seed_dir: Path, name: str):
 
 
 def load_seed_data(session: Session, seed_dir: Path) -> None:
-    password = os.environ.get("DEMO_PASSWORD", "demo-password")
+    password = os.environ.get("DEMO_PASSWORD")
+    if not password:
+        raise RuntimeError("DEMO_PASSWORD muss gesetzt sein")
     for item in _read(seed_dir, "departments.json"):
         session.merge(DepartmentModel(**item))
     for item in _read(seed_dir, "modules.json"):

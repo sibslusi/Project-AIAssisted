@@ -4,7 +4,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.infrastructure.models import AssignmentModel, ScenarioModel
-from app.interfaces.http import app, engine
+from app.main import app
+
+engine = app.state.engine
 
 
 def login(client: TestClient, email: str) -> None:
@@ -85,8 +87,8 @@ def test_ac002_employee_sees_only_own_department_modules():
 def test_ac003_valid_answer_is_saved_and_position_advances():
     """AC-003: Eine gültige Antwort wird gespeichert und die Position erledigt."""
     test_client = client()
-    login(test_client, "elina.norveth@grenchen.example")
-    round_data = start_round(test_client, "module-einwohnerdienste")
+    login(test_client, "elara.monveth@grenchen.example")
+    round_data = start_round(test_client, "module-soziale-dienste")
 
     response = test_client.post(
         f"/api/rounds/{round_data['id']}/answers",
@@ -94,7 +96,7 @@ def test_ac003_valid_answer_is_saved_and_position_advances():
         headers=csrf(test_client),
     )
     resumed = test_client.post(
-        "/api/modules/module-einwohnerdienste/rounds", headers=csrf(test_client)
+        "/api/modules/module-soziale-dienste/rounds", headers=csrf(test_client)
     )
 
     assert response.status_code == 201
@@ -239,7 +241,7 @@ def test_ac012_incomplete_active_module_is_rejected_without_five_active_cases():
         session.commit()
     try:
         test_client = client()
-        login(test_client, "elara.monveth@grenchen.example")
+        login(test_client, "selma.rovelin@grenchen.example")
         response = test_client.post(
             "/api/modules/module-soziale-dienste/rounds", headers=csrf(test_client)
         )

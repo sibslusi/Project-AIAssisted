@@ -1,17 +1,13 @@
 import secrets
+from collections.abc import Callable
 from contextlib import contextmanager
-from datetime import UTC
-from importlib import import_module
-from pathlib import Path
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from typing import Any
 
-from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
-from fastapi import FastAPI, Form, Request, Response
+from fastapi import APIRouter, FastAPI, Form, Request, Response
 from fastapi.responses import JSONResponse
 from itsdangerous import BadSignature, URLSafeSerializer
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session
-from sqlalchemy.pool import StaticPool
 
 from app.application.models import Actor, Role
 from app.application.use_cases import (
@@ -24,40 +20,37 @@ from app.application.use_cases import (
 )
 
 
-def _infrastructure():
-    db = import_module("app.infrastructure.db")
-    models = import_module("app.infrastructure.models")
-    repositories = import_module("app.infrastructure.repositories")
-    seed = import_module("app.infrastructure.seed")
-    return db.Base, models, repositories, seed
+@dataclass(frozen=True)
+class Services:
+    session_factory: Callable[[], Any]
+    assignment_repository: Callable[[Any], Any]
+    scenario_repository: Callable[[Any], Any]
+    game_round_repository: Callable[[Any], Any]
+    authenticate: Callable[[Any, str, str], Actor | None]
+    session_secret: str
 
 
-Base, _models, _repositories, _seed = _infrastructure()
-EmployeeModel = _models.EmployeeModel
-SqlAlchemyAssignmentRepository = _repositories.SqlAlchemyAssignmentRepository
-SqlAlchemyGameRoundRepository = _repositories.SqlAlchemyGameRoundRepository
-SqlAlchemyScenarioRepository = _repositories.SqlAlchemyScenarioRepository
-load_seed_data = _seed.load_seed_data
+class HTTPExceptionResponse(Exception):
+    def __init__(self, status_code: int, detail: str):
+        self.status_code = status_code
+        self.detail = detail
 
-DATABASE_URL = "sqlite://"
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-Base.metadata.create_all(engine)
-with Session(engine) as seed_session:
-    load_seed_data(seed_session, Path(__file__).parents[3] / "data" / "seed")
-    seed_session.commit()
 
-app = FastAPI()
-serializer = URLSafeSerializer("development-only-session-secret", salt="session")
-password_hasher = PasswordHasher()
+class SystemClock:
+    def now(self) -> datetime:
+        return datetime.now(UTC)
+
+
+router = APIRouter()
+
+
+def _services(request: Request) -> Services:
+    return request.app.state.services
 
 
 @contextmanager
-def request_session():
-    session = Session(engine)
+def _session(request: Request):
+    session = _services(request).session_factory()
     try:
         yield session
         session.commit()
@@ -81,7 +74,9 @@ def _actor(request: Request) -> Actor | None:
     if value is None:
         return None
     try:
-        data = serializer.loads(value)
+        data = URLSafeSerializer(
+            _services(request).session_secret, salt="session"
+        ).loads(value)
     except BadSignature:
         return None
     return Actor(data["id"], Role(data["role"]), data["department_id"])
@@ -99,28 +94,17 @@ def _check_csrf(request: Request) -> None:
         raise HTTPExceptionResponse(403, "Ungültiger CSRF-Token")
 
 
-class HTTPExceptionResponse(Exception):
-    def __init__(self, status_code: int, detail: str):
-        self.status_code = status_code
-        self.detail = detail
-
-
-@app.exception_handler(HTTPExceptionResponse)
-async def handle_http_error(request: Request, exc: HTTPExceptionResponse):
-    return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
-
-
-@app.get("/health")
+@router.get("/health")
 def health():
     return {"status": "ok"}
 
 
-@app.get("/login")
+@router.get("/login")
 def login_form(response: Response):
     return {"csrf_token": _csrf(response)}
 
 
-@app.post("/login")
+@router.post("/login")
 def login(
     request: Request,
     response: Response,
@@ -130,61 +114,48 @@ def login(
 ):
     if csrf_token != request.cookies.get("csrf_token"):
         raise HTTPExceptionResponse(403, "Ungültiger CSRF-Token")
-    with Session(engine) as session:
-        employee = session.scalar(
-            select(EmployeeModel).where(EmployeeModel.email == email)
-        )
-    if employee is None:
+    with _session(request) as session:
+        actor = _services(request).authenticate(session, email, password)
+    if actor is None:
         raise HTTPExceptionResponse(401, "Ungültige Anmeldung")
-    try:
-        password_hasher.verify(employee.password_hash, password)
-    except VerifyMismatchError:
-        raise HTTPExceptionResponse(401, "Ungültige Anmeldung") from None
-    session_value = serializer.dumps(
-        {
-            "id": employee.id,
-            "role": employee.role,
-            "department_id": employee.department_id,
-        }
+    value = URLSafeSerializer(_services(request).session_secret, salt="session").dumps(
+        {"id": actor.id, "role": actor.role, "department_id": actor.department_id}
     )
-    response.set_cookie(
-        "session", session_value, httponly=True, secure=True, samesite="lax"
-    )
+    response.set_cookie("session", value, httponly=True, secure=True, samesite="lax")
     response.set_cookie(
         "csrf_token", secrets.token_urlsafe(24), secure=True, samesite="lax"
     )
     return {"status": "ok"}
 
 
-@app.post("/logout")
+@router.post("/logout")
 def logout(request: Request, response: Response):
     _check_csrf(request)
     response.delete_cookie("session")
     return {"status": "ok"}
 
 
-def _use_cases(session: Session):
-    assignments = SqlAlchemyAssignmentRepository(session)
-    rounds = SqlAlchemyGameRoundRepository(session)
-    scenarios = SqlAlchemyScenarioRepository(session)
-    return assignments, rounds, scenarios
-
-
-@app.get("/api/modules")
+@router.get("/api/modules")
 def list_modules(request: Request):
     actor = _require_actor(request)
-    with request_session() as session:
-        assignments, rounds, _ = _use_cases(session)
-        result = ListAssignedModules(assignments, rounds).execute(actor)
+    with _session(request) as session:
+        services = _services(request)
+        result = ListAssignedModules(
+            services.assignment_repository(session),
+            services.game_round_repository(session),
+        ).execute(actor)
         return [item.__dict__ for item in result]
 
 
-@app.post("/api/modules/{module_id}/rounds")
+@router.post("/api/modules/{module_id}/rounds")
 def start_round(request: Request, module_id: str):
     actor = _require_actor(request)
     _check_csrf(request)
-    with request_session() as session:
-        assignments, rounds, scenarios = _use_cases(session)
+    with _session(request) as session:
+        services = _services(request)
+        assignments = services.assignment_repository(session)
+        rounds = services.game_round_repository(session)
+        scenarios = services.scenario_repository(session)
         assignment = next(
             (
                 item
@@ -210,15 +181,17 @@ def start_round(request: Request, module_id: str):
         return JSONResponse(result.__dict__, status_code=200 if was_open else 201)
 
 
-@app.post("/api/rounds/{round_id}/answers")
+@router.post("/api/rounds/{round_id}/answers")
 async def submit_answer(request: Request, round_id: str):
     actor = _require_actor(request)
     _check_csrf(request)
     payload = await request.json()
-    with request_session() as session:
-        assignments, rounds, _ = _use_cases(session)
+    with _session(request) as session:
+        services = _services(request)
+        assignments = services.assignment_repository(session)
+        rounds = services.game_round_repository(session)
         try:
-            feedback = SubmitRoundAnswer(assignments, rounds, _SystemClock()).execute(
+            feedback = SubmitRoundAnswer(assignments, rounds, SystemClock()).execute(
                 actor, round_id, payload["position"], payload["option_id"]
             )
         except AccessDenied as error:
@@ -235,22 +208,29 @@ async def submit_answer(request: Request, round_id: str):
         return JSONResponse(response, status_code=201)
 
 
-@app.get("/api/modules/{module_id}/progress")
+@router.get("/api/modules/{module_id}/progress")
 def progress(request: Request, module_id: str):
     actor = _require_actor(request)
-    with request_session() as session:
-        assignments, rounds, _ = _use_cases(session)
+    with _session(request) as session:
+        services = _services(request)
         try:
-            result = GetTrainingProgress(assignments, rounds, _SystemClock()).execute(
-                actor, module_id
-            )
+            result = GetTrainingProgress(
+                services.assignment_repository(session),
+                services.game_round_repository(session),
+                SystemClock(),
+            ).execute(actor, module_id)
         except NotFound as error:
             raise HTTPExceptionResponse(404, str(error)) from error
         return result.__dict__
 
 
-class _SystemClock:
-    def now(self):
-        from datetime import datetime
+def create_app(services: Services) -> FastAPI:
+    application = FastAPI()
+    application.state.services = services
+    application.include_router(router)
 
-        return datetime.now(UTC)
+    @application.exception_handler(HTTPExceptionResponse)
+    async def handle_http_error(request: Request, exc: HTTPExceptionResponse):
+        return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
+
+    return application
