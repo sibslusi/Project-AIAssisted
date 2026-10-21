@@ -13,6 +13,7 @@ from app.application.use_cases import (
     CreateTeamAggregation,
     GetDepartmentStatus,
     GetDisplayNames,
+    GetOpenGameRound,
     GetOverallEvaluation,
     GetPersonalStatus,
     InvalidRequest,
@@ -96,9 +97,20 @@ def _assigned_modules(request: Request, actor):
         except AccessDenied as error:
             raise HTTPExceptionResponse(403, str(error)) from error
         modules = ListAssignedModules(assignments, rounds).execute(actor)
+        lookup = GetOpenGameRound(assignments, rounds)
+        open_modules = {
+            module.module_id
+            for module in modules
+            if lookup.execute(actor, module.module_id) is not None
+        }
     by_assignment = {status.assignment_id: status for status in statuses}
     return tuple(
-        (module, by_assignment.get(module.assignment_id)) for module in modules
+        (
+            module,
+            by_assignment.get(module.assignment_id),
+            module.module_id in open_modules,
+        )
+        for module in modules
     )
 
 
@@ -128,10 +140,34 @@ def round_page(request: Request, module_id: str):
         services = _services(request)
         rounds = services.game_round_repository(session)
         try:
-            view = StartOrResumeGameRound(
+            view = GetOpenGameRound(
+                services.assignment_repository(session), rounds
+            ).execute(actor, module_id)
+        except AccessDenied as error:
+            raise HTTPExceptionResponse(403, str(error)) from error
+        except NotFound as error:
+            raise HTTPExceptionResponse(404, str(error)) from error
+        if view is None:
+            return RedirectResponse("/mitarbeitende/module", status_code=303)
+        context = _round_context(rounds.get(view.id))
+    return _render(request, "round.html", **context)
+
+
+@router.post("/mitarbeitende/module/{module_id}/runden", response_class=HTMLResponse)
+def start_round(
+    request: Request,
+    module_id: str,
+    csrf_token: str | None = Form(default=None),
+):
+    actor = _require_actor(request)
+    _check_form_csrf(request, csrf_token)
+    with _session(request) as session:
+        services = _services(request)
+        try:
+            StartOrResumeGameRound(
                 services.assignment_repository(session),
                 services.scenario_repository(session),
-                rounds,
+                services.game_round_repository(session),
             ).execute(actor, module_id)
         except AccessDenied as error:
             raise HTTPExceptionResponse(403, str(error)) from error
@@ -139,8 +175,7 @@ def round_page(request: Request, module_id: str):
             raise HTTPExceptionResponse(404, str(error)) from error
         except ValueError as error:
             raise HTTPExceptionResponse(409, str(error)) from error
-        context = _round_context(rounds.get(view.id))
-    return _render(request, "round.html", **context)
+    return RedirectResponse(f"/mitarbeitende/module/{module_id}", status_code=303)
 
 
 @router.post("/mitarbeitende/runden/{round_id}/antworten", response_class=HTMLResponse)

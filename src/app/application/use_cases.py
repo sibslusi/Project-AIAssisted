@@ -351,6 +351,28 @@ class ListAssignedModules:
         )
 
 
+class GetOpenGameRound:
+    def __init__(self, assignments: AssignmentRepository, rounds: GameRoundRepository):
+        self.assignments = assignments
+        self.rounds = rounds
+
+    def execute(self, actor: Actor, module_id: str) -> RoundView | None:
+        if actor.role is not Role.EMPLOYEE:
+            raise AccessDenied("Nur Mitarbeitende dürfen Runden spielen")
+        candidates = _assignments_for_actor(self.assignments, actor, module_id)
+        if not candidates:
+            raise NotFound("Modul nicht gefunden")
+        return next(
+            (
+                _round_view(game_round)
+                for candidate in candidates
+                if (game_round := self.rounds.open_for(actor.id, candidate.id))
+                is not None
+            ),
+            None,
+        )
+
+
 class StartOrResumeGameRound:
     def __init__(
         self,

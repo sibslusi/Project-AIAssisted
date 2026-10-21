@@ -3,7 +3,7 @@
 <p>Ihre zugewiesenen Module und Fristen.</p>
 {% if modules %}
 <ul class="module-list">
-{% for module, status in modules %}
+{% for module, status, has_open_round in modules %}
   <li>
     <strong>{{ names.modules.get(module.module_id, module.module_id) }}</strong>
     <span>Frist: {{ module.due_date }}</span>
@@ -12,7 +12,14 @@
     {% if status.score is not none %}<span>Bester Versuch: {{ status.score }}/5</span>{% endif %}
     {% if status.status in ("erledigt", "verspätet erledigt") %}<span class="badge">Abzeichen Datenschutz</span>{% endif %}
     {% endif %}
-    <a href="/mitarbeitende/module/{{ module.module_id }}">Runde öffnen</a>
+    {% if has_open_round %}
+    <a href="/mitarbeitende/module/{{ module.module_id }}">Runde fortsetzen</a>
+    {% else %}
+    <form action="/mitarbeitende/module/{{ module.module_id }}/runden" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button type="submit">Neue Runde starten</button>
+    </form>
+    {% endif %}
   </li>
 {% endfor %}
 </ul>
