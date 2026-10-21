@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import APIRouter, FastAPI, Form, Request, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from itsdangerous import BadSignature, URLSafeSerializer
+from itsdangerous import BadSignature, URLSafeTimedSerializer
 
 from app.application.models import Actor, Role
 from app.application.ports import ClockPort
@@ -56,6 +56,7 @@ class SystemClock:
 
 
 router = APIRouter()
+SESSION_MAX_AGE = 8 * 60 * 60
 
 
 def _services(request: Request) -> Services:
@@ -88,9 +89,9 @@ def _actor(request: Request) -> Actor | None:
     if value is None:
         return None
     try:
-        data = URLSafeSerializer(
+        data = URLSafeTimedSerializer(
             _services(request).session_secret, salt="session"
-        ).loads(value)
+        ).loads(value, max_age=SESSION_MAX_AGE)
     except BadSignature:
         return None
     return Actor(data["id"], Role(data["role"]), data["department_id"])
@@ -132,10 +133,17 @@ def login(
         actor = _services(request).authenticate(session, email, password)
     if actor is None:
         raise HTTPExceptionResponse(401, "Ungültige Anmeldung")
-    value = URLSafeSerializer(_services(request).session_secret, salt="session").dumps(
-        {"id": actor.id, "role": actor.role, "department_id": actor.department_id}
+    value = URLSafeTimedSerializer(
+        _services(request).session_secret, salt="session"
+    ).dumps({"id": actor.id, "role": actor.role, "department_id": actor.department_id})
+    response.set_cookie(
+        "session",
+        value,
+        max_age=SESSION_MAX_AGE,
+        httponly=True,
+        secure=True,
+        samesite="lax",
     )
-    response.set_cookie("session", value, httponly=True, secure=True, samesite="lax")
     response.set_cookie(
         "csrf_token", secrets.token_urlsafe(24), secure=True, samesite="lax"
     )
