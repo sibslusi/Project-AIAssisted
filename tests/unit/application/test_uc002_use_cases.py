@@ -4,7 +4,6 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from app.application.models import (
-    Assignment,
     DepartmentRecord,
     EmployeeRecord,
     ModuleRecord,
@@ -20,8 +19,7 @@ from app.application.use_cases import (
     GetOverallEvaluation,
     GetPersonalStatus,
 )
-from app.domain.models import AnswerOption, GameRound, Scenario
-from app.domain.models import Assignment as DomainAssignment
+from app.domain.models import AnswerOption, Assignment, GameRound, Scenario
 
 ZURICH = ZoneInfo("Europe/Zurich")
 
@@ -177,8 +175,8 @@ def test_team_aggregation_is_available_only_for_three_people():
         employee(Role.DEPARTMENT_LEAD), "department-a"
     )
 
-    assert result.available is False
-    assert result.message == "zu wenige Teilnehmende"
+    assert result[0].available is False
+    assert result[0].message == "zu wenige Teilnehmende"
 
 
 def test_data_protection_officer_gets_overall_evaluation():
@@ -214,19 +212,21 @@ def test_evidence_export_contains_person_module_and_completion_only():
 def test_personal_status_returns_each_assignment():
     assignments = FakeAssignments(
         [
-            DomainAssignment("a", "module-a", "department-a", date(2026, 12, 31)),
-            DomainAssignment("b", "module-b", "department-a", date(2026, 12, 31)),
+            Assignment("a", "module-a", "department-a", date(2026, 12, 31)),
+            Assignment("b", "module-b", "department-a", date(2026, 12, 31)),
         ]
     )
-    result = GetPersonalStatus(assignments, FakeRounds(), FakeClock()).execute(employee())
+    result = GetPersonalStatus(assignments, FakeRounds(), FakeClock()).execute(
+        employee()
+    )
     assert [item.assignment_id for item in result] == ["a", "b"]
 
 
 def test_department_status_returns_each_assignment_for_each_person():
     assignments = FakeAssignments(
         [
-            DomainAssignment("a", "module-a", "department-a", date(2026, 12, 31)),
-            DomainAssignment("b", "module-b", "department-a", date(2026, 12, 31)),
+            Assignment("a", "module-a", "department-a", date(2026, 12, 31)),
+            Assignment("b", "module-b", "department-a", date(2026, 12, 31)),
         ]
     )
     result = GetDepartmentStatus(
@@ -239,8 +239,8 @@ def test_department_status_returns_each_assignment_for_each_person():
 def test_team_aggregation_is_separate_for_each_assignment():
     assignments = FakeAssignments(
         [
-            DomainAssignment("a", "module-a", "department-a", date(2026, 12, 31)),
-            DomainAssignment("b", "module-b", "department-a", date(2026, 12, 31)),
+            Assignment("a", "module-a", "department-a", date(2026, 12, 31)),
+            Assignment("b", "module-b", "department-a", date(2026, 12, 31)),
         ]
     )
     rounds = FakeRounds(

@@ -77,7 +77,12 @@ def make_client():
     return TestClient(app, base_url="https://testserver")
 
 
-def assign(client, module_id, department_id="department-einwohnerdienste", due_date="2026-12-31"):
+def assign(
+    client,
+    module_id,
+    department_id="department-einwohnerdienste",
+    due_date="2026-12-31",
+):
     login(client, "yara.merovan@grenchen.example")
     response = client.post(
         "/api/assignments",
@@ -96,7 +101,10 @@ def complete_round(client, email, module_id, score=5):
     login(client, email)
     started = client.post(f"/api/modules/{module_id}/rounds", headers=csrf(client))
     assert started.status_code == 201
-    options = ("a", "b", "c", "d", "a")
+    options = {
+        "module-einwohnerdienste": ("a", "b", "c", "d", "a"),
+        "module-soziale-dienste": ("b", "c", "d", "a", "b"),
+    }[module_id]
     for position, option in enumerate(options, 1):
         if position > score:
             option = "b" if option != "b" else "a"
@@ -123,11 +131,23 @@ def test_ac002_invalid_assignment_returns_422():
     payloads = (
         {"department_id": "department-einwohnerdienste", "due_date": "2026-12-31"},
         {"module_id": "module-soziale-dienste", "due_date": "2026-12-31"},
-        {"module_id": "module-soziale-dienste", "department_id": "department-einwohnerdienste"},
-        {"module_id": "module-soziale-dienste", "department_id": "department-einwohnerdienste", "due_date": "bad"},
+        {
+            "module_id": "module-soziale-dienste",
+            "department_id": "department-einwohnerdienste",
+        },
+        {
+            "module_id": "module-soziale-dienste",
+            "department_id": "department-einwohnerdienste",
+            "due_date": "bad",
+        },
     )
     for payload in payloads:
-        assert client.post("/api/assignments", json=payload, headers=csrf(client)).status_code == 422
+        assert (
+            client.post(
+                "/api/assignments", json=payload, headers=csrf(client)
+            ).status_code
+            == 422
+        )
     assert len(client.get("/api/modules").json()) == before
 
 
@@ -135,10 +155,15 @@ def test_ac003_personal_status_open():
     client = make_client()
     assignment = assign(client, "module-soziale-dienste")
     login(client, "marek.dalenor@grenchen.example")
-    for current in (datetime(2026, 12, 31, 12, tzinfo=ZURICH), datetime(2026, 12, 31, 23, 59, 59, tzinfo=ZURICH)):
+    for current in (
+        datetime(2026, 12, 31, 12, tzinfo=ZURICH),
+        datetime(2026, 12, 31, 23, 59, 59, tzinfo=ZURICH),
+    ):
         set_clock(current)
         statuses = client.get("/api/me/training-status").json()
-        item = next(value for value in statuses if value["assignment_id"] == assignment["id"])
+        item = next(
+            value for value in statuses if value["assignment_id"] == assignment["id"]
+        )
         assert item["status"] == "offen"
 
 
@@ -147,7 +172,11 @@ def test_ac004_personal_status_completed_is_visible():
     assignment = assign(client, "module-soziale-dienste")
     complete_round(client, "marek.dalenor@grenchen.example", "module-soziale-dienste")
     set_clock(datetime(2026, 12, 31, 23, 59, 59, tzinfo=ZURICH))
-    status = next(item for item in client.get("/api/me/training-status").json() if item["assignment_id"] == assignment["id"])
+    status = next(
+        item
+        for item in client.get("/api/me/training-status").json()
+        if item["assignment_id"] == assignment["id"]
+    )
     assert status["status"] == "erledigt"
 
 
@@ -156,10 +185,18 @@ def test_ac005_overdue_status_is_returned():
     assignment = assign(client, "module-soziale-dienste", due_date="2026-10-20")
     login(client, "marek.dalenor@grenchen.example")
     set_clock(datetime(2026, 10, 21, 0, 0, tzinfo=ZURICH))
-    status = next(item for item in client.get("/api/me/training-status").json() if item["assignment_id"] == assignment["id"])
+    status = next(
+        item
+        for item in client.get("/api/me/training-status").json()
+        if item["assignment_id"] == assignment["id"]
+    )
     assert status["status"] == "Frist überschritten"
     client.post("/api/modules/module-soziale-dienste/rounds", headers=csrf(client))
-    status = next(item for item in client.get("/api/me/training-status").json() if item["assignment_id"] == assignment["id"])
+    status = next(
+        item
+        for item in client.get("/api/me/training-status").json()
+        if item["assignment_id"] == assignment["id"]
+    )
     assert status["status"] == "Frist überschritten"
 
 
@@ -168,14 +205,23 @@ def test_ac006_late_status_is_returned():
     assignment = assign(client, "module-soziale-dienste", due_date="2026-10-20")
     set_clock(datetime(2026, 10, 21, 12, tzinfo=ZURICH))
     complete_round(client, "marek.dalenor@grenchen.example", "module-soziale-dienste")
-    status = next(item for item in client.get("/api/me/training-status").json() if item["assignment_id"] == assignment["id"])
+    status = next(
+        item
+        for item in client.get("/api/me/training-status").json()
+        if item["assignment_id"] == assignment["id"]
+    )
     assert status["status"] == "verspätet erledigt"
 
 
 def test_ac007_employee_cannot_read_other_person_status():
     client = make_client()
     login(client, "marek.dalenor@grenchen.example")
-    assert client.get("/api/me/training-status?employee_id=user-einwohnerdienste-02").status_code == 403
+    assert (
+        client.get(
+            "/api/me/training-status?employee_id=user-einwohnerdienste-02"
+        ).status_code
+        == 403
+    )
     client.post("/logout", headers=csrf(client))
     assert client.get("/api/me/training-status").status_code == 401
 
@@ -207,11 +253,21 @@ def test_ac009_foreign_department_returns_403():
 
 def test_ac010_team_aggregation():
     client = make_client()
-    for email in ("marek.dalenor@grenchen.example", "elina.norveth@grenchen.example", "tarin.belmar@grenchen.example"):
+    for email in (
+        "marek.dalenor@grenchen.example",
+        "elina.norveth@grenchen.example",
+        "tarin.belmar@grenchen.example",
+    ):
         complete_round(client, email, "module-einwohnerdienste", score=4)
     login(client, "liora.veylan@grenchen.example")
-    aggregations = client.get("/api/departments/department-einwohnerdienste/training-aggregation").json()
-    aggregation = next(item for item in aggregations if item["assignment_id"] == "assignment-einwohnerdienste")
+    aggregations = client.get(
+        "/api/departments/department-einwohnerdienste/training-aggregation"
+    ).json()
+    aggregation = next(
+        item
+        for item in aggregations
+        if item["assignment_id"] == "assignment-einwohnerdienste"
+    )
     assert aggregation["participant_count"] == 3
     assert aggregation["total_score"] == 12
     assert aggregation["total_errors"] == 3
@@ -220,10 +276,16 @@ def test_ac010_team_aggregation():
 
 def test_ac011_small_team_hides_values():
     client = make_client()
-    complete_round(client, "marek.dalenor@grenchen.example", "module-einwohnerdienste", score=4)
-    complete_round(client, "elina.norveth@grenchen.example", "module-einwohnerdienste", score=4)
+    complete_round(
+        client, "marek.dalenor@grenchen.example", "module-einwohnerdienste", score=4
+    )
+    complete_round(
+        client, "elina.norveth@grenchen.example", "module-einwohnerdienste", score=4
+    )
     login(client, "liora.veylan@grenchen.example")
-    aggregation = client.get("/api/departments/department-einwohnerdienste/training-aggregation").json()[0]
+    aggregation = client.get(
+        "/api/departments/department-einwohnerdienste/training-aggregation"
+    ).json()[0]
     assert aggregation["available"] is False
     assert aggregation["message"] == "zu wenige Teilnehmende"
     assert aggregation["total_score"] is None and aggregation["total_errors"] is None
@@ -231,7 +293,9 @@ def test_ac011_small_team_hides_values():
         connection.execute(delete(RoundAnswerModel))
         connection.execute(delete(GameRoundScenarioModel))
         connection.execute(delete(GameRoundModel))
-    aggregation = client.get("/api/departments/department-einwohnerdienste/training-aggregation").json()[0]
+    aggregation = client.get(
+        "/api/departments/department-einwohnerdienste/training-aggregation"
+    ).json()[0]
     assert aggregation["message"] == "zu wenige Teilnehmende"
 
 
@@ -240,15 +304,17 @@ def test_ac012_officer_sees_overall_evaluation():
     login(client, "yara.merovan@grenchen.example")
     departments = client.get("/api/training/evaluation").json()["departments"]
     assert {item["department_id"] for item in departments} == {
-        "department-einwohnerdienste", "department-soziale-dienste", "department-finanzen-informatik"
+        "department-einwohnerdienste",
+        "department-soziale-dienste",
+        "department-finanzen-informatik",
     }
 
 
 def test_ac013_officer_exports_csv():
     client = make_client()
+    set_clock(datetime(2026, 10, 21, 14, 5, tzinfo=ZURICH))
     complete_round(client, "marek.dalenor@grenchen.example", "module-einwohnerdienste")
     complete_round(client, "elina.norveth@grenchen.example", "module-einwohnerdienste")
-    set_clock(datetime(2026, 10, 21, 14, 5, tzinfo=ZURICH))
     login(client, "yara.merovan@grenchen.example")
     response = client.get(
         "/api/assignments/assignment-einwohnerdienste/training-evidence.csv"
@@ -284,7 +350,11 @@ def test_ac015_status_uses_controlled_clock_contract():
         (datetime(2026, 10, 21, 0, 0, tzinfo=ZURICH), "Frist überschritten"),
     ):
         set_clock(current)
-        status = next(item for item in client.get("/api/me/training-status").json() if item["assignment_id"] == assignment["id"])
+        status = next(
+            item
+            for item in client.get("/api/me/training-status").json()
+            if item["assignment_id"] == assignment["id"]
+        )
         assert status["status"] == expected
 
 
@@ -292,13 +362,26 @@ def test_equal_score_attempts_use_earlier_completion_for_status_and_csv():
     client = make_client()
     assignment = assign(client, "module-soziale-dienste")
     set_clock(datetime(2026, 10, 21, 14, 5, tzinfo=ZURICH))
-    complete_round(client, "marek.dalenor@grenchen.example", "module-soziale-dienste", score=4)
+    complete_round(
+        client, "marek.dalenor@grenchen.example", "module-soziale-dienste", score=4
+    )
     set_clock(datetime(2026, 10, 21, 15, 5, tzinfo=ZURICH))
-    complete_round(client, "marek.dalenor@grenchen.example", "module-soziale-dienste", score=4)
+    complete_round(
+        client, "marek.dalenor@grenchen.example", "module-soziale-dienste", score=4
+    )
     login(client, "marek.dalenor@grenchen.example")
-    assert next(item for item in client.get("/api/me/training-status").json() if item["assignment_id"] == assignment["id"])["status"] == "erledigt"
+    assert (
+        next(
+            item
+            for item in client.get("/api/me/training-status").json()
+            if item["assignment_id"] == assignment["id"]
+        )["status"]
+        == "erledigt"
+    )
     login(client, "yara.merovan@grenchen.example")
-    csv = client.get(f"/api/assignments/{assignment['id']}/training-evidence.csv").content.decode("utf-8-sig")
+    csv = client.get(
+        f"/api/assignments/{assignment['id']}/training-evidence.csv"
+    ).content.decode("utf-8-sig")
     assert "2026-10-21T14:05:00+02:00" in csv
     assert "2026-10-21T15:05:00+02:00" not in csv
 
@@ -315,7 +398,31 @@ def test_error_contracts_for_all_uc002_endpoints():
         assert client.get(path).status_code == 401
     assert client.post("/api/assignments", json={}).status_code == 401
     login(client, "yara.merovan@grenchen.example")
-    assert client.post("/api/assignments", json={"module_id": "missing", "department_id": "department-einwohnerdienste", "due_date": "2026-12-31"}, headers=csrf(client)).status_code == 404
-    assert client.post("/api/assignments", json={"module_id": "module-einwohnerdienste", "department_id": "missing", "due_date": "2026-12-31"}, headers=csrf(client)).status_code == 404
-    assert client.get("/api/departments/missing/training-status").status_code == 403
-    assert client.get("/api/assignments/missing/training-evidence.csv").status_code == 404
+    assert (
+        client.post(
+            "/api/assignments",
+            json={
+                "module_id": "missing",
+                "department_id": "department-einwohnerdienste",
+                "due_date": "2026-12-31",
+            },
+            headers=csrf(client),
+        ).status_code
+        == 404
+    )
+    assert (
+        client.post(
+            "/api/assignments",
+            json={
+                "module_id": "module-einwohnerdienste",
+                "department_id": "missing",
+                "due_date": "2026-12-31",
+            },
+            headers=csrf(client),
+        ).status_code
+        == 404
+    )
+    assert client.get("/api/departments/missing/training-status").status_code == 404
+    assert (
+        client.get("/api/assignments/missing/training-evidence.csv").status_code == 404
+    )

@@ -5,8 +5,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from app.application.models import Assignment
-from app.domain.models import EvidenceRecord
+from app.domain.models import Assignment, EvidenceRecord
 from app.infrastructure.csv import TrainingEvidenceCsvAdapter
 from app.infrastructure.db import Base
 from app.infrastructure.repositories import (
