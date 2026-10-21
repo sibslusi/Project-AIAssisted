@@ -1,9 +1,13 @@
 from datetime import date, datetime
 from typing import Protocol
 
-from app.application.models import Assignment, DepartmentRecord, EmployeeRecord, ModuleRecord
-from app.domain.models import EvidenceRecord
-from app.domain.models import GameRound, Scenario
+from app.application.models import (
+    Assignment,
+    DepartmentRecord,
+    EmployeeRecord,
+    ModuleRecord,
+)
+from app.domain.models import EvidenceRecord, GameRound, Scenario
 
 
 class AssignmentRepository(Protocol):

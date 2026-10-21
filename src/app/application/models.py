@@ -63,9 +63,15 @@ class PersonalStatus:
 
 
 @dataclass(frozen=True)
+class PersonStatus:
+    employee_id: str
+    status: str
+
+
+@dataclass(frozen=True)
 class DepartmentStatus:
     department_id: str
-    persons: tuple[PersonalStatus, ...]
+    persons: tuple[PersonStatus, ...]
 
 
 @dataclass(frozen=True)
