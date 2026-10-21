@@ -138,6 +138,22 @@ def test_round_completes_at_four_of_five_and_stores_score_and_pass_status():
     assert game_round.completed_at == datetime(2026, 10, 21, 10, 5, tzinfo=ZURICH)
 
 
+def test_round_with_three_correct_answers_is_not_passed():
+    game_round = make_round()
+    answered_at = datetime(2026, 10, 21, 10, 0, tzinfo=ZURICH)
+
+    for position in range(1, 4):
+        game_round.answer(position, "right", answered_at)
+    for position in range(4, 6):
+        game_round.answer(position, "wrong-1", answered_at)
+
+    result = game_round.complete(answered_at)
+
+    assert result.score == 3
+    assert result.passed is False
+    assert game_round.passed is False
+
+
 def test_best_attempt_uses_highest_score_then_earliest_completion():
     first = make_round()
     for position in range(1, 5):
@@ -181,5 +197,23 @@ def test_training_status_uses_best_passed_attempt_and_due_date_until_local_day_e
     late.complete(late_at)
     assert (
         training_status((late,), due_date, late.completed_at)
+        is TrainingStatus.COMPLETED_LATE
+    )
+
+
+def test_training_status_uses_first_of_two_equal_late_passed_attempts():
+    due_date = date(2026, 11, 30)
+    first = make_round()
+    first_at = datetime(2026, 12, 1, 0, 1, tzinfo=ZURICH)
+    second = make_round()
+    second_at = datetime(2026, 12, 1, 0, 2, tzinfo=ZURICH)
+    for attempt, answered_at in ((first, first_at), (second, second_at)):
+        for position in range(1, 5):
+            attempt.answer(position, "right", answered_at)
+        attempt.answer(5, "wrong-1", answered_at)
+        attempt.complete(answered_at)
+
+    assert (
+        training_status((second, first), due_date, second_at)
         is TrainingStatus.COMPLETED_LATE
     )

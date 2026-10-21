@@ -54,6 +54,25 @@ class FakeScenarios:
         return scenarios()
 
 
+class FakeScenariosWithInactive:
+    def for_module(self, module_id):
+        return (
+            *scenarios()[:4],
+            Scenario.create(
+                id="inactive",
+                situation="Situation",
+                explanation="Erklärung",
+                legal_basis="Rechtsgrundlage",
+                active=False,
+                options=(
+                    AnswerOption("right", "Richtig", True),
+                    AnswerOption("wrong-1", "Falsch", False),
+                    AnswerOption("wrong-2", "Falsch", False),
+                ),
+            ),
+        )
+
+
 class FakeRounds:
     def __init__(self, rounds=()):
         self.items = list(rounds)
@@ -134,6 +153,56 @@ def test_start_creates_five_scenario_round_and_reuses_open_round():
     assert len(first.scenario_ids) == 5
 
 
+def test_open_round_continues_at_first_unanswered_position():
+    assignments = FakeAssignments()
+    rounds = FakeRounds()
+    start = StartOrResumeGameRound(assignments, FakeScenarios(), rounds)
+    started = start.execute(employee(), "module-a")
+    rounds.items[0].answer(1, "right", datetime(2026, 10, 21, tzinfo=ZURICH))
+    resumed = start.execute(employee(), "module-a")
+
+    assert resumed.id == started.id
+    assert resumed.next_position == 2
+    assert len(rounds.items) == 1
+
+
+def test_repeated_round_gets_next_attempt_number():
+    assignments = FakeAssignments()
+    rounds = FakeRounds()
+    start = StartOrResumeGameRound(assignments, FakeScenarios(), rounds)
+    first = start.execute(employee(), "module-a")
+    for position in range(1, 6):
+        first_round = rounds.items[0]
+        first_round.answer(position, "right", datetime(2026, 10, 21, tzinfo=ZURICH))
+    rounds.items[0].complete(datetime(2026, 10, 21, tzinfo=ZURICH))
+    second = start.execute(employee(), "module-a")
+
+    assert second.attempt_number == 2
+    assert second.id != first.id
+
+
+def test_inactive_scenario_is_not_used_for_new_round_but_open_snapshot_is_kept():
+    assignments = FakeAssignments()
+    rounds = FakeRounds()
+    start = StartOrResumeGameRound(assignments, FakeScenariosWithInactive(), rounds)
+
+    with pytest.raises(ValueError):
+        start.execute(employee(), "module-a")
+
+    open_round = GameRound.start(
+        id="open-round",
+        employee_id=employee().id,
+        assignment_id="assignment-a",
+        attempt_number=1,
+        scenarios=scenarios(),
+    )
+    rounds.items.append(open_round)
+    resumed = start.execute(employee(), "module-a")
+
+    assert resumed.id == "open-round"
+    assert resumed.scenario_ids == tuple(f"scenario-{number}" for number in range(1, 6))
+
+
 def test_submit_answer_returns_feedback_and_rejects_foreign_round():
     assignments = FakeAssignments()
     rounds = FakeRounds()
@@ -180,3 +249,50 @@ def test_department_lead_sees_no_individual_values_before_three_completed_people
 
     assert result.aggregate_available is False
     assert result.scores is None
+
+
+def test_department_lead_sees_aggregates_from_three_completed_people_and_employee_own_status():
+    """Abteilungsleitung sieht Aggregate ab 3 abgeschlossenen Personen, Mitarbeitende sehen nur den eigenen Status."""
+    assignments = FakeAssignments()
+    rounds = FakeRounds()
+    for number in range(3):
+        game_round = GameRound.start(
+            id=f"round-{number}",
+            employee_id=f"employee-{number}",
+            assignment_id="assignment-a",
+            attempt_number=1,
+            scenarios=scenarios(),
+        )
+        completed_at = datetime(2026, 10, 20, 10, number, tzinfo=ZURICH)
+        for position in range(1, 6):
+            game_round.answer(position, "right", completed_at)
+        game_round.complete(completed_at)
+        rounds.items.append(game_round)
+
+    progress = GetTrainingProgress(
+        assignments, rounds, FakeClock(datetime(2026, 10, 21, tzinfo=ZURICH))
+    )
+    lead_result = progress.execute(
+        Actor("lead-1", Role.DEPARTMENT_LEAD, "department-a"), "module-a"
+    )
+    employee_result = progress.execute(employee(), "module-a")
+
+    assert lead_result.aggregate_available is True
+    assert set(lead_result.scores) == {"completed_people", "total_score"}
+    assert lead_result.scores["completed_people"] == 3
+    assert employee_result.aggregate_available is False
+    assert employee_result.scores == {"best": 5}
+
+
+def test_data_protection_officer_can_see_other_departments_progress():
+    assignments = FakeAssignments()
+    rounds = FakeRounds()
+    progress = GetTrainingProgress(
+        assignments, rounds, FakeClock(datetime(2026, 10, 21, tzinfo=ZURICH))
+    )
+
+    result = progress.execute(
+        Actor("officer-1", Role.DATA_PROTECTION_OFFICER, "department-a"), "module-b"
+    )
+
+    assert result.aggregate_available is False
