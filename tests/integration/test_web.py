@@ -99,6 +99,16 @@ def test_html_login_sets_session_cookie_and_logout_clears_access():
     assert modules.status_code == 401
 
 
+def test_home_page_redirects_logged_in_user_to_role_start_page():
+    test_client = client()
+    _login(test_client, "liora.veylan@grenchen.example")
+
+    response = test_client.get("/", headers=HTML_HEADERS, follow_redirects=False)
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/abteilungsleitung/auswertung"
+
+
 def test_html_logout_requires_csrf():
     test_client = client()
     test_client.get("/", headers=HTML_HEADERS)
