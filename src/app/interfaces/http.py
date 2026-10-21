@@ -2,7 +2,6 @@ import secrets
 from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from json import JSONDecodeError
 from typing import Any
 
@@ -49,11 +48,6 @@ class HTTPExceptionResponse(Exception):
     def __init__(self, status_code: int, detail: str):
         self.status_code = status_code
         self.detail = detail
-
-
-class SystemClock:
-    def now(self) -> datetime:
-        return datetime.now(UTC)
 
 
 router = APIRouter()

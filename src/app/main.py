@@ -1,16 +1,14 @@
 import os
 from pathlib import Path
 
-from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.application.models import Actor, Role
+from app.infrastructure.auth import authenticate
+from app.infrastructure.clock import SystemClock
 from app.infrastructure.csv import TrainingEvidenceCsvAdapter
 from app.infrastructure.db import Base
-from app.infrastructure.models import EmployeeModel
 from app.infrastructure.repositories import (
     SqlAlchemyAssignmentRepository,
     SqlAlchemyDepartmentRepository,
@@ -19,7 +17,7 @@ from app.infrastructure.repositories import (
     SqlAlchemyModuleRepository,
     SqlAlchemyScenarioRepository,
 )
-from app.interfaces.http import Services, SystemClock
+from app.interfaces.http import Services
 from app.interfaces.http import create_app as create_http_app
 
 
@@ -41,20 +39,6 @@ def create_app():
             engine_kwargs["poolclass"] = StaticPool
     engine = create_engine(database_url, **engine_kwargs)
     factory = sessionmaker(bind=engine)
-    hasher = PasswordHasher()
-
-    def authenticate(session: Session, email: str, password: str) -> Actor | None:
-        employee = session.scalar(
-            select(EmployeeModel).where(EmployeeModel.email == email)
-        )
-        if employee is None:
-            return None
-        try:
-            hasher.verify(employee.password_hash, password)
-        except VerifyMismatchError:
-            return None
-        return Actor(employee.id, Role(employee.role), employee.department_id)
-
     application = create_http_app(
         Services(
             session_factory=factory,
