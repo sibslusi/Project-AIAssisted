@@ -114,7 +114,7 @@ def test_game_round_save_does_not_reactivate_deactivated_scenario():
     engine = database()
     scenarios = tuple(
         Scenario.create(
-            id=f"scenario-{number}",
+            id=f"scenario-einwohnerdienste-{number:02d}",
             situation="Situation",
             explanation="Erklärung",
             legal_basis="Rechtsgrundlage",
@@ -141,14 +141,16 @@ def test_game_round_save_does_not_reactivate_deactivated_scenario():
         repository.save(game_round)
         session.commit()
 
-        session.get(ScenarioModel, "scenario-1").active = False
+        session.get(ScenarioModel, "scenario-einwohnerdienste-01").active = False
         session.commit()
 
         game_round.answer(1, "right", answered_at)
         repository.save(game_round)
         session.commit()
 
-        assert session.get(ScenarioModel, "scenario-1").active is False
+        assert (
+            session.get(ScenarioModel, "scenario-einwohnerdienste-01").active is False
+        )
 
 
 def test_module_scenario_position_has_named_unique_constraint():
