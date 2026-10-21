@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -19,6 +20,7 @@ from app.infrastructure.repositories import (
 )
 from app.interfaces.http import Services
 from app.interfaces.http import create_app as create_http_app
+from app.interfaces.web import router as web_router
 
 
 def _required(name: str) -> str:
@@ -57,6 +59,11 @@ def create_app():
     application.state.engine = engine
     application.state.base_metadata = Base.metadata
     application.state.seed_directory = Path(__file__).parents[2] / "data" / "seed"
+    application.include_router(web_router)
+    static_directory = Path(__file__).parent / "interfaces" / "static"
+    application.mount(
+        "/static", StaticFiles(directory=static_directory), name="static"
+    )
     return application
 
 

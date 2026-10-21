@@ -1,0 +1,9 @@
+{% extends "page.html" %}
+{% block page_content %}
+<p>Auswertung aller Abteilungen.</p>
+{% for department in departments %}
+<section class="summary"><h2>{{ department.department_id }}</h2>
+<ul>{% for person in department.persons %}<li>{{ person.employee_id }}: {{ person.status }}</li>{% endfor %}</ul>
+</section>
+{% endfor %}
+{% endblock %}

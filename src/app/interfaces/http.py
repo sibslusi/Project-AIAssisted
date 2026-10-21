@@ -3,6 +3,7 @@ from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass
 from json import JSONDecodeError
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, FastAPI, Form, Request, Response
@@ -52,6 +53,7 @@ class HTTPExceptionResponse(Exception):
 
 
 router = APIRouter()
+error_templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 SESSION_MAX_AGE = 8 * 60 * 60
 
 
@@ -426,7 +428,7 @@ def create_app(services: Services) -> FastAPI:
                 404: "Modul nicht gefunden",
             }.get(exc.status_code, exc.detail)
             return HTMLResponse(
-                content=Jinja2Templates(directory="src/app/interfaces/templates").get_template(template).render(
+                content=error_templates.get_template(template).render(
                     request=request,
                     actor=_actor(request),
                     csrf_token=request.cookies.get("csrf_token"),

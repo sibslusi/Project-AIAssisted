@@ -1,0 +1,15 @@
+{% extends "page.html" %}
+{% block page_content %}
+<p>Ihre zugewiesenen Module und Fristen.</p>
+{% if modules %}
+<ul class="module-list">
+{% for module in modules %}
+  <li>
+    <strong>{{ module.module_id }}</strong>
+    <span>Frist: {{ module.due_date }}</span>
+    <a href="/mitarbeitende/module/{{ module.module_id }}">Runde öffnen</a>
+  </li>
+{% endfor %}
+</ul>
+{% else %}<p>Keine Module zugewiesen.</p>{% endif %}
+{% endblock %}
