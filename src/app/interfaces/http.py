@@ -3,6 +3,7 @@ from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from json import JSONDecodeError
 from typing import Any
 
 from fastapi import APIRouter, FastAPI, Form, Request, Response
@@ -207,15 +208,20 @@ def start_round(request: Request, module_id: str):
 async def submit_answer(request: Request, round_id: str):
     actor = _require_actor(request)
     _check_csrf(request)
-    payload = await request.json()
+    try:
+        payload = await request.json()
+        position = payload["position"]
+        option_id = payload["option_id"]
+    except (JSONDecodeError, KeyError, TypeError) as error:
+        raise HTTPExceptionResponse(422, "Ungültige Antwort") from error
     with _session(request) as session:
         services = _services(request)
         assignments = services.assignment_repository(session)
         rounds = services.game_round_repository(session)
         try:
-            feedback = SubmitRoundAnswer(assignments, rounds, services.clock).execute(
-                actor, round_id, payload["position"], payload["option_id"]
-            )
+                feedback = SubmitRoundAnswer(
+                    assignments, rounds, services.clock
+                ).execute(actor, round_id, position, option_id)
         except AccessDenied as error:
             raise HTTPExceptionResponse(403, str(error)) from error
         except NotFound as error:

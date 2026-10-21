@@ -1,6 +1,6 @@
+import pytest
 from fastapi.testclient import TestClient
 from itsdangerous import URLSafeTimedSerializer
-import pytest
 
 from app.main import app
 
