@@ -5,6 +5,8 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import create_engine, inspect, select
 from sqlalchemy.orm import Session
 
+import pytest
+
 from app.domain.models import AnswerOption, GameRound, Scenario
 from app.infrastructure.db import Base
 from app.infrastructure.models import EmployeeModel
@@ -23,6 +25,13 @@ def database():
     engine = create_engine("sqlite+pysqlite:///:memory:")
     Base.metadata.create_all(engine)
     return engine
+
+
+def test_seed_loader_requires_demo_password(monkeypatch):
+    monkeypatch.delenv("DEMO_PASSWORD", raising=False)
+
+    with pytest.raises(RuntimeError, match="DEMO_PASSWORD"):
+        load_seed_data(Session(database()), SEED_DIR)
 
 
 def test_seed_loader_loads_assignments_and_argon2_password_hashes(monkeypatch):
