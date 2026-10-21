@@ -6,7 +6,6 @@ import pytest
 from app.domain.models import AnswerOption, GameRound, Scenario
 from app.domain.rules import TrainingStatus, best_attempt, training_status
 
-
 ZURICH = ZoneInfo("Europe/Zurich")
 
 
@@ -169,9 +168,10 @@ def test_training_status_uses_best_passed_attempt_and_due_date_until_local_day_e
     due_date = date(2026, 11, 30)
 
     assert training_status((attempt,), due_date, completed) is TrainingStatus.COMPLETED
-    assert training_status(
-        (), due_date, datetime(2026, 12, 1, 0, 0, tzinfo=ZURICH)
-    ) is TrainingStatus.OVERDUE
+    assert (
+        training_status((), due_date, datetime(2026, 12, 1, 0, 0, tzinfo=ZURICH))
+        is TrainingStatus.OVERDUE
+    )
 
     late = make_round()
     late_at = datetime(2026, 12, 1, 0, 0, tzinfo=ZURICH)
@@ -179,4 +179,7 @@ def test_training_status_uses_best_passed_attempt_and_due_date_until_local_day_e
         late.answer(position, "right", late_at)
     late.answer(5, "wrong-1", late_at)
     late.complete(late_at)
-    assert training_status((late,), due_date, late.completed_at) is TrainingStatus.COMPLETED_LATE
+    assert (
+        training_status((late,), due_date, late.completed_at)
+        is TrainingStatus.COMPLETED_LATE
+    )
