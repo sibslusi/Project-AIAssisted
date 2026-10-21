@@ -45,6 +45,44 @@ def test_html_login_requires_csrf_and_redirects_employee_to_modules():
     assert logged_in.headers["location"] == "/mitarbeitende/module"
 
 
+def test_html_login_sets_session_cookie_and_logout_clears_access():
+    test_client = client()
+    test_client.get("/", headers=HTML_HEADERS)
+
+    logged_in = test_client.post(
+        "/login",
+        data={
+            "email": "marek.dalenor@grenchen.example",
+            "password": "demo-password",
+            "csrf_token": test_client.cookies["csrf_token"],
+        },
+        headers=HTML_HEADERS,
+        follow_redirects=False,
+    )
+
+    assert logged_in.status_code == 303
+    session_cookie = next(
+        cookie for cookie in logged_in.headers.get_list("set-cookie") if cookie.startswith("session=")
+    )
+    assert "HttpOnly" in session_cookie
+    assert "Secure" in session_cookie
+    assert test_client.get("/mitarbeitende/module", headers=HTML_HEADERS).status_code == 200
+
+    logged_out = test_client.post(
+        "/logout",
+        data={"csrf_token": test_client.cookies["csrf_token"]},
+        headers=HTML_HEADERS,
+        follow_redirects=False,
+    )
+
+    assert logged_out.status_code == 303
+    assert any(
+        cookie.startswith("session=") and "Max-Age=0" in cookie
+        for cookie in logged_out.headers.get_list("set-cookie")
+    )
+    assert test_client.get("/mitarbeitende/module", headers=HTML_HEADERS).status_code == 401
+
+
 def test_html_logout_requires_csrf():
     test_client = client()
     test_client.get("/", headers=HTML_HEADERS)
