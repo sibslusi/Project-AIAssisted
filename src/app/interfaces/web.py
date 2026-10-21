@@ -7,7 +7,6 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from app.application.models import Role
 from app.application.use_cases import (
     AccessDenied,
     AssignModule,
@@ -24,6 +23,7 @@ from app.application.use_cases import (
     SubmitRoundAnswer,
 )
 from app.interfaces.http import (
+    START_PAGES,
     HTTPExceptionResponse,
     _actor,
     _csrf,
@@ -94,14 +94,6 @@ def _round_context(game_round, feedback=None) -> dict[str, Any]:
     }
 
 
-def _redirect_for(role: Role) -> str:
-    return {
-        Role.EMPLOYEE: "/mitarbeitende/module",
-        Role.DEPARTMENT_LEAD: "/abteilungsleitung/auswertung",
-        Role.DATA_PROTECTION_OFFICER: "/datenschutz/auswertung",
-    }[role]
-
-
 def _assigned_modules(request: Request, actor):
     with _session(request) as session:
         services = _services(request)
@@ -124,7 +116,7 @@ def _assigned_modules(request: Request, actor):
 def home(request: Request):
     actor = _actor(request)
     if actor is not None:
-        return RedirectResponse(_redirect_for(actor.role), status_code=303)
+        return RedirectResponse(START_PAGES[actor.role], status_code=303)
     return _render(request, "login.html")
 
 

@@ -55,6 +55,11 @@ class HTTPExceptionResponse(Exception):
 router = APIRouter()
 error_templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 SESSION_MAX_AGE = 8 * 60 * 60
+START_PAGES = {
+    Role.EMPLOYEE: "/mitarbeitende/module",
+    Role.DEPARTMENT_LEAD: "/abteilungsleitung/auswertung",
+    Role.DATA_PROTECTION_OFFICER: "/datenschutz/auswertung",
+}
 
 
 def _services(request: Request) -> Services:
@@ -156,14 +161,7 @@ def login(
     if actor is None:
         raise HTTPExceptionResponse(401, "Ungültige Anmeldung")
     if "text/html" in request.headers.get("accept", ""):
-        redirect = RedirectResponse(
-            {
-                Role.EMPLOYEE: "/mitarbeitende/module",
-                Role.DEPARTMENT_LEAD: "/abteilungsleitung/auswertung",
-                Role.DATA_PROTECTION_OFFICER: "/datenschutz/auswertung",
-            }[actor.role],
-            status_code=303,
-        )
+        redirect = RedirectResponse(START_PAGES[actor.role], status_code=303)
         _set_session_cookies(redirect, actor, _services(request).session_secret)
         return redirect
     _set_session_cookies(response, actor, _services(request).session_secret)
