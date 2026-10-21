@@ -45,6 +45,9 @@ class FakeAssignments:
     def for_department(self, department_id):
         return tuple(item for item in self.items if item.department_id == department_id)
 
+    def all(self):
+        return self.items
+
     def get(self, assignment_id):
         return next((item for item in self.items if item.id == assignment_id), None)
 
@@ -251,8 +254,11 @@ def test_department_lead_sees_no_individual_values_before_three_completed_people
     assert result.scores is None
 
 
-def test_department_lead_sees_aggregates_from_three_completed_people_and_employee_own_status():
-    """Abteilungsleitung sieht Aggregate ab 3 abgeschlossenen Personen, Mitarbeitende sehen nur den eigenen Status."""
+def test_role_specific_progress_visibility():
+    """Abteilungsleitung sieht Aggregate ab 3 abgeschlossenen Personen.
+
+    Mitarbeitende sehen nur den eigenen Status.
+    """
     assignments = FakeAssignments()
     rounds = FakeRounds()
     for number in range(3):

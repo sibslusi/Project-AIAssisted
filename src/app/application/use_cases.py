@@ -32,10 +32,17 @@ class InvalidRequest(Exception):
 def _assignment_for_actor(
     assignments: AssignmentRepository, actor: Actor, module_id: str
 ):
+    if actor.role is Role.DATA_PROTECTION_OFFICER:
+        all_assignments = getattr(assignments, "all", None)
+        candidates = (
+            all_assignments()
+            if all_assignments is not None
+            else assignments.for_department(actor.department_id)
+        )
+    else:
+        candidates = assignments.for_department(actor.department_id)
     matching = tuple(
-        assignment
-        for assignment in assignments.for_department(actor.department_id)
-        if assignment.module_id == module_id
+        assignment for assignment in candidates if assignment.module_id == module_id
     )
     return matching[0] if matching else None
 
@@ -46,9 +53,14 @@ class ListAssignedModules:
         self.rounds = rounds
 
     def execute(self, actor: Actor) -> tuple[AssignedModule, ...]:
+        assignments = (
+            self.assignments.all()
+            if actor.role is Role.DATA_PROTECTION_OFFICER
+            else self.assignments.for_department(actor.department_id)
+        )
         return tuple(
             AssignedModule(item.id, item.module_id, item.due_date)
-            for item in self.assignments.for_department(actor.department_id)
+            for item in assignments
         )
 
 
@@ -121,7 +133,10 @@ class GetTrainingProgress:
             ).score
             for employee_id in employees
         }
-        return ProgressView(True, scores)
+        return ProgressView(
+            True,
+            {"completed_people": len(scores), "total_score": sum(scores.values())},
+        )
 
 
 class SubmitRoundAnswer:
