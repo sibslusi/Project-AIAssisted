@@ -1,4 +1,3 @@
-import json
 from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -15,7 +14,6 @@ from app.infrastructure.repositories import (
     SqlAlchemyScenarioRepository,
 )
 from app.infrastructure.seed import load_seed_data
-
 
 SEED_DIR = Path(__file__).parents[2] / "data" / "seed"
 ZURICH = ZoneInfo("Europe/Zurich")
@@ -36,7 +34,9 @@ def test_seed_loader_loads_assignments_and_argon2_password_hashes(monkeypatch):
         assignment_repo = SqlAlchemyAssignmentRepository(session)
         assignments = assignment_repo.for_department("department-einwohnerdienste")
         employee = session.scalar(
-            select(EmployeeModel).where(EmployeeModel.email == "marek.dalenor@grenchen.example")
+            select(EmployeeModel).where(
+                EmployeeModel.email == "marek.dalenor@grenchen.example"
+            )
         )
 
     assert len(assignments) == 1
