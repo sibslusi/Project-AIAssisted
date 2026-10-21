@@ -1,7 +1,8 @@
 from datetime import date, datetime
 from typing import Protocol
 
-from app.application.models import Assignment
+from app.application.models import Assignment, DepartmentRecord, EmployeeRecord, ModuleRecord
+from app.domain.models import EvidenceRecord
 from app.domain.models import GameRound, Scenario
 
 
@@ -11,6 +12,32 @@ class AssignmentRepository(Protocol):
     def all(self) -> tuple[Assignment, ...]: ...
 
     def get(self, assignment_id: str) -> Assignment | None: ...
+
+    def save(self, assignment: Assignment) -> Assignment: ...
+
+    def for_employee(self, employee_id: str) -> tuple[Assignment, ...]: ...
+
+
+class EmployeeRepository(Protocol):
+    def get(self, employee_id: str) -> EmployeeRecord | None: ...
+
+    def for_department(self, department_id: str) -> tuple[EmployeeRecord, ...]: ...
+
+    def all(self) -> tuple[EmployeeRecord, ...]: ...
+
+
+class DepartmentRepository(Protocol):
+    def get(self, department_id: str) -> DepartmentRecord | None: ...
+
+    def all(self) -> tuple[DepartmentRecord, ...]: ...
+
+
+class ModuleRepository(Protocol):
+    def get(self, module_id: str) -> ModuleRecord | None: ...
+
+
+class TrainingEvidenceCsvPort(Protocol):
+    def render(self, records: tuple[EvidenceRecord, ...]) -> str: ...
 
 
 class ScenarioRepository(Protocol):

@@ -44,3 +44,50 @@ class ProgressView:
     aggregate_available: bool
     scores: dict[str, int] | None
     status: str | None = None
+
+
+@dataclass(frozen=True)
+class EmployeeRecord:
+    id: str
+    department_id: str
+    first_name: str = ""
+    last_name: str = ""
+
+
+@dataclass(frozen=True)
+class PersonalStatus:
+    assignment_id: str
+    module_id: str
+    status: str
+    score: int | None
+
+
+@dataclass(frozen=True)
+class DepartmentStatus:
+    department_id: str
+    persons: tuple[PersonalStatus, ...]
+
+
+@dataclass(frozen=True)
+class TeamAggregationView:
+    department_id: str
+    available: bool
+    message: str | None
+    participant_count: int
+    total_score: int | None
+    total_errors: int | None
+
+
+@dataclass(frozen=True)
+class OverallEvaluation:
+    departments: tuple[DepartmentStatus, ...]
+
+
+@dataclass(frozen=True)
+class ModuleRecord:
+    id: str
+
+
+@dataclass(frozen=True)
+class DepartmentRecord:
+    id: str
