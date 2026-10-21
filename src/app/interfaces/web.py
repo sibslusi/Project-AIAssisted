@@ -13,9 +13,12 @@ from app.application.use_cases import (
     AssignModule,
     CreateTeamAggregation,
     GetDepartmentStatus,
+    GetDisplayNames,
     GetOverallEvaluation,
     GetPersonalStatus,
+    InvalidRequest,
     ListAssignedModules,
+    ListAssignments,
     NotFound,
     StartOrResumeGameRound,
     SubmitRoundAnswer,
@@ -46,8 +49,22 @@ def _context(request: Request, **values: Any) -> dict[str, Any]:
     }
 
 
+def _display_names(request: Request):
+    actor = _actor(request)
+    if actor is None:
+        return None
+    with _session(request) as session:
+        services = _services(request)
+        return GetDisplayNames(
+            services.employee_repository(session),
+            services.module_repository(session),
+            services.department_repository(session),
+        ).execute(actor)
+
+
 def _render(request: Request, template: str, **values: Any) -> HTMLResponse:
     csrf_token = request.cookies.get("csrf_token") or secrets.token_urlsafe(24)
+    values.setdefault("names", _display_names(request))
     response = templates.TemplateResponse(
         request=request,
         name=template,
@@ -228,21 +245,21 @@ def assignments_page(request: Request):
     actor = _require_actor(request)
     with _session(request) as session:
         services = _services(request)
-        if actor.role is not Role.DATA_PROTECTION_OFFICER:
-            raise HTTPExceptionResponse(
-                403, "Nur Datenschutzverantwortliche dürfen zuweisen"
-            )
-        assignments = services.assignment_repository(session).all()
-        departments = services.department_repository(session).all()
-        module_ids = tuple({assignment.module_id for assignment in assignments})
-    modules = tuple(type("Module", (), {"id": module_id}) for module_id in module_ids)
+        try:
+            overview = ListAssignments(
+                services.assignment_repository(session),
+                services.module_repository(session),
+                services.department_repository(session),
+            ).execute(actor)
+        except AccessDenied as error:
+            raise HTTPExceptionResponse(403, str(error)) from error
     return _render(
         request,
         "assignments.html",
         title="Zuweisungen",
-        assignments=assignments,
-        departments=departments,
-        modules=modules,
+        assignments=overview.assignments,
+        departments=overview.departments,
+        modules=overview.modules,
     )
 
 
@@ -272,6 +289,6 @@ def create_assignment(
             raise HTTPExceptionResponse(403, str(error)) from error
         except NotFound as error:
             raise HTTPExceptionResponse(404, str(error)) from error
-        except ValueError as error:
+        except (InvalidRequest, ValueError) as error:
             raise HTTPExceptionResponse(422, str(error)) from error
     return RedirectResponse("/datenschutz/zuweisungen", status_code=303)

@@ -2,8 +2,11 @@
 {% block page_content %}
 <p>Auswertung aller Abteilungen.</p>
 {% for department in departments %}
-<section class="summary"><h2>{{ department.department_id }}</h2>
-<ul>{% for person in department.persons %}<li>{{ person.employee_id }}: {{ person.status }}</li>{% endfor %}</ul>
+<section class="summary"><h2>{{ names.departments.get(department.department_id, department.department_id) }}</h2>
+<table>
+  <thead><tr><th>Person</th><th>Modul</th><th>Status</th></tr></thead>
+  <tbody>{% for person in department.persons %}<tr><td>{{ names.employees.get(person.employee_id, person.employee_id) }}</td><td>{{ names.modules.get(person.module_id, person.module_id) }}</td><td>{{ person.status }}</td></tr>{% endfor %}</tbody>
+</table>
 </section>
 {% endfor %}
 {% endblock %}

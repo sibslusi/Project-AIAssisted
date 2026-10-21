@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import date
 from enum import StrEnum
 
+from app.domain.models import Assignment
+
 
 class Role(StrEnum):
     EMPLOYEE = "employee"
@@ -88,8 +90,24 @@ class OverallEvaluation:
 @dataclass(frozen=True)
 class ModuleRecord:
     id: str
+    name: str = ""
 
 
 @dataclass(frozen=True)
 class DepartmentRecord:
     id: str
+    name: str = ""
+
+
+@dataclass(frozen=True)
+class AssignmentOverview:
+    assignments: tuple[Assignment, ...]
+    modules: tuple[ModuleRecord, ...]
+    departments: tuple[DepartmentRecord, ...]
+
+
+@dataclass(frozen=True)
+class DisplayNames:
+    employees: dict[str, str]
+    modules: dict[str, str]
+    departments: dict[str, str]

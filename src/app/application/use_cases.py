@@ -3,7 +3,9 @@ from uuid import uuid4
 from app.application.models import (
     Actor,
     AssignedModule,
+    AssignmentOverview,
     DepartmentStatus,
+    DisplayNames,
     EmployeeRecord,
     OverallEvaluation,
     PersonalStatus,
@@ -68,6 +70,56 @@ class AssignModule:
         except (TypeError, ValueError) as error:
             raise InvalidRequest(str(error)) from error
         return self.assignments.save(assignment)
+
+
+class ListAssignments:
+    def __init__(
+        self,
+        assignments: AssignmentRepository,
+        modules: ModuleRepository,
+        departments: DepartmentRepository,
+    ):
+        self.assignments = assignments
+        self.modules = modules
+        self.departments = departments
+
+    def execute(self, actor: Actor) -> AssignmentOverview:
+        if actor.role is not Role.DATA_PROTECTION_OFFICER:
+            raise AccessDenied("Nur Datenschutzverantwortliche dürfen zuweisen")
+        return AssignmentOverview(
+            self.assignments.all(), self.modules.all(), self.departments.all()
+        )
+
+
+class GetDisplayNames:
+    def __init__(
+        self,
+        employees: EmployeeRepository,
+        modules: ModuleRepository,
+        departments: DepartmentRepository,
+    ):
+        self.employees = employees
+        self.modules = modules
+        self.departments = departments
+
+    def execute(self, actor: Actor) -> DisplayNames:
+        if actor.role is Role.DATA_PROTECTION_OFFICER:
+            employees = self.employees.all()
+            departments = self.departments.all()
+        else:
+            employees = self.employees.for_department(actor.department_id)
+            departments = tuple(
+                department
+                for department in self.departments.all()
+                if department.id == actor.department_id
+            )
+        if actor.role is Role.EMPLOYEE:
+            employees = tuple(item for item in employees if item.id == actor.id)
+        return DisplayNames(
+            {item.id: f"{item.first_name} {item.last_name}" for item in employees},
+            {item.id: item.name for item in self.modules.all()},
+            {item.id: item.name for item in departments},
+        )
 
 
 def _status_and_score(attempts, assignment, clock):

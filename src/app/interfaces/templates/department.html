@@ -3,9 +3,9 @@
 <p>Status der Personen Ihrer Abteilung. Einzelpunkte werden nicht angezeigt.</p>
 <table>
   <thead><tr><th>Person</th><th>Modul</th><th>Status</th></tr></thead>
-  <tbody>{% for person in persons %}<tr><td>{{ person.employee_id }}</td><td>{{ person.module_id }}</td><td>{{ person.status }}</td></tr>{% endfor %}</tbody>
+  <tbody>{% for person in persons %}<tr><td>{{ names.employees.get(person.employee_id, person.employee_id) }}</td><td>{{ names.modules.get(person.module_id, person.module_id) }}</td><td>{{ person.status }}</td></tr>{% endfor %}</tbody>
 </table>
 {% for aggregation in aggregations %}
-<section class="summary"><h2>{{ aggregation.module_id }}</h2>{% if aggregation.available %}<p>Team: {{ aggregation.participant_count }} Teilnehmende, {{ aggregation.total_score }} Punkte</p>{% else %}<p>{{ aggregation.message }}</p>{% endif %}</section>
+<section class="summary"><h2>{{ names.modules.get(aggregation.module_id, aggregation.module_id) }}</h2>{% if aggregation.available %}<p>Team: {{ aggregation.participant_count }} Teilnehmende, {{ aggregation.total_score }} Punkte</p>{% else %}<p>{{ aggregation.message }}</p>{% endif %}</section>
 {% endfor %}
 {% endblock %}
