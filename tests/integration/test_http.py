@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+from itsdangerous import URLSafeTimedSerializer
 
 from app.main import app
 
@@ -127,4 +128,24 @@ def test_logout_and_writing_without_csrf_are_rejected():
     assert missing_csrf.status_code == 403
     logged_out = client.post("/logout", headers=csrf_headers())
     assert logged_out.status_code == 200
+    assert client.get("/api/modules").status_code == 401
+
+
+def test_expired_session_cookie_is_rejected(monkeypatch):
+    issued_at = 1_000_000
+    monkeypatch.setattr("itsdangerous.timed.time.time", lambda: issued_at)
+    token = URLSafeTimedSerializer(
+        "test-session-secret", salt="session"
+    ).dumps(
+        {
+            "id": "user-einwohnerdienste-01",
+            "role": "employee",
+            "department_id": "department-einwohnerdienste",
+        }
+    )
+    monkeypatch.setattr(
+        "itsdangerous.timed.time.time", lambda: issued_at + 8 * 60 * 60 + 1
+    )
+    client.cookies.set("session", token)
+
     assert client.get("/api/modules").status_code == 401
