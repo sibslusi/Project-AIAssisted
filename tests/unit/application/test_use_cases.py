@@ -139,7 +139,9 @@ def test_submit_answer_returns_feedback_and_rejects_foreign_round():
     rounds = FakeRounds()
     start = StartOrResumeGameRound(assignments, FakeScenarios(), rounds)
     started = start.execute(employee(), "module-a")
-    submit = SubmitRoundAnswer(assignments, rounds)
+    submit = SubmitRoundAnswer(
+        assignments, rounds, FakeClock(datetime(2026, 10, 21, tzinfo=ZURICH))
+    )
 
     feedback = submit.execute(employee(), started.id, 1, "right")
 
@@ -147,7 +149,9 @@ def test_submit_answer_returns_feedback_and_rejects_foreign_round():
     assert feedback.next_position == 2
 
     with pytest.raises(NotFound):
-        submit.execute(Actor("other", Role.EMPLOYEE, "department-a"), started.id, 2, "right")
+        submit.execute(
+            Actor("other", Role.EMPLOYEE, "department-a"), started.id, 2, "right"
+        )
 
 
 def test_department_lead_sees_no_individual_values_before_three_completed_people():
