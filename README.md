@@ -11,6 +11,23 @@ The method is documented canonically in [AISL Docs](https://docs.aisl.science/le
 workflow artefacts. It does not contain a complete copy of the method or
 application-specific code.
 
+## Lokal mit Docker starten
+
+Die lokale Konfiguration verwendet nur Platzhalter. Vor dem ersten Start eine
+eigene `.env` anlegen und die Werte bei Bedarf anpassen:
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+Die Anwendung ist danach unter `http://localhost:8000` erreichbar, PostgreSQL
+läuft im Compose-Netzwerk unter dem Hostnamen `db`. Zum Beenden:
+
+```bash
+docker compose down
+```
+
 ## Create a project
 
 1. Select **Use this template** on GitHub and create a new repository.
