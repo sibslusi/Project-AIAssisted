@@ -1,13 +1,10 @@
+from datetime import UTC, datetime
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.application.models import (
-    Assignment,
-    DepartmentRecord,
-    EmployeeRecord,
-    ModuleRecord,
-)
-from app.domain.models import AnswerOption, GameRound, RoundAnswer, Scenario
+from app.application.models import DepartmentRecord, EmployeeRecord, ModuleRecord
+from app.domain.models import AnswerOption, Assignment, GameRound, RoundAnswer, Scenario
 from app.infrastructure.models import (
     AssignmentModel,
     DepartmentModel,
@@ -30,6 +27,18 @@ def _scenario(model: ScenarioModel) -> Scenario:
         active=model.active,
         options=tuple(AnswerOption(**option) for option in model.options),
     )
+
+
+def _as_utc(value: datetime | None) -> datetime | None:
+    if value is None:
+        return None
+    return value.astimezone(UTC)
+
+
+def _from_database(value: datetime | None) -> datetime | None:
+    if value is None or value.tzinfo is not None:
+        return value
+    return value.replace(tzinfo=UTC)
 
 
 class SqlAlchemyAssignmentRepository:
@@ -202,7 +211,7 @@ class SqlAlchemyGameRoundRepository:
                 attempt_number=game_round.attempt_number,
             )
             self.session.add(row)
-        row.completed_at = game_round.completed_at
+        row.completed_at = _as_utc(game_round.completed_at)
         row.score = game_round.score
         row.passed = game_round.passed
         self.session.query(GameRoundScenarioModel).filter_by(
@@ -241,7 +250,7 @@ class SqlAlchemyGameRoundRepository:
                     position=answer.position,
                     option_id=answer.option_id,
                     correct=answer.correct,
-                    answered_at=answer.answered_at,
+                    answered_at=_as_utc(answer.answered_at),
                 )
             )
         self.session.flush()
@@ -268,7 +277,7 @@ class SqlAlchemyGameRoundRepository:
             row.assignment_id,
             row.attempt_number,
             tuple(_scenario(item) for item in scenario_rows),
-            completed_at=row.completed_at,
+            completed_at=_from_database(row.completed_at),
             score=row.score,
             passed=row.passed,
         )
@@ -277,7 +286,10 @@ class SqlAlchemyGameRoundRepository:
         )
         result.answers = {
             item.position: RoundAnswer(
-                item.position, item.option_id, item.correct, item.answered_at
+                item.position,
+                item.option_id,
+                item.correct,
+                _from_database(item.answered_at),
             )
             for item in answers
         }

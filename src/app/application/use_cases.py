@@ -3,7 +3,6 @@ from uuid import uuid4
 from app.application.models import (
     Actor,
     AssignedModule,
-    Assignment,
     DepartmentStatus,
     EmployeeRecord,
     OverallEvaluation,
@@ -23,7 +22,7 @@ from app.application.ports import (
     ModuleRepository,
     ScenarioRepository,
 )
-from app.domain.models import EvidenceRecord, GameRound
+from app.domain.models import Assignment, EvidenceRecord, GameRound
 from app.domain.rules import best_attempt, team_aggregation, training_status
 
 
@@ -60,9 +59,7 @@ class AssignModule:
         if self.departments.get(department_id) is None:
             raise NotFound("Abteilung nicht gefunden")
         try:
-            from app.domain.models import Assignment as DomainAssignment
-
-            DomainAssignment(
+            assignment = Assignment(
                 id=str(uuid4()),
                 module_id=module_id,
                 department_id=department_id,
@@ -70,9 +67,7 @@ class AssignModule:
             )
         except (TypeError, ValueError) as error:
             raise InvalidRequest(str(error)) from error
-        return self.assignments.save(
-            Assignment(str(uuid4()), module_id, department_id, due_date)
-        )
+        return self.assignments.save(assignment)
 
 
 def _status_and_score(attempts, assignment, clock):
@@ -138,31 +133,26 @@ class GetDepartmentStatus:
             raise AccessDenied("Fremde Abteilung")
         assignments = self.assignments.for_department(department_id)
         persons = tuple(
-            PersonStatus(employee.id, status)
+            PersonStatus(employee.id, status, assignment.id, assignment.module_id)
             for employee in self.employees.for_department(department_id)
+            for assignment in assignments
             for status in (
-                _person_status(employee, assignments, self.rounds, self.clock),
+                _person_status(employee, assignment, self.rounds, self.clock),
             )
         )
         return DepartmentStatus(department_id, persons)
 
 
-def _person_status(employee: EmployeeRecord, assignments, rounds, clock) -> str:
-    if not assignments:
-        return "offen"
-    statuses = [
-        training_status(
-            tuple(
-                attempt
-                for attempt in rounds.for_assignment(assignment.id)
-                if attempt.employee_id == employee.id
-            ),
-            assignment.due_date,
-            clock.now(),
-        ).value
-        for assignment in assignments
-    ]
-    return statuses[0]
+def _person_status(employee: EmployeeRecord, assignment, rounds, clock) -> str:
+    return training_status(
+        tuple(
+            attempt
+            for attempt in rounds.for_assignment(assignment.id)
+            if attempt.employee_id == employee.id
+        ),
+        assignment.due_date,
+        clock.now(),
+    ).value
 
 
 class CreateTeamAggregation:
@@ -176,30 +166,44 @@ class CreateTeamAggregation:
         self.rounds = rounds
         self.clock = clock
 
-    def execute(self, actor: Actor, department_id: str) -> TeamAggregationView:
+    def execute(
+        self, actor: Actor, department_id: str
+    ) -> tuple[TeamAggregationView, ...]:
         if actor.role is not Role.DEPARTMENT_LEAD:
             raise AccessDenied("Nur Abteilungsleitungen dürfen Teamwerte sehen")
         if actor.department_id != department_id:
             raise AccessDenied("Fremde Abteilung")
         assignments = self.assignments.for_department(department_id)
-        attempts = tuple(
-            attempt
-            for assignment in assignments
-            for attempt in self.rounds.for_assignment(assignment.id)
-        )
-        aggregation = team_aggregation(attempts)
-        if aggregation is None:
-            return TeamAggregationView(
-                department_id, False, "zu wenige Teilnehmende", 0, None, None
-            )
-        return TeamAggregationView(
-            department_id,
-            True,
-            None,
-            aggregation.participant_count,
-            aggregation.total_score,
-            aggregation.total_errors,
-        )
+        result = []
+        for assignment in assignments:
+            aggregation = team_aggregation(self.rounds.for_assignment(assignment.id))
+            if aggregation is None:
+                result.append(
+                    TeamAggregationView(
+                        department_id,
+                        assignment.id,
+                        assignment.module_id,
+                        False,
+                        "zu wenige Teilnehmende",
+                        0,
+                        None,
+                        None,
+                    )
+                )
+            else:
+                result.append(
+                    TeamAggregationView(
+                        department_id,
+                        assignment.id,
+                        assignment.module_id,
+                        True,
+                        None,
+                        aggregation.participant_count,
+                        aggregation.total_score,
+                        aggregation.total_errors,
+                    )
+                )
+        return tuple(result)
 
 
 class GetOverallEvaluation:
@@ -219,14 +223,12 @@ class GetOverallEvaluation:
                 tuple(
                     PersonStatus(
                         employee.id,
-                        _person_status(
-                            employee,
-                            self.assignments.for_department(department.id),
-                            self.rounds,
-                            self.clock,
-                        ),
+                        _person_status(employee, assignment, self.rounds, self.clock),
+                        assignment.id,
+                        assignment.module_id,
                     )
                     for employee in self.employees.for_department(department.id)
+                    for assignment in self.assignments.for_department(department.id)
                 ),
             )
             for department in self.departments.all()
@@ -262,7 +264,7 @@ class ExportTrainingEvidence:
         )
 
 
-def _assignment_for_actor(
+def _assignments_for_actor(
     assignments: AssignmentRepository, actor: Actor, module_id: str
 ):
     if actor.role is Role.DATA_PROTECTION_OFFICER:
@@ -277,7 +279,7 @@ def _assignment_for_actor(
     matching = tuple(
         assignment for assignment in candidates if assignment.module_id == module_id
     )
-    return matching[0] if matching else None
+    return matching
 
 
 class ListAssignedModules:
@@ -311,9 +313,17 @@ class StartOrResumeGameRound:
     def execute(self, actor: Actor, module_id: str) -> RoundView:
         if actor.role is not Role.EMPLOYEE:
             raise AccessDenied("Nur Mitarbeitende dürfen Runden starten")
-        assignment = _assignment_for_actor(self.assignments, actor, module_id)
-        if assignment is None:
+        candidates = _assignments_for_actor(self.assignments, actor, module_id)
+        if not candidates:
             raise NotFound("Modul nicht gefunden")
+        assignment = next(
+            (
+                candidate
+                for candidate in candidates
+                if self.rounds.open_for(actor.id, candidate.id) is not None
+            ),
+            candidates[0],
+        )
         existing = self.rounds.open_for(actor.id, assignment.id)
         if existing is not None:
             return _round_view(existing)
@@ -340,11 +350,12 @@ class GetTrainingProgress:
         self.clock = clock
 
     def execute(self, actor: Actor, module_id: str) -> ProgressView:
-        assignment = _assignment_for_actor(self.assignments, actor, module_id)
-        if assignment is None:
+        candidates = _assignments_for_actor(self.assignments, actor, module_id)
+        if not candidates:
             raise NotFound("Modul nicht gefunden")
         attempts = tuple(
             attempt
+            for assignment in candidates
             for attempt in self.rounds.for_assignment(assignment.id)
             if actor.role is not Role.EMPLOYEE or attempt.employee_id == actor.id
         )
@@ -352,7 +363,9 @@ class GetTrainingProgress:
             return ProgressView(
                 False,
                 _own_score(attempts),
-                training_status(attempts, assignment.due_date, self.clock.now()).value,
+                training_status(
+                    attempts, candidates[0].due_date, self.clock.now()
+                ).value,
             )
         completed = tuple(
             attempt for attempt in attempts if attempt.completed_at is not None

@@ -17,14 +17,6 @@ class Actor:
 
 
 @dataclass(frozen=True)
-class Assignment:
-    id: str
-    module_id: str
-    department_id: str
-    due_date: date
-
-
-@dataclass(frozen=True)
 class AssignedModule:
     assignment_id: str
     module_id: str
@@ -66,6 +58,8 @@ class PersonalStatus:
 class PersonStatus:
     employee_id: str
     status: str
+    assignment_id: str | None = None
+    module_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -77,6 +71,8 @@ class DepartmentStatus:
 @dataclass(frozen=True)
 class TeamAggregationView:
     department_id: str
+    assignment_id: str
+    module_id: str
     available: bool
     message: str | None
     participant_count: int

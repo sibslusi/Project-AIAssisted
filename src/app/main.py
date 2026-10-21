@@ -19,7 +19,7 @@ from app.infrastructure.repositories import (
     SqlAlchemyModuleRepository,
     SqlAlchemyScenarioRepository,
 )
-from app.interfaces.http import Services
+from app.interfaces.http import Services, SystemClock
 from app.interfaces.http import create_app as create_http_app
 
 
@@ -65,6 +65,7 @@ def create_app():
             department_repository=SqlAlchemyDepartmentRepository,
             module_repository=SqlAlchemyModuleRepository,
             csv_adapter=TrainingEvidenceCsvAdapter(),
+            clock=SystemClock(),
             authenticate=authenticate,
             session_secret=session_secret,
         )

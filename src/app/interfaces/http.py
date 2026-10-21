@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from itsdangerous import BadSignature, URLSafeSerializer
 
 from app.application.models import Actor, Role
+from app.application.ports import ClockPort
 from app.application.use_cases import (
     AccessDenied,
     AssignModule,
@@ -38,6 +39,7 @@ class Services:
     department_repository: Callable[[Any], Any]
     module_repository: Callable[[Any], Any]
     csv_adapter: Any
+    clock: ClockPort
     authenticate: Callable[[Any, str, str], Actor | None]
     session_secret: str
 
@@ -203,7 +205,7 @@ async def submit_answer(request: Request, round_id: str):
         assignments = services.assignment_repository(session)
         rounds = services.game_round_repository(session)
         try:
-            feedback = SubmitRoundAnswer(assignments, rounds, SystemClock()).execute(
+            feedback = SubmitRoundAnswer(assignments, rounds, services.clock).execute(
                 actor, round_id, payload["position"], payload["option_id"]
             )
         except AccessDenied as error:
@@ -229,7 +231,7 @@ def progress(request: Request, module_id: str):
             result = GetTrainingProgress(
                 services.assignment_repository(session),
                 services.game_round_repository(session),
-                SystemClock(),
+                services.clock,
             ).execute(actor, module_id)
         except NotFound as error:
             raise HTTPExceptionResponse(404, str(error)) from error
@@ -267,15 +269,17 @@ async def assign_module(request: Request):
 
 
 @router.get("/api/me/training-status")
-def personal_status(request: Request):
+def personal_status(request: Request, employee_id: str | None = None):
     actor = _require_actor(request)
+    if employee_id is not None and employee_id != actor.id:
+        raise HTTPExceptionResponse(403, "Fremde Mitarbeiterdaten")
     with _session(request) as session:
         services = _services(request)
         try:
             result = GetPersonalStatus(
                 services.assignment_repository(session),
                 services.game_round_repository(session),
-                SystemClock(),
+                services.clock,
             ).execute(actor)
         except AccessDenied as error:
             raise HTTPExceptionResponse(403, str(error)) from error
@@ -287,12 +291,14 @@ def department_status(request: Request, department_id: str):
     actor = _require_actor(request)
     with _session(request) as session:
         services = _services(request)
+        if services.department_repository(session).get(department_id) is None:
+            raise HTTPExceptionResponse(404, "Abteilung nicht gefunden")
         try:
             result = GetDepartmentStatus(
                 services.assignment_repository(session),
                 services.employee_repository(session),
                 services.game_round_repository(session),
-                SystemClock(),
+                services.clock,
             ).execute(actor, department_id)
         except AccessDenied as error:
             raise HTTPExceptionResponse(403, str(error)) from error
@@ -307,15 +313,17 @@ def training_aggregation(request: Request, department_id: str):
     actor = _require_actor(request)
     with _session(request) as session:
         services = _services(request)
+        if services.department_repository(session).get(department_id) is None:
+            raise HTTPExceptionResponse(404, "Abteilung nicht gefunden")
         try:
             result = CreateTeamAggregation(
                 services.assignment_repository(session),
                 services.game_round_repository(session),
-                SystemClock(),
+                services.clock,
             ).execute(actor, department_id)
         except AccessDenied as error:
             raise HTTPExceptionResponse(403, str(error)) from error
-        return result.__dict__
+        return [item.__dict__ for item in result]
 
 
 @router.get("/api/training/evaluation")
@@ -329,7 +337,7 @@ def overall_evaluation(request: Request):
                 services.employee_repository(session),
                 services.department_repository(session),
                 services.game_round_repository(session),
-                SystemClock(),
+                services.clock,
             ).execute(actor)
         except AccessDenied as error:
             raise HTTPExceptionResponse(403, str(error)) from error

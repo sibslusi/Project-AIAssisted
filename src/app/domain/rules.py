@@ -8,7 +8,7 @@ from app.domain.models import GameRound
 
 class TrainingStatus(StrEnum):
     OPEN = "offen"
-    COMPLETED = "bestanden"
+    COMPLETED = "erledigt"
     COMPLETED_LATE = "verspätet erledigt"
     OVERDUE = "Frist überschritten"
 
