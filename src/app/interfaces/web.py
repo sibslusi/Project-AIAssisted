@@ -14,6 +14,7 @@ from app.application.use_cases import (
     CreateTeamAggregation,
     GetDepartmentStatus,
     GetOverallEvaluation,
+    GetPersonalStatus,
     ListAssignedModules,
     NotFound,
     StartOrResumeGameRound,
@@ -87,10 +88,19 @@ def _redirect_for(actor: Role) -> str:
 def _assigned_modules(request: Request, actor):
     with _session(request) as session:
         services = _services(request)
-        return ListAssignedModules(
-            services.assignment_repository(session),
-            services.game_round_repository(session),
-        ).execute(actor)
+        assignments = services.assignment_repository(session)
+        rounds = services.game_round_repository(session)
+        try:
+            statuses = GetPersonalStatus(assignments, rounds, services.clock).execute(
+                actor
+            )
+        except AccessDenied as error:
+            raise HTTPExceptionResponse(403, str(error)) from error
+        modules = ListAssignedModules(assignments, rounds).execute(actor)
+    by_assignment = {status.assignment_id: status for status in statuses}
+    return tuple(
+        (module, by_assignment.get(module.assignment_id)) for module in modules
+    )
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -104,8 +114,6 @@ def home(request: Request):
 @router.get("/mitarbeitende/module", response_class=HTMLResponse)
 def employee_modules(request: Request):
     actor = _require_actor(request)
-    if actor.role is not Role.EMPLOYEE:
-        raise HTTPExceptionResponse(403, "Diese Seite ist nur für Mitarbeitende")
     return _render(
         request,
         "modules.html",

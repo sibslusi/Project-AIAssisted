@@ -3,10 +3,15 @@
 <p>Ihre zugewiesenen Module und Fristen.</p>
 {% if modules %}
 <ul class="module-list">
-{% for module in modules %}
+{% for module, status in modules %}
   <li>
     <strong>{{ module.module_id }}</strong>
     <span>Frist: {{ module.due_date }}</span>
+    {% if status %}
+    <span>Status: {{ status.status }}</span>
+    {% if status.score is not none %}<span>Bester Versuch: {{ status.score }}/5</span>{% endif %}
+    {% if status.status in ("erledigt", "verspätet erledigt") %}<span class="badge">Abzeichen Datenschutz</span>{% endif %}
+    {% endif %}
     <a href="/mitarbeitende/module/{{ module.module_id }}">Runde öffnen</a>
   </li>
 {% endfor %}
