@@ -8,6 +8,7 @@ from app.infrastructure.models import AssignmentModel
 from app.main import app
 
 HTML_HEADERS = {"accept": "text/html"}
+ROUND_PAGE = "/mitarbeitende/module/module-einwohnerdienste"
 CORRECT_OPTIONS = {
     "scenario-einwohnerdienste-01": "a",
     "scenario-einwohnerdienste-02": "b",
@@ -66,15 +67,22 @@ def play_round(test_client: TestClient, html: str) -> str:
     return html
 
 
+def start_round(test_client: TestClient) -> str:
+    response = test_client.post(
+        f"{ROUND_PAGE}/runden",
+        data={"csrf_token": test_client.cookies["csrf_token"]},
+        headers=HTML_HEADERS,
+    )
+    assert response.status_code == 200
+    return response.text
+
+
 def test_employee_plays_round_sees_badge_and_logs_out():
     test_client = client()
     login(test_client, "marek.dalenor@grenchen.example")
-    round_page = "/mitarbeitende/module/module-einwohnerdienste"
-    play_round(test_client, test_client.get(round_page, headers=HTML_HEADERS).text)
+    play_round(test_client, start_round(test_client))
 
-    result = play_round(
-        test_client, test_client.get(round_page, headers=HTML_HEADERS).text
-    )
+    result = play_round(test_client, start_round(test_client))
 
     assert "Punktzahl: 5/5" in result
     assert "Ergebnis: bestanden" in result
@@ -136,14 +144,13 @@ def test_data_protection_officer_assigns_module_and_downloads_csv():
 def test_every_html_post_without_csrf_returns_403():
     test_client = client()
     login(test_client, "marek.dalenor@grenchen.example")
-    round_page = test_client.get(
-        "/mitarbeitende/module/module-einwohnerdienste", headers=HTML_HEADERS
-    )
+    round_page = start_round(test_client)
     posts = {
         "/login": {"email": "x@grenchen.example", "password": "x"},
         "/logout": {},
-        f"/mitarbeitende/runden/{hidden(round_page.text, 'round_id')}/antworten": {
-            "position": hidden(round_page.text, "position"),
+        f"{ROUND_PAGE}/runden": {},
+        f"/mitarbeitende/runden/{hidden(round_page, 'round_id')}/antworten": {
+            "position": hidden(round_page, "position"),
             "option_id": "a",
         },
         "/datenschutz/zuweisungen": {
@@ -157,6 +164,6 @@ def test_every_html_post_without_csrf_returns_403():
         url: test_client.post(url, data=data, headers=HTML_HEADERS).status_code
         for url, data in posts.items()
     }
-    play_round(test_client, round_page.text)
+    play_round(test_client, round_page)
 
     assert statuses == dict.fromkeys(posts, 403)

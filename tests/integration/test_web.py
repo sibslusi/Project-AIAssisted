@@ -1,7 +1,10 @@
 import re
 
 from fastapi.testclient import TestClient
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
+from app.infrastructure.models import GameRoundModel
 from app.main import app
 
 HTML_HEADERS = {"accept": "text/html"}
@@ -158,6 +161,26 @@ CORRECT_OPTIONS = {
     "scenario-einwohnerdienste-05": "a",
 }
 ROUND_PAGE = "/mitarbeitende/module/module-einwohnerdienste"
+START_ROUND = f"{ROUND_PAGE}/runden"
+
+
+def _start_round(test_client: TestClient) -> str:
+    response = test_client.post(
+        START_ROUND,
+        data={"csrf_token": test_client.cookies["csrf_token"]},
+        headers=HTML_HEADERS,
+    )
+    assert response.status_code == 200
+    return response.text
+
+
+def _round_count(employee_id: str) -> int:
+    with Session(app.state.engine) as session:
+        return session.scalar(
+            select(func.count())
+            .select_from(GameRoundModel)
+            .where(GameRoundModel.employee_id == employee_id)
+        )
 
 
 def _hidden(html: str, name: str) -> str | None:
@@ -190,19 +213,17 @@ def _play_open_round(test_client: TestClient, html: str, wrong_scenario=None):
 def test_html_employee_can_play_round_with_feedback_and_badge():
     test_client = client()
     _login(test_client, "marek.dalenor@grenchen.example")
-    previous = test_client.get(ROUND_PAGE, headers=HTML_HEADERS)
-    _play_open_round(test_client, previous.text)
+    _play_open_round(test_client, _start_round(test_client))
 
-    round_page = test_client.get(ROUND_PAGE, headers=HTML_HEADERS)
+    round_page = _start_round(test_client)
 
-    assert round_page.status_code == 200
-    assert _hidden(round_page.text, "position") == "1"
-    assert "Am Schalter beantragt" in round_page.text
-    assert 'type="radio"' in round_page.text
-    assert 'name="csrf_token"' in round_page.text
+    assert _hidden(round_page, "position") == "1"
+    assert "Am Schalter beantragt" in round_page
+    assert 'type="radio"' in round_page
+    assert 'name="csrf_token"' in round_page
 
     responses = _play_open_round(
-        test_client, round_page.text, wrong_scenario="scenario-einwohnerdienste-02"
+        test_client, round_page, wrong_scenario="scenario-einwohnerdienste-02"
     )
 
     assert len(responses) == 5
@@ -222,15 +243,60 @@ def test_html_employee_can_play_round_with_feedback_and_badge():
 def test_html_answer_requires_csrf():
     test_client = client()
     _login(test_client, "marek.dalenor@grenchen.example")
-    round_page = test_client.get(ROUND_PAGE, headers=HTML_HEADERS)
+    round_page = _start_round(test_client)
 
     response = test_client.post(
-        f"/mitarbeitende/runden/{_hidden(round_page.text, 'round_id')}/antworten",
-        data={"position": _hidden(round_page.text, "position"), "option_id": "a"},
+        f"/mitarbeitende/runden/{_hidden(round_page, 'round_id')}/antworten",
+        data={"position": _hidden(round_page, "position"), "option_id": "a"},
         headers=HTML_HEADERS,
     )
+    _play_open_round(test_client, round_page)
 
     assert response.status_code == 403
+
+
+def test_html_round_page_get_never_creates_a_round():
+    test_client = client()
+    _login(test_client, "marek.dalenor@grenchen.example")
+    _play_open_round(test_client, _start_round(test_client))
+    before = _round_count("user-einwohnerdienste-01")
+
+    response = test_client.get(ROUND_PAGE, headers=HTML_HEADERS, follow_redirects=False)
+    modules = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/mitarbeitende/module"
+    assert _round_count("user-einwohnerdienste-01") == before
+    assert f'<form action="{START_ROUND}" method="post">' in modules.text
+    assert "Neue Runde starten" in modules.text
+    assert "Runde fortsetzen" not in modules.text
+
+
+def test_html_start_round_requires_csrf():
+    test_client = client()
+    _login(test_client, "marek.dalenor@grenchen.example")
+    _play_open_round(test_client, _start_round(test_client))
+    before = _round_count("user-einwohnerdienste-01")
+
+    response = test_client.post(START_ROUND, headers=HTML_HEADERS)
+
+    assert response.status_code == 403
+    assert _round_count("user-einwohnerdienste-01") == before
+
+
+def test_html_open_round_is_continued_from_module_list():
+    test_client = client()
+    _login(test_client, "marek.dalenor@grenchen.example")
+    started = _start_round(test_client)
+
+    modules = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
+    resumed = test_client.get(ROUND_PAGE, headers=HTML_HEADERS)
+    _play_open_round(test_client, started)
+
+    assert f'<a href="{ROUND_PAGE}">Runde fortsetzen</a>' in modules.text
+    assert "Neue Runde starten" not in modules.text
+    assert resumed.status_code == 200
+    assert _hidden(resumed.text, "round_id") == _hidden(started, "round_id")
 
 
 def test_html_assignment_form_requires_csrf():

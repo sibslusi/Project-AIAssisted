@@ -1,13 +1,24 @@
 # TASKS.md
 
 PHASE: 3
-STATUS: done
+STATUS: in-progress
 
 (0=Bootstrap | 1=Specify | 2=Design | 3=Develop | 4=Validate | 5=Deploy)
 
 ## Current Use Case
 
 HTML-Oberfläche UC-001/UC-002
+
+### Fast Track: Rundenstart per POST
+
+- **Umfang:** Modulliste zeigt „Runde fortsetzen“ oder „Neue Runde starten“;
+  neue Runden nur per POST-Formular mit CSRF-Feld.
+- **Grund:** GET `/mitarbeitende/module/{modul}` legte eine Runde an
+  (Zustandsänderung per GET, ohne CSRF).
+- **Akzeptanz:** GET zeigt nur eine offene Runde oder leitet zur Modulliste
+  zurück und legt keine Runde an; POST ohne CSRF ergibt 403.
+- **Regressionstests:** `tests/unit/application/test_use_cases.py`,
+  `tests/integration/test_web.py`, `tests/e2e/test_web_workflow.py`.
 
 ### Fast Track: Architektur-Review
 

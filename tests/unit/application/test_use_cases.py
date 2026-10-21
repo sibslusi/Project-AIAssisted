@@ -7,6 +7,7 @@ from app.application.models import Actor, Role
 from app.application.ports import ClockPort
 from app.application.use_cases import (
     AccessDenied,
+    GetOpenGameRound,
     GetTrainingProgress,
     ListAssignedModules,
     NotFound,
@@ -154,6 +155,26 @@ def test_start_creates_five_scenario_round_and_reuses_open_round():
     assert first.id == resumed.id
     assert first.attempt_number == 1
     assert len(first.scenario_ids) == 5
+
+
+def test_open_round_lookup_never_creates_a_round():
+    assignments = FakeAssignments()
+    round_repo = FakeRounds()
+    lookup = GetOpenGameRound(assignments, round_repo)
+
+    assert lookup.execute(employee(), "module-a") is None
+    assert round_repo.items == []
+
+    started = StartOrResumeGameRound(assignments, FakeScenarios(), round_repo).execute(
+        employee(), "module-a"
+    )
+
+    assert lookup.execute(employee(), "module-a").id == started.id
+    lead = Actor("lead-1", Role.DEPARTMENT_LEAD, "department-a")
+    with pytest.raises(AccessDenied):
+        lookup.execute(lead, "module-a")
+    with pytest.raises(NotFound):
+        lookup.execute(employee(), "module-b")
 
 
 def test_open_round_continues_at_first_unanswered_position():
