@@ -3,7 +3,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from app.application.models import Actor, Assignment, Role
+from app.application.models import Actor, Role
 from app.application.ports import ClockPort
 from app.application.use_cases import (
     AccessDenied,
@@ -13,7 +13,7 @@ from app.application.use_cases import (
     StartOrResumeGameRound,
     SubmitRoundAnswer,
 )
-from app.domain.models import AnswerOption, GameRound, Scenario
+from app.domain.models import AnswerOption, Assignment, GameRound, Scenario
 
 ZURICH = ZoneInfo("Europe/Zurich")
 

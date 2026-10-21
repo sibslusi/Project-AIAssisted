@@ -78,7 +78,7 @@ def test_employee_can_start_resume_answer_and_complete_round():
     progress = client.get("/api/modules/module-einwohnerdienste/progress")
     assert progress.status_code == 200
     assert 0 <= progress.json()["scores"]["best"] <= 5
-    assert progress.json()["status"] in {"offen", "bestanden"}
+    assert progress.json()["status"] in {"offen", "erledigt"}
 
 
 def test_employee_cannot_start_foreign_module_or_lead_rounds():
