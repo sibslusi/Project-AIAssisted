@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 from itsdangerous import URLSafeTimedSerializer
+import pytest
 
 from app.main import app
 
@@ -149,3 +150,27 @@ def test_expired_session_cookie_is_rejected(monkeypatch):
     client.cookies.set("session", token)
 
     assert client.get("/api/modules").status_code == 401
+
+
+@pytest.mark.parametrize(
+    "request_kwargs",
+    [
+        {"json": {"option_id": "a"}},
+        {"json": {"position": 1}},
+        {"content": b"not-json"},
+    ],
+)
+def test_invalid_answer_payload_returns_unprocessable_entity(request_kwargs):
+    login("marek.dalenor@grenchen.example")
+    started = client.post(
+        "/api/modules/module-einwohnerdienste/rounds", headers=csrf_headers()
+    )
+    assert started.status_code in {200, 201}
+
+    response = client.post(
+        f"/api/rounds/{started.json()['id']}/answers",
+        headers=csrf_headers(),
+        **request_kwargs,
+    )
+
+    assert response.status_code == 422
