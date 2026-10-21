@@ -62,4 +62,5 @@ Pro Agenten-Sitzung ein kurzer Eintrag. Daraus entsteht am Schluss die Reflexion
 - Modell(e): `azure_ai/gpt-6-luna`, `gpt-5.6-luna`
 - Agenten: GitHub Copilot und Codex CLI
 - Warum: verfügbare Coding-Agenten mit repository-lokalem Kontext, Skills und
-	nachvollziehbaren Quality-Gate-Prüfungen.
+nachvollziehbaren Quality-Gate-Prüfungen.
+| 2026-10-21 | Phase 4 Vorbereitung / Docker | Codex CLI 0.163 + gpt-5.6-luna (LiteLLM) | Dockerfile, `.dockerignore`, Entrypoint, Compose-App-Service und README-Abschnitt für den lokalen Docker-Start erstellen. | `Dockerfile`, `.dockerignore`, `scripts/docker-entrypoint.sh`, `docker-compose.yml` und `README.md` ergänzt; statisch geprüft, Docker-Build und Start wegen fehlender Docker-CLI nicht ausführbar. | `docs/PROJECT.md` und bestehende `docs/AI-LOG.md`-Zeilen auf Git-Stand zurückgestellt; freigegebene `DATABASE_URL`-Anpassung beibehalten. | TODO Sibslusi |
