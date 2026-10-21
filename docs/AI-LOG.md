@@ -71,3 +71,6 @@ Pro Agenten-Sitzung ein kurzer Eintrag. Daraus entsteht am Schluss die Reflexion
 - Agenten: GitHub Copilot und Codex CLI
 - Warum: verfügbare Coding-Agenten mit repository-lokalem Kontext, Skills und
 	nachvollziehbaren Quality-Gate-Prüfungen.
+| 2026-10-21 | Planung / Refactor und UI | Codex CLI 0.163 + gpt-5.6-luna (LiteLLM) | Zwei sequenzierte Agenten-Prompts für den Architektur-Refactor und die HTML-Oberfläche erstellen. | `PROMPTS-REFACTOR-UND-UI.md` mit Stopppunkten, TDD-Regeln, erlaubten Dateien und Übergabekriterium erstellt. | keine | TODO Sibslusi |
+| 2026-10-21 | Planung / Refactor und UI | Codex CLI 0.163 + gpt-5.6-luna (LiteLLM) | Prompt-Datei auf Wunsch entfernen und den Agent-2-Prompt direkt im Chat bereitstellen. | `PROMPTS-REFACTOR-UND-UI.md` gelöscht; Prompt wird im Chat ausgegeben. | Entscheidung der Person, den Prompt nicht als Datei zu führen | TODO Sibslusi |
+| 2026-10-21 | Phase 3 Fast Track / Architektur-Review | Codex CLI 0.163 + gpt-5.6-luna (LiteLLM) | Schritt 0 für den Architektur-Review vorbereiten und Regressionstests sowie betroffene Dateien festlegen. | Branch `fix/architektur-review` von `origin/main` erstellt; `docs/TASKS.md` auf in-progress gesetzt und Fast-Track-Plan ergänzt. | keine | TODO Sibslusi |

@@ -1,13 +1,35 @@
 # TASKS.md
 
 PHASE: 3
-STATUS: done
+STATUS: in-progress
 
 (0=Bootstrap | 1=Specify | 2=Design | 3=Develop | 4=Validate | 5=Deploy)
 
 ## Current Use Case
 
 docs/specs/UC-002-SCHULUNG-STEUERN.md
+
+### Fast Track: Architektur-Review
+
+- **Umfang:** Szenario-Speichern, Session-Ablauf, 422-Fehlerverträge,
+  Infrastructure-Verschiebungen und dokumentierte Startbefehle korrigieren.
+- **Grund:** ADR-002/ADR-003 und die Clean-Architecture-Regel sind im Review
+  verletzt; bestehende API-Verträge sollen erhalten bleiben.
+- **Akzeptanz:** Deaktivierte Szenarien bleiben deaktiviert, abgelaufene
+  Sessions ergeben 401, ungültige Antworten 422, Infrastructure enthält Clock
+  und Authentifizierung, und PROJECT.md dokumentiert beide Startbefehle.
+- **Geplante Regressionstests:**
+  - Szenario bleibt nach dem Speichern einer Antwort deaktiviert;
+    `tests/integration/test_persistence.py`.
+  - Abgelaufenes Session-Cookie ergibt 401;
+    `tests/integration/test_http.py`.
+  - Fehlendes/ungültiges JSON sowie fehlende Felder ergeben 422;
+    `tests/integration/test_http.py`.
+  - Import- und Composition-Root-Prüfung für `clock.py`, `auth.py` und
+    `main.py`; `tests/unit/test_main_configuration.py` sowie lint-imports.
+  - Commands-Dokumentation wird manuell gegen `docs/PROJECT.md` geprüft.
+- **Checks:** `python -m pytest -q`, `ruff check .`,
+  `PYTHONPATH=src lint-imports`, Coverage.
 
 ## Backlog
 
