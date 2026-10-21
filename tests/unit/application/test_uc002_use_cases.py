@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
@@ -216,19 +217,73 @@ def test_data_protection_officer_gets_overall_evaluation():
     ]
 
 
-def test_evidence_export_contains_person_module_and_completion_only():
+class EvidenceEmployees(FakeEmployees):
+    items = (
+        EmployeeRecord("employee-1", "department-a", "Zora", "Alt"),
+        EmployeeRecord("employee-2", "department-a", "Anna", "Berg"),
+    )
+
+
+class EvidenceDepartments(FakeDepartments):
+    items = (DepartmentRecord("department-a", "Einwohnerdienste"),)
+
+
+def test_evidence_export_lists_every_attempt_with_names_and_scenarios():
     assignments = FakeAssignments(
         [Assignment("a", "module-a", "department-a", date(2026, 12, 31))]
     )
-    completed = completed_round(
+    passed = completed_round(
         "employee-1", 5, datetime(2026, 10, 21, 14, 5, tzinfo=ZURICH)
     )
-    result = ExportTrainingEvidence(assignments, FakeRounds((completed,))).execute(
-        employee(Role.DATA_PROTECTION_OFFICER), "a"
+    failed = completed_round(
+        "employee-2", 3, datetime(2026, 10, 21, 9, tzinfo=ZURICH)
+    )
+    open_round = replace(
+        completed_round("employee-1", 5, datetime(2026, 10, 21, 15, tzinfo=ZURICH)),
+        id="round-open",
+        attempt_number=2,
+        answers={},
+        completed_at=None,
+        score=None,
+        passed=None,
     )
 
-    assert result[0].module_id == "module-a"
-    assert not hasattr(result[0], "score")
+    result = ExportTrainingEvidence(
+        assignments,
+        FakeRounds((open_round, passed, failed)),
+        EvidenceEmployees(),
+        EvidenceDepartments(),
+        FakeModules(),
+    ).execute(employee(Role.DATA_PROTECTION_OFFICER), "a")
+
+    assert [(row.person, row.attempt_number, row.status) for row in result] == [
+        ("Anna Berg", 1, "abgeschlossen"),
+        ("Zora Alt", 1, "abgeschlossen"),
+        ("Zora Alt", 2, "offen"),
+    ]
+    assert result[0].department == "Einwohnerdienste"
+    assert result[0].module == "Modul A"
+    assert (result[0].score, result[0].passed) == (3, False)
+    assert (result[2].score, result[2].passed, result[2].completed_at) == (
+        None,
+        None,
+        None,
+    )
+    assert result[1].scenario_ids == tuple(f"scenario-{n}" for n in range(1, 6))
+
+
+def test_evidence_export_is_only_for_data_protection_officer():
+    use_case = ExportTrainingEvidence(
+        FakeAssignments(
+            [Assignment("a", "module-a", "department-a", date(2026, 12, 31))]
+        ),
+        FakeRounds(),
+        EvidenceEmployees(),
+        EvidenceDepartments(),
+        FakeModules(),
+    )
+    with pytest.raises(AccessDenied):
+        use_case.execute(employee(Role.DEPARTMENT_LEAD), "a")
 
 
 def test_personal_status_returns_each_assignment():

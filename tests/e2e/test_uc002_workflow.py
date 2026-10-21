@@ -328,7 +328,9 @@ def test_ac013_officer_exports_csv():
     client = make_client()
     set_clock(datetime(2026, 10, 21, 14, 5, tzinfo=ZURICH))
     complete_round(client, "marek.dalenor@grenchen.example", "module-einwohnerdienste")
-    complete_round(client, "elina.norveth@grenchen.example", "module-einwohnerdienste")
+    complete_round(
+        client, "elina.norveth@grenchen.example", "module-einwohnerdienste", score=3
+    )
     login(client, "yara.merovan@grenchen.example")
     response = client.get(
         "/api/assignments/assignment-einwohnerdienste/training-evidence.csv"
@@ -337,11 +339,24 @@ def test_ac013_officer_exports_csv():
     assert response.headers["content-type"].startswith("text/csv")
     content = response.content.decode("utf-8-sig")
     assert response.content.startswith(b"\xef\xbb\xbf")
-    assert content.splitlines()[0] == "Person;Abteilung;Modul;Abgeschlossen am"
+    assert content.splitlines()[0] == (
+        "Person;Abteilung;Modul;Versuch;Status;Punktzahl;Bestanden;"
+        "Abgeschlossen am;Szenarien"
+    )
     assert content.count("\r\n") == 3
-    assert "module-einwohnerdienste" in content
-    assert "2026-10-21T14:05:00+02:00" in content
-    assert "Punkte" not in content and "Fehler" not in content
+    rows = {line.split(";")[0]: line.split(";") for line in content.splitlines()[1:]}
+    marek = rows["Marek Dalenor"]
+    assert marek[1:8] == [
+        "Einwohnerdienste",
+        "Datenschutz in den Einwohnerdiensten",
+        "1",
+        "abgeschlossen",
+        "5",
+        "ja",
+        "2026-10-21T14:05:00+02:00",
+    ]
+    assert len(marek[8].split("|")) == 5
+    assert rows["Elina Norveth"][5:7] == ["3", "nein"]
 
 
 def test_ac014_department_lead_cannot_export_csv():
@@ -372,7 +387,7 @@ def test_ac015_status_uses_controlled_clock_contract():
         assert status["status"] == expected
 
 
-def test_equal_score_attempts_use_earlier_completion_for_status_and_csv():
+def test_equal_score_attempts_use_earlier_completion_and_csv_lists_both():
     client = make_client()
     assignment = assign(client, "module-soziale-dienste")
     set_clock(datetime(2026, 10, 21, 14, 5, tzinfo=ZURICH))
@@ -397,7 +412,7 @@ def test_equal_score_attempts_use_earlier_completion_for_status_and_csv():
         f"/api/assignments/{assignment['id']}/training-evidence.csv"
     ).content.decode("utf-8-sig")
     assert "2026-10-21T14:05:00+02:00" in csv
-    assert "2026-10-21T15:05:00+02:00" not in csv
+    assert "2026-10-21T15:05:00+02:00" in csv
 
 
 def test_error_contracts_for_all_uc002_endpoints():

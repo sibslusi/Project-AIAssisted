@@ -6,7 +6,6 @@ import pytest
 from app.domain.models import (
     AnswerOption,
     Assignment,
-    EvidenceRecord,
     GameRound,
     Scenario,
 )
@@ -99,16 +98,3 @@ def test_team_aggregation_tie_uses_first_completed_best_attempt():
     assert result is not None
     assert result.total_score == 12
     assert result.total_errors == 3
-
-
-def test_evidence_record_contains_no_scores_or_errors_and_is_immutable():
-    evidence = EvidenceRecord(
-        employee_id="employee-1",
-        module_id="module-1",
-        completed_at=datetime(2026, 10, 21, 14, 5, tzinfo=ZURICH),
-    )
-
-    assert evidence.employee_id == "employee-1"
-    assert not hasattr(evidence, "score")
-    with pytest.raises((AttributeError, TypeError)):
-        evidence.module_id = "module-2"
