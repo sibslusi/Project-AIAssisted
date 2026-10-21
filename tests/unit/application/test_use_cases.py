@@ -1,0 +1,150 @@
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
+
+import pytest
+
+from app.application.models import Actor, Assignment, Role
+from app.application.ports import ClockPort
+from app.application.use_cases import (
+    AccessDenied,
+    GetTrainingProgress,
+    ListAssignedModules,
+    NotFound,
+    StartOrResumeGameRound,
+)
+from app.domain.models import AnswerOption, GameRound, Scenario
+
+
+ZURICH = ZoneInfo("Europe/Zurich")
+
+
+def scenarios():
+    return tuple(
+        Scenario.create(
+            id=f"scenario-{number}",
+            situation="Situation",
+            explanation="Erklärung",
+            legal_basis="Rechtsgrundlage",
+            options=(
+                AnswerOption("right", "Richtig", True),
+                AnswerOption("wrong-1", "Falsch", False),
+                AnswerOption("wrong-2", "Falsch", False),
+            ),
+        )
+        for number in range(1, 6)
+    )
+
+
+class FakeAssignments:
+    def __init__(self):
+        self.items = (
+            Assignment("assignment-a", "module-a", "department-a", date(2026, 11, 30)),
+            Assignment("assignment-b", "module-b", "department-b", date(2026, 11, 30)),
+        )
+
+    def for_department(self, department_id):
+        return tuple(item for item in self.items if item.department_id == department_id)
+
+    def get(self, assignment_id):
+        return next((item for item in self.items if item.id == assignment_id), None)
+
+
+class FakeScenarios:
+    def for_module(self, module_id):
+        return scenarios()
+
+
+class FakeRounds:
+    def __init__(self, rounds=()):
+        self.items = list(rounds)
+
+    def open_for(self, employee_id, assignment_id):
+        return next(
+            (
+                item
+                for item in self.items
+                if item.employee_id == employee_id
+                and item.assignment_id == assignment_id
+                and item.completed_at is None
+            ),
+            None,
+        )
+
+    def next_attempt_number(self, employee_id, assignment_id):
+        return 1 + max(
+            (item.attempt_number for item in self.items if item.employee_id == employee_id
+             and item.assignment_id == assignment_id),
+            default=0,
+        )
+
+    def save(self, game_round):
+        self.items.append(game_round)
+
+    def for_assignment(self, assignment_id):
+        return tuple(item for item in self.items if item.assignment_id == assignment_id)
+
+
+class FakeClock(ClockPort):
+    def __init__(self, current_at):
+        self.current_at = current_at
+
+    def now(self):
+        return self.current_at
+
+
+def employee(department_id="department-a"):
+    return Actor("employee-1", Role.EMPLOYEE, department_id)
+
+
+def test_employee_sees_only_assignments_of_own_department():
+    result = ListAssignedModules(FakeAssignments(), FakeRounds()).execute(employee())
+
+    assert [item.module_id for item in result] == ["module-a"]
+
+
+def test_only_employees_can_start_a_round_and_foreign_department_is_hidden():
+    assignments = FakeAssignments()
+    round_repo = FakeRounds()
+    start = StartOrResumeGameRound(assignments, FakeScenarios(), round_repo)
+
+    with pytest.raises(AccessDenied):
+        start.execute(Actor("lead-1", Role.DEPARTMENT_LEAD, "department-a"), "module-a")
+
+    with pytest.raises(NotFound):
+        start.execute(employee(), "module-b")
+
+
+def test_start_creates_five_scenario_round_and_reuses_open_round():
+    assignments = FakeAssignments()
+    round_repo = FakeRounds()
+    start = StartOrResumeGameRound(assignments, FakeScenarios(), round_repo)
+
+    first = start.execute(employee(), "module-a")
+    resumed = start.execute(employee(), "module-a")
+
+    assert first.id == resumed.id
+    assert first.attempt_number == 1
+    assert len(first.scenario_ids) == 5
+
+
+def test_department_lead_sees_no_individual_values_before_three_completed_people():
+    assignments = FakeAssignments()
+    rounds = FakeRounds()
+    for number in range(2):
+        game_round = GameRound.start(
+            id=f"round-{number}",
+            employee_id=f"employee-{number}",
+            assignment_id="assignment-a",
+            attempt_number=1,
+            scenarios=scenarios(),
+        )
+        game_round.complete(datetime(2026, 10, 20, 10, number, tzinfo=ZURICH))
+        rounds.items.append(game_round)
+
+    progress = GetTrainingProgress(assignments, rounds, FakeClock(datetime(2026, 10, 21, tzinfo=ZURICH)))
+    result = progress.execute(
+        Actor("lead-1", Role.DEPARTMENT_LEAD, "department-a"), "module-a"
+    )
+
+    assert result.aggregate_available is False
+    assert result.scores is None
