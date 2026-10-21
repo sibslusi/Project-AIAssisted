@@ -2,7 +2,7 @@ services:
   app:
     build: .
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       SESSION_SECRET: ${SESSION_SECRET}
       DEMO_PASSWORD: ${DEMO_PASSWORD}
     ports:
