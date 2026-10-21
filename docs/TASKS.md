@@ -7,7 +7,7 @@ STATUS: done
 
 ## Current Use Case
 
-docs/specs/UC-001-SZENARIO-RUNDE-SPIELEN.md
+docs/specs/UC-002-SCHULUNG-STEUERN.md
 
 ## Backlog
 

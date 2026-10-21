@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 
 
 @dataclass(frozen=True)
@@ -7,6 +7,28 @@ class AnswerOption:
     id: str
     text: str
     correct: bool
+
+
+@dataclass(frozen=True)
+class Assignment:
+    id: str
+    module_id: str
+    department_id: str
+    due_date: date
+
+    def __post_init__(self):
+        if not self.id or not self.module_id or not self.department_id:
+            raise ValueError("Zuweisung benötigt ID, Modul und Abteilung")
+        if type(self.due_date) is not date:
+            raise ValueError("Zuweisung benötigt ein gültiges Fristdatum")
+
+
+@dataclass(frozen=True)
+class EvidenceRecord:
+    employee_id: str
+    module_id: str
+    completed_at: datetime
+    department_id: str | None = None
 
 
 @dataclass(frozen=True)

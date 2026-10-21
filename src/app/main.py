@@ -8,14 +8,18 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.application.models import Actor, Role
+from app.infrastructure.csv import TrainingEvidenceCsvAdapter
 from app.infrastructure.db import Base
 from app.infrastructure.models import EmployeeModel
 from app.infrastructure.repositories import (
     SqlAlchemyAssignmentRepository,
+    SqlAlchemyDepartmentRepository,
+    SqlAlchemyEmployeeRepository,
     SqlAlchemyGameRoundRepository,
+    SqlAlchemyModuleRepository,
     SqlAlchemyScenarioRepository,
 )
-from app.interfaces.http import Services
+from app.interfaces.http import Services, SystemClock
 from app.interfaces.http import create_app as create_http_app
 
 
@@ -57,6 +61,11 @@ def create_app():
             assignment_repository=SqlAlchemyAssignmentRepository,
             scenario_repository=SqlAlchemyScenarioRepository,
             game_round_repository=SqlAlchemyGameRoundRepository,
+            employee_repository=SqlAlchemyEmployeeRepository,
+            department_repository=SqlAlchemyDepartmentRepository,
+            module_repository=SqlAlchemyModuleRepository,
+            csv_adapter=TrainingEvidenceCsvAdapter(),
+            clock=SystemClock(),
             authenticate=authenticate,
             session_secret=session_secret,
         )
