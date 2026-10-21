@@ -14,7 +14,7 @@ from app.application.ports import (
     ScenarioRepository,
 )
 from app.domain.models import GameRound
-from app.domain.rules import best_attempt
+from app.domain.rules import best_attempt, training_status
 
 
 class AccessDenied(Exception):
@@ -116,7 +116,11 @@ class GetTrainingProgress:
             if actor.role is not Role.EMPLOYEE or attempt.employee_id == actor.id
         )
         if actor.role is Role.EMPLOYEE:
-            return ProgressView(False, _own_score(attempts))
+            return ProgressView(
+                False,
+                _own_score(attempts),
+                training_status(attempts, assignment.due_date, self.clock.now()).value,
+            )
         completed = tuple(
             attempt for attempt in attempts if attempt.completed_at is not None
         )

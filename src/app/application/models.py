@@ -43,3 +43,4 @@ class RoundView:
 class ProgressView:
     aggregate_available: bool
     scores: dict[str, int] | None
+    status: str | None = None

@@ -39,6 +39,15 @@ class SqlAlchemyAssignmentRepository:
             for row in rows
         )
 
+    def all(self) -> tuple[Assignment, ...]:
+        rows = self.session.scalars(
+            select(AssignmentModel).order_by(AssignmentModel.id)
+        )
+        return tuple(
+            Assignment(row.id, row.module_id, row.department_id, row.due_date)
+            for row in rows
+        )
+
     def get(self, assignment_id: str) -> Assignment | None:
         row = self.session.get(AssignmentModel, assignment_id)
         return (
