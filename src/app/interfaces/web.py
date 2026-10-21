@@ -26,7 +26,6 @@ from app.interfaces.http import (
     START_PAGES,
     HTTPExceptionResponse,
     _actor,
-    _csrf,
     _require_actor,
     _services,
     _session,
@@ -37,16 +36,7 @@ templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 
 
 def _context(request: Request, **values: Any) -> dict[str, Any]:
-    response = values.pop("response", None)
-    csrf_token = request.cookies.get("csrf_token")
-    if response is not None:
-        csrf_token = _csrf(response)
-    return {
-        "request": request,
-        "actor": _actor(request),
-        "csrf_token": csrf_token,
-        **values,
-    }
+    return {"request": request, "actor": _actor(request), **values}
 
 
 def _display_names(request: Request):
