@@ -86,7 +86,7 @@ class FakeModules:
     items = (ModuleRecord("module-a", "Modul A"),)
 
     def get(self, module_id):
-        return ModuleRecord(module_id) if module_id == "module-a" else None
+        return next((item for item in self.items if item.id == module_id), None)
 
     def all(self):
         return self.items

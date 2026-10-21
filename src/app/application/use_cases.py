@@ -7,6 +7,7 @@ from app.application.models import (
     DepartmentStatus,
     DisplayNames,
     EmployeeRecord,
+    EvidenceRow,
     OverallEvaluation,
     PersonalStatus,
     PersonStatus,
@@ -24,7 +25,7 @@ from app.application.ports import (
     ModuleRepository,
     ScenarioRepository,
 )
-from app.domain.models import Assignment, EvidenceRecord, GameRound
+from app.domain.models import Assignment, GameRound
 from app.domain.rules import best_attempt, team_aggregation, training_status
 
 
@@ -295,11 +296,21 @@ class GetOverallEvaluation:
 
 
 class ExportTrainingEvidence:
-    def __init__(self, assignments, rounds):
+    def __init__(
+        self,
+        assignments: AssignmentRepository,
+        rounds: GameRoundRepository,
+        employees: EmployeeRepository,
+        departments: DepartmentRepository,
+        modules: ModuleRepository,
+    ):
         self.assignments = assignments
         self.rounds = rounds
+        self.employees = employees
+        self.departments = departments
+        self.modules = modules
 
-    def execute(self, actor: Actor, assignment_id: str) -> tuple[EvidenceRecord, ...]:
+    def execute(self, actor: Actor, assignment_id: str) -> tuple[EvidenceRow, ...]:
         if actor.role is not Role.DATA_PROTECTION_OFFICER:
             raise AccessDenied(
                 "Nur Datenschutzverantwortliche dürfen Nachweise exportieren"
@@ -307,18 +318,40 @@ class ExportTrainingEvidence:
         assignment = self.assignments.get(assignment_id)
         if assignment is None:
             raise NotFound("Zuweisung nicht gefunden")
-        by_employee: dict[str, list[GameRound]] = {}
+        module = self.modules.get(assignment.module_id)
+        module_name = module.name if module and module.name else assignment.module_id
+        rows = []
         for attempt in self.rounds.for_assignment(assignment_id):
-            if attempt.completed_at is not None:
-                by_employee.setdefault(attempt.employee_id, []).append(attempt)
-        return tuple(
-            EvidenceRecord(
-                employee_id,
-                assignment.module_id,
-                best_attempt(tuple(attempts)).completed_at,
-                assignment.department_id,
+            person = self.employees.get(attempt.employee_id)
+            department_id = person.department_id if person else assignment.department_id
+            department = self.departments.get(department_id)
+            rows.append(
+                EvidenceRow(
+                    person=(
+                        f"{person.first_name} {person.last_name}"
+                        if person
+                        else attempt.employee_id
+                    ),
+                    department=(
+                        department.name if department and department.name
+                        else department_id
+                    ),
+                    module=module_name,
+                    attempt_number=attempt.attempt_number,
+                    status=(
+                        "offen" if attempt.completed_at is None else "abgeschlossen"
+                    ),
+                    score=attempt.score,
+                    passed=attempt.passed,
+                    completed_at=attempt.completed_at,
+                    scenario_ids=tuple(scenario.id for scenario in attempt.scenarios),
+                )
             )
-            for employee_id, attempts in by_employee.items()
+        return tuple(
+            sorted(
+                rows,
+                key=lambda row: (row.department, row.person, row.attempt_number),
+            )
         )
 
 

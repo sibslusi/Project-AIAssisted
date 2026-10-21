@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from enum import StrEnum
 
 from app.domain.models import Assignment
@@ -46,6 +46,19 @@ class EmployeeRecord:
     department_id: str
     first_name: str = ""
     last_name: str = ""
+
+
+@dataclass(frozen=True)
+class EvidenceRow:
+    person: str
+    department: str
+    module: str
+    attempt_number: int
+    status: str
+    score: int | None
+    passed: bool | None
+    completed_at: datetime | None
+    scenario_ids: tuple[str, ...]
 
 
 @dataclass(frozen=True)

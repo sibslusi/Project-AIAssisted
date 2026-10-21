@@ -393,16 +393,19 @@ def training_evidence(request: Request, assignment_id: str):
     with _session(request) as session:
         services = _services(request)
         try:
-            records = ExportTrainingEvidence(
+            rows = ExportTrainingEvidence(
                 services.assignment_repository(session),
                 services.game_round_repository(session),
+                services.employee_repository(session),
+                services.department_repository(session),
+                services.module_repository(session),
             ).execute(actor, assignment_id)
         except AccessDenied as error:
             raise HTTPExceptionResponse(403, str(error)) from error
         except NotFound as error:
             raise HTTPExceptionResponse(404, str(error)) from error
         return Response(
-            content=services.csv_adapter.render(records),
+            content=services.csv_adapter.render(rows),
             media_type="text/csv",
             headers={
                 "Content-Disposition": (
