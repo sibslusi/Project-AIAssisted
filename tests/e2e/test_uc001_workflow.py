@@ -148,7 +148,7 @@ def test_ac007_progress_uses_best_completed_attempt():
     first = start_round(test_client, "module-finanzen-informatik")
     answer_all(test_client, first["id"], ["a", "a", "a", "a", "a"])
     second = start_round(test_client, "module-finanzen-informatik")
-    answer_all(test_client, second["id"], ["a", "b", "c", "d", "a"])
+    answer_all(test_client, second["id"], ["c", "d", "c", "b", "a"])
 
     progress = test_client.get("/api/modules/module-finanzen-informatik/progress")
 
@@ -198,7 +198,7 @@ def test_ac010_late_passed_round_gets_late_status():
         test_client = client()
         login(test_client, "selma.rovelin@grenchen.example")
         round_data = start_round(test_client, "module-soziale-dienste")
-        answer_all(test_client, round_data["id"], ["a", "b", "c", "d", "a"])
+        answer_all(test_client, round_data["id"], ["b", "c", "d", "a", "b"])
 
         progress = test_client.get("/api/modules/module-soziale-dienste/progress")
 
