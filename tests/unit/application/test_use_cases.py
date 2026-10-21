@@ -11,9 +11,9 @@ from app.application.use_cases import (
     ListAssignedModules,
     NotFound,
     StartOrResumeGameRound,
+    SubmitRoundAnswer,
 )
 from app.domain.models import AnswerOption, GameRound, Scenario
-
 
 ZURICH = ZoneInfo("Europe/Zurich")
 
@@ -72,8 +72,12 @@ class FakeRounds:
 
     def next_attempt_number(self, employee_id, assignment_id):
         return 1 + max(
-            (item.attempt_number for item in self.items if item.employee_id == employee_id
-             and item.assignment_id == assignment_id),
+            (
+                item.attempt_number
+                for item in self.items
+                if item.employee_id == employee_id
+                and item.assignment_id == assignment_id
+            ),
             default=0,
         )
 
@@ -82,6 +86,9 @@ class FakeRounds:
 
     def for_assignment(self, assignment_id):
         return tuple(item for item in self.items if item.assignment_id == assignment_id)
+
+    def get(self, round_id):
+        return next((item for item in self.items if item.id == round_id), None)
 
 
 class FakeClock(ClockPort):
@@ -127,6 +134,22 @@ def test_start_creates_five_scenario_round_and_reuses_open_round():
     assert len(first.scenario_ids) == 5
 
 
+def test_submit_answer_returns_feedback_and_rejects_foreign_round():
+    assignments = FakeAssignments()
+    rounds = FakeRounds()
+    start = StartOrResumeGameRound(assignments, FakeScenarios(), rounds)
+    started = start.execute(employee(), "module-a")
+    submit = SubmitRoundAnswer(assignments, rounds)
+
+    feedback = submit.execute(employee(), started.id, 1, "right")
+
+    assert feedback.correct is True
+    assert feedback.next_position == 2
+
+    with pytest.raises(NotFound):
+        submit.execute(Actor("other", Role.EMPLOYEE, "department-a"), started.id, 2, "right")
+
+
 def test_department_lead_sees_no_individual_values_before_three_completed_people():
     assignments = FakeAssignments()
     rounds = FakeRounds()
@@ -138,10 +161,15 @@ def test_department_lead_sees_no_individual_values_before_three_completed_people
             attempt_number=1,
             scenarios=scenarios(),
         )
-        game_round.complete(datetime(2026, 10, 20, 10, number, tzinfo=ZURICH))
+        completed_at = datetime(2026, 10, 20, 10, number, tzinfo=ZURICH)
+        for position in range(1, 6):
+            game_round.answer(position, "right", completed_at)
+        game_round.complete(completed_at)
         rounds.items.append(game_round)
 
-    progress = GetTrainingProgress(assignments, rounds, FakeClock(datetime(2026, 10, 21, tzinfo=ZURICH)))
+    progress = GetTrainingProgress(
+        assignments, rounds, FakeClock(datetime(2026, 10, 21, tzinfo=ZURICH))
+    )
     result = progress.execute(
         Actor("lead-1", Role.DEPARTMENT_LEAD, "department-a"), "module-a"
     )
