@@ -1,13 +1,13 @@
 # TASKS.md
 
 PHASE: 3
-STATUS: done
+STATUS: in-progress
 
 (0=Bootstrap | 1=Specify | 2=Design | 3=Develop | 4=Validate | 5=Deploy)
 
 ## Current Use Case
 
-docs/specs/UC-001-SZENARIO-RUNDE-SPIELEN.md
+docs/specs/UC-002-SCHULUNG-STEUERN.md
 
 ## Backlog
 
