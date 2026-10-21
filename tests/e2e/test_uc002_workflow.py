@@ -180,6 +180,20 @@ def test_ac004_personal_status_completed_is_visible():
     assert status["status"] == "erledigt"
 
 
+def test_personal_status_shows_only_own_attempts():
+    client = make_client()
+    assignment = assign(client, "module-soziale-dienste")
+    complete_round(client, "marek.dalenor@grenchen.example", "module-soziale-dienste")
+    login(client, "elina.norveth@grenchen.example")
+    status = next(
+        item
+        for item in client.get("/api/me/training-status").json()
+        if item["assignment_id"] == assignment["id"]
+    )
+    assert status["status"] == "offen"
+    assert status["score"] is None
+
+
 def test_ac005_overdue_status_is_returned():
     client = make_client()
     assignment = assign(client, "module-soziale-dienste", due_date="2026-10-20")
