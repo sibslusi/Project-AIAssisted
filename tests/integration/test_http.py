@@ -78,6 +78,7 @@ def test_employee_can_start_resume_answer_and_complete_round():
     progress = client.get("/api/modules/module-einwohnerdienste/progress")
     assert progress.status_code == 200
     assert progress.json()["scores"]["best"] < 4
+    assert progress.json()["status"] == "offen"
 
 
 def test_employee_cannot_start_foreign_module_or_lead_rounds():
@@ -92,3 +93,38 @@ def test_employee_cannot_start_foreign_module_or_lead_rounds():
         "/api/modules/module-einwohnerdienste/rounds", headers=csrf_headers()
     )
     assert forbidden.status_code == 403
+
+
+def test_duplicate_answer_is_conflict_and_data_protection_officer_sees_all_modules():
+    login("elina.norveth@grenchen.example")
+    started = client.post(
+        "/api/modules/module-einwohnerdienste/rounds", headers=csrf_headers()
+    )
+    assert started.status_code == 201
+    round_id = started.json()["id"]
+    first = client.post(
+        f"/api/rounds/{round_id}/answers",
+        json={"position": 1, "option_id": "a"},
+        headers=csrf_headers(),
+    )
+    assert first.status_code == 201
+    duplicate = client.post(
+        f"/api/rounds/{round_id}/answers",
+        json={"position": 1, "option_id": "a"},
+        headers=csrf_headers(),
+    )
+    assert duplicate.status_code == 409
+
+    login("yara.merovan@grenchen.example")
+    modules = client.get("/api/modules")
+    assert modules.status_code == 200
+    assert len(modules.json()) == 3
+
+
+def test_logout_and_writing_without_csrf_are_rejected():
+    login("marek.dalenor@grenchen.example")
+    missing_csrf = client.post("/logout")
+    assert missing_csrf.status_code == 403
+    logged_out = client.post("/logout", headers=csrf_headers())
+    assert logged_out.status_code == 200
+    assert client.get("/api/modules").status_code == 401
