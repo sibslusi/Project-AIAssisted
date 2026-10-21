@@ -46,6 +46,7 @@ Pro Agenten-Sitzung ein kurzer Eintrag. Daraus entsteht am Schluss die Reflexion
 | 2026-10-21 | Phase 3 / UC-001 | Codex CLI + gpt-5.6-luna | E2E-API-Tests für UC-001 ergänzen und die Vorbereitung für den PR korrigieren. | tests/e2e/test_uc001_workflow.py, Composition Root, Pflichtkonfiguration, Seed-Befehl und grüne Test-/Lint-Läufe | Review fand import_module-Umgehung des Import-Liners, fest verdrahtete SQLite-DB, Session-Secret im Code und DEMO_PASSWORD-Standardwert. | TODO Sibslusi |
 | 2026-10-21 | Phase 3 / UC-001 | Codex CLI + gpt-5.6-luna | Phase 3 nach Quality Gate und menschlicher Bestätigung abschliessen. | docs/TASKS.md auf STATUS done gesetzt; AC-012 gemäss ADR-003 unverändert bestätigt | keine | TODO Sibslusi |
 | 2026-10-21 | Phase 3 / UC-001, UC-002 (Steuerung) | Claude (Projekt-Thread, Cloud) | Prompts mit Freigaben für Agent 1 (UC-001), Agent 2 (Docker), Claude-Code-Review-Loop und UC-002 schreiben; Zwischenstände von Agent 1 prüfen; vermischte Änderungen zweier Agenten trennen. | Prompt-Dateien für Agent 1, Agent 2, Review-Loop und UC-002; Lückenliste nach Block 3 (Alembic, AC-006/011/012, Rollen, Eindeutigkeit Position) von Agent 1 umgesetzt; Docker-Dateien nach worktrees/docker verschoben. | Blockreihenfolge im ersten Prompt falsch (Ports vor Persistenz); `pkill -f codex` beendete auch die laufenden Agenten; Worktree ausserhalb /workspaces nicht beschreibbar; Agent 2 lief zuerst im Hauptordner. | TODO Sibslusi |
+| 2026-10-21 | Phase 4 Vorbereitung / Docker | Codex CLI 0.163 + gpt-5.6-luna (LiteLLM) | Dockerfile, `.dockerignore`, Entrypoint, Compose-App-Service und README-Abschnitt für den lokalen Docker-Start erstellen. | `Dockerfile`, `.dockerignore`, `scripts/docker-entrypoint.sh`, `docker-compose.yml` und `README.md` ergänzt; statisch geprüft, Docker-Build und Start wegen fehlender Docker-CLI nicht ausführbar. | `docs/PROJECT.md` und bestehende `docs/AI-LOG.md`-Zeilen auf Git-Stand zurückgestellt; freigegebene `DATABASE_URL`-Anpassung beibehalten. | TODO Sibslusi |
 
 ## Phase-2-Vorbereitung
 
@@ -66,5 +67,4 @@ Pro Agenten-Sitzung ein kurzer Eintrag. Daraus entsteht am Schluss die Reflexion
 - Modell(e): `azure_ai/gpt-6-luna`, `gpt-5.6-luna`
 - Agenten: GitHub Copilot und Codex CLI
 - Warum: verfügbare Coding-Agenten mit repository-lokalem Kontext, Skills und
-nachvollziehbaren Quality-Gate-Prüfungen.
-| 2026-10-21 | Phase 4 Vorbereitung / Docker | Codex CLI 0.163 + gpt-5.6-luna (LiteLLM) | Dockerfile, `.dockerignore`, Entrypoint, Compose-App-Service und README-Abschnitt für den lokalen Docker-Start erstellen. | `Dockerfile`, `.dockerignore`, `scripts/docker-entrypoint.sh`, `docker-compose.yml` und `README.md` ergänzt; statisch geprüft, Docker-Build und Start wegen fehlender Docker-CLI nicht ausführbar. | `docs/PROJECT.md` und bestehende `docs/AI-LOG.md`-Zeilen auf Git-Stand zurückgestellt; freigegebene `DATABASE_URL`-Anpassung beibehalten. | TODO Sibslusi |
+	nachvollziehbaren Quality-Gate-Prüfungen.

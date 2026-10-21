@@ -28,11 +28,6 @@ läuft im Compose-Netzwerk unter dem Hostnamen `db`. Zum Beenden:
 docker compose down
 ```
 
-Die Container starten den aktuell vorgesehenen Uvicorn-Einstiegspunkt
-`app.main:app`. Dieser wird im DEVELOP-Schritt der Anwendung
-implementiert; bis dahin kann der Containerstart noch nicht als Laufzeittest
-bestätigt werden.
-
 ## Create a project
 
 1. Select **Use this template** on GitHub and create a new repository.
