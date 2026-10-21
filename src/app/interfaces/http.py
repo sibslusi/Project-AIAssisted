@@ -1,6 +1,7 @@
 import secrets
 from contextlib import contextmanager
 from datetime import UTC
+from importlib import import_module
 from pathlib import Path
 
 from argon2 import PasswordHasher
@@ -21,14 +22,22 @@ from app.application.use_cases import (
     StartOrResumeGameRound,
     SubmitRoundAnswer,
 )
-from app.infrastructure.db import Base
-from app.infrastructure.models import EmployeeModel
-from app.infrastructure.repositories import (
-    SqlAlchemyAssignmentRepository,
-    SqlAlchemyGameRoundRepository,
-    SqlAlchemyScenarioRepository,
-)
-from app.infrastructure.seed import load_seed_data
+
+
+def _infrastructure():
+    db = import_module("app.infrastructure.db")
+    models = import_module("app.infrastructure.models")
+    repositories = import_module("app.infrastructure.repositories")
+    seed = import_module("app.infrastructure.seed")
+    return db.Base, models, repositories, seed
+
+
+Base, _models, _repositories, _seed = _infrastructure()
+EmployeeModel = _models.EmployeeModel
+SqlAlchemyAssignmentRepository = _repositories.SqlAlchemyAssignmentRepository
+SqlAlchemyGameRoundRepository = _repositories.SqlAlchemyGameRoundRepository
+SqlAlchemyScenarioRepository = _repositories.SqlAlchemyScenarioRepository
+load_seed_data = _seed.load_seed_data
 
 DATABASE_URL = "sqlite://"
 engine = create_engine(
@@ -176,6 +185,18 @@ def start_round(request: Request, module_id: str):
     _check_csrf(request)
     with request_session() as session:
         assignments, rounds, scenarios = _use_cases(session)
+        assignment = next(
+            (
+                item
+                for item in assignments.for_department(actor.department_id)
+                if item.module_id == module_id
+            ),
+            None,
+        )
+        was_open = (
+            assignment is not None
+            and rounds.open_for(actor.id, assignment.id) is not None
+        )
         try:
             result = StartOrResumeGameRound(assignments, scenarios, rounds).execute(
                 actor, module_id
@@ -186,7 +207,7 @@ def start_round(request: Request, module_id: str):
             raise HTTPExceptionResponse(404, str(error)) from error
         except ValueError as error:
             raise HTTPExceptionResponse(409, str(error)) from error
-        return JSONResponse(result.__dict__, status_code=201)
+        return JSONResponse(result.__dict__, status_code=200 if was_open else 201)
 
 
 @app.post("/api/rounds/{round_id}/answers")
@@ -207,7 +228,11 @@ async def submit_answer(request: Request, round_id: str):
         except ValueError as error:
             status = 409 if "bereits" in str(error) else 422
             raise HTTPExceptionResponse(status, str(error)) from error
-        return feedback.__dict__
+        response = feedback.__dict__.copy()
+        saved_round = rounds.get(round_id)
+        if saved_round is not None and saved_round.completed_at is not None:
+            response.update(score=saved_round.score, passed=saved_round.passed)
+        return JSONResponse(response, status_code=201)
 
 
 @app.get("/api/modules/{module_id}/progress")
