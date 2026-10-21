@@ -1,6 +1,15 @@
 from datetime import date, datetime
 
-from sqlalchemy import JSON, Boolean, Date, DateTime, ForeignKey, Integer, String
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.db import Base
@@ -41,6 +50,11 @@ class ScenarioModel(Base):
 
 class ModuleScenarioModel(Base):
     __tablename__ = "module_scenarios"
+    __table_args__ = (
+        UniqueConstraint(
+            "module_id", "position", name="uq_module_scenarios_module_position"
+        ),
+    )
     module_id: Mapped[str] = mapped_column(ForeignKey("modules.id"), primary_key=True)
     position: Mapped[int] = mapped_column(Integer, primary_key=True)
     scenario_id: Mapped[str] = mapped_column(ForeignKey("scenarios.id"))

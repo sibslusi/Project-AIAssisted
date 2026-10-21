@@ -58,6 +58,9 @@ def upgrade() -> None:
         sa.Column(
             "scenario_id", sa.String(100), sa.ForeignKey("scenarios.id"), nullable=False
         ),
+        sa.UniqueConstraint(
+            "module_id", "position", name="uq_module_scenarios_module_position"
+        ),
     )
     op.create_table(
         "assignments",
