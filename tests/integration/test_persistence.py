@@ -2,10 +2,9 @@ from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+import pytest
 from sqlalchemy import create_engine, inspect, select
 from sqlalchemy.orm import Session
-
-import pytest
 
 from app.domain.models import AnswerOption, GameRound, Scenario
 from app.infrastructure.db import Base
