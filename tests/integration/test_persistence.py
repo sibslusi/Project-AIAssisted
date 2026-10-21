@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.domain.models import AnswerOption, GameRound, Scenario
 from app.infrastructure.db import Base
-from app.infrastructure.models import EmployeeModel
+from app.infrastructure.models import EmployeeModel, ScenarioModel
 from app.infrastructure.repositories import (
     SqlAlchemyAssignmentRepository,
     SqlAlchemyGameRoundRepository,
@@ -108,6 +108,47 @@ def test_game_round_repository_persists_snapshot_and_answers():
         scenario.id for scenario in scenarios
     )
     assert loaded.answers[1].option_id == "right"
+
+
+def test_game_round_save_does_not_reactivate_deactivated_scenario():
+    engine = database()
+    scenarios = tuple(
+        Scenario.create(
+            id=f"scenario-{number}",
+            situation="Situation",
+            explanation="Erklärung",
+            legal_basis="Rechtsgrundlage",
+            options=(
+                AnswerOption("right", "Richtig", True),
+                AnswerOption("wrong-1", "Falsch", False),
+                AnswerOption("wrong-2", "Falsch", False),
+            ),
+        )
+        for number in range(1, 6)
+    )
+    game_round = GameRound.start(
+        id="round-deactivated",
+        employee_id="user-einwohnerdienste-01",
+        assignment_id="assignment-einwohnerdienste",
+        attempt_number=1,
+        scenarios=scenarios,
+    )
+    answered_at = datetime(2026, 10, 21, 10, tzinfo=ZURICH)
+
+    with Session(engine) as session:
+        load_seed_data(session, SEED_DIR)
+        repository = SqlAlchemyGameRoundRepository(session)
+        repository.save(game_round)
+        session.commit()
+
+        session.get(ScenarioModel, "scenario-1").active = False
+        session.commit()
+
+        game_round.answer(1, "right", answered_at)
+        repository.save(game_round)
+        session.commit()
+
+        assert session.get(ScenarioModel, "scenario-1").active is False
 
 
 def test_module_scenario_position_has_named_unique_constraint():
