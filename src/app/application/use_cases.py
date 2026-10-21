@@ -157,7 +157,13 @@ class GetPersonalStatus:
             for assignment in assignments
             for status, score in (
                 _status_and_score(
-                    self.rounds.for_assignment(assignment.id), assignment, self.clock
+                    tuple(
+                        attempt
+                        for attempt in self.rounds.for_assignment(assignment.id)
+                        if attempt.employee_id == actor.id
+                    ),
+                    assignment,
+                    self.clock,
                 ),
             )
         )
