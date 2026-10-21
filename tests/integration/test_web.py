@@ -134,6 +134,7 @@ def test_html_employee_page_shows_only_assigned_modules_and_csrf_forms():
     assert "module-einwohnerdienste" in response.text
     assert "module-soziale-dienste" not in response.text
     assert 'name="csrf_token"' in response.text
+    assert "Datenschutz in den Einwohnerdiensten" in response.text
     assert "Frist: 2026-11-30" in response.text
     assert "Status:" in response.text
     assert FOOTER in response.text
@@ -272,7 +273,10 @@ def test_html_department_lead_page_has_status_without_individual_scores():
     assert "Abteilungsstatus" in response.text
     assert "score" not in response.text.lower()
     assert "total_score" not in response.text
-    assert "module-einwohnerdienste" in response.text
+    assert "Marek Dalenor" in response.text
+    assert "user-einwohnerdienste-01" not in response.text
+    assert "Datenschutz in den Einwohnerdiensten" in response.text
+    assert "Jorin Mavero" not in response.text
 
 
 def test_html_data_protection_pages_show_assignment_form_and_csv_links():
@@ -291,6 +295,10 @@ def test_html_data_protection_pages_show_assignment_form_and_csv_links():
     csv_link = "/api/assignments/assignment-einwohnerdienste/training-evidence.csv"
     assert csv_link in assignments.text
     assert "Gesamtauswertung" in evaluation.text
+    assert "Soziale Dienste" in evaluation.text
+    assert "Jorin Mavero" in evaluation.text
+    assert ">Datenschutz in den Einwohnerdiensten</option>" in assignments.text
+    assert ">Einwohnerdienste</option>" in assignments.text
 
 
 def test_html_errors_render_status_pages_without_data_leaks():

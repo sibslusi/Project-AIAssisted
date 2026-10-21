@@ -47,6 +47,22 @@ def test_assignment_repository_supports_save_and_employee_lookup():
         }
 
 
+def test_master_data_repositories_provide_display_names():
+    engine = database()
+    with Session(engine) as session:
+        load_seed_data(session, SEED_DIR)
+        department = SqlAlchemyDepartmentRepository(session).get(
+            "department-einwohnerdienste"
+        )
+        modules = SqlAlchemyModuleRepository(session).all()
+
+        assert department.name == "Einwohnerdienste"
+        assert len(modules) == 3
+        assert {module.id: module.name for module in modules}[
+            "module-einwohnerdienste"
+        ] == "Datenschutz in den Einwohnerdiensten"
+
+
 def test_master_data_repositories_load_seed_entities():
     engine = database()
     with Session(engine) as session:

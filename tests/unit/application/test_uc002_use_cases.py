@@ -16,8 +16,10 @@ from app.application.use_cases import (
     CreateTeamAggregation,
     ExportTrainingEvidence,
     GetDepartmentStatus,
+    GetDisplayNames,
     GetOverallEvaluation,
     GetPersonalStatus,
+    ListAssignments,
 )
 from app.domain.models import AnswerOption, Assignment, GameRound, Scenario
 
@@ -80,8 +82,13 @@ class FakeDepartments:
 
 
 class FakeModules:
+    items = (ModuleRecord("module-a", "Modul A"),)
+
     def get(self, module_id):
         return ModuleRecord(module_id) if module_id == "module-a" else None
+
+    def all(self):
+        return self.items
 
 
 class FakeRounds:
@@ -255,3 +262,54 @@ def test_team_aggregation_is_separate_for_each_assignment():
         employee(Role.DEPARTMENT_LEAD), "department-a"
     )
     assert {item.assignment_id for item in result} == {"a", "b"}
+
+
+def test_list_assignments_is_only_for_data_protection_officer():
+    assignments = FakeAssignments(
+        [Assignment("a", "module-a", "department-a", date(2026, 12, 31))]
+    )
+    use_case = ListAssignments(assignments, FakeModules(), FakeDepartments())
+
+    result = use_case.execute(employee(Role.DATA_PROTECTION_OFFICER))
+
+    assert [item.id for item in result.assignments] == ["a"]
+    assert [item.id for item in result.modules] == ["module-a"]
+    assert [item.id for item in result.departments] == ["department-a", "department-b"]
+    for role in (Role.EMPLOYEE, Role.DEPARTMENT_LEAD):
+        with pytest.raises(AccessDenied):
+            use_case.execute(employee(role))
+
+
+class NamedEmployees(FakeEmployees):
+    items = (
+        EmployeeRecord("employee-1", "department-a", "Ada", "Muster"),
+        EmployeeRecord("employee-9", "department-b", "Bea", "Beispiel"),
+    )
+
+
+class NamedDepartments(FakeDepartments):
+    items = (
+        DepartmentRecord("department-a", "Abteilung A"),
+        DepartmentRecord("department-b", "Abteilung B"),
+    )
+
+
+def test_display_names_follow_role_visibility():
+    use_case = GetDisplayNames(NamedEmployees(), FakeModules(), NamedDepartments())
+
+    lead = use_case.execute(employee(Role.DEPARTMENT_LEAD))
+    officer = use_case.execute(employee(Role.DATA_PROTECTION_OFFICER))
+    own = use_case.execute(employee(Role.EMPLOYEE))
+
+    assert lead.employees == {"employee-1": "Ada Muster"}
+    assert lead.departments == {"department-a": "Abteilung A"}
+    assert officer.employees == {
+        "employee-1": "Ada Muster",
+        "employee-9": "Bea Beispiel",
+    }
+    assert officer.departments == {
+        "department-a": "Abteilung A",
+        "department-b": "Abteilung B",
+    }
+    assert own.employees == {"employee-1": "Ada Muster"}
+    assert own.modules == {"module-a": "Modul A"}
