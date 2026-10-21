@@ -203,6 +203,7 @@ class SqlAlchemyGameRoundRepository:
 
     def save(self, game_round: GameRound) -> None:
         row = self.session.get(GameRoundModel, game_round.id)
+        is_new = row is None
         if row is None:
             row = GameRoundModel(
                 id=game_round.id,
@@ -214,35 +215,16 @@ class SqlAlchemyGameRoundRepository:
         row.completed_at = _as_utc(game_round.completed_at)
         row.score = game_round.score
         row.passed = game_round.passed
-        self.session.query(GameRoundScenarioModel).filter_by(
-            round_id=game_round.id
-        ).delete()
         self.session.query(RoundAnswerModel).filter_by(round_id=game_round.id).delete()
-        for position, scenario in enumerate(game_round.scenarios, 1):
-            self.session.merge(
-                ScenarioModel(
-                    id=scenario.id,
-                    situation=scenario.situation,
-                    explanation=scenario.explanation,
-                    legal_basis=scenario.legal_basis,
-                    active=scenario.active,
-                    options=[
-                        {
-                            "id": option.id,
-                            "text": option.text,
-                            "correct": option.correct,
-                        }
-                        for option in scenario.options
-                    ],
+        if is_new:
+            for position, scenario in enumerate(game_round.scenarios, 1):
+                self.session.add(
+                    GameRoundScenarioModel(
+                        round_id=game_round.id,
+                        position=position,
+                        scenario_id=scenario.id,
+                    )
                 )
-            )
-            self.session.add(
-                GameRoundScenarioModel(
-                    round_id=game_round.id,
-                    position=position,
-                    scenario_id=scenario.id,
-                )
-            )
         for answer in game_round.answers.values():
             self.session.add(
                 RoundAnswerModel(

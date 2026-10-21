@@ -1,4 +1,6 @@
+import pytest
 from fastapi.testclient import TestClient
+from itsdangerous import URLSafeTimedSerializer
 
 from app.main import app
 
@@ -6,6 +8,7 @@ client = TestClient(app, base_url="https://testserver")
 
 
 def login(email):
+    client.cookies.delete("session")
     login_page = client.get("/login")
     response = client.post(
         "/login",
@@ -128,3 +131,47 @@ def test_logout_and_writing_without_csrf_are_rejected():
     logged_out = client.post("/logout", headers=csrf_headers())
     assert logged_out.status_code == 200
     assert client.get("/api/modules").status_code == 401
+
+
+def test_expired_session_cookie_is_rejected(monkeypatch):
+    issued_at = 1_000_000
+    monkeypatch.setattr("itsdangerous.timed.time.time", lambda: issued_at)
+    token = URLSafeTimedSerializer(
+        "test-session-secret", salt="session"
+    ).dumps(
+        {
+            "id": "user-einwohnerdienste-01",
+            "role": "employee",
+            "department_id": "department-einwohnerdienste",
+        }
+    )
+    monkeypatch.setattr(
+        "itsdangerous.timed.time.time", lambda: issued_at + 8 * 60 * 60 + 1
+    )
+    client.cookies.set("session", token)
+
+    assert client.get("/api/modules").status_code == 401
+
+
+@pytest.mark.parametrize(
+    "request_kwargs",
+    [
+        {"json": {"option_id": "a"}},
+        {"json": {"position": 1}},
+        {"content": b"not-json"},
+    ],
+)
+def test_invalid_answer_payload_returns_unprocessable_entity(request_kwargs):
+    login("marek.dalenor@grenchen.example")
+    started = client.post(
+        "/api/modules/module-einwohnerdienste/rounds", headers=csrf_headers()
+    )
+    assert started.status_code in {200, 201}
+
+    response = client.post(
+        f"/api/rounds/{started.json()['id']}/answers",
+        headers=csrf_headers(),
+        **request_kwargs,
+    )
+
+    assert response.status_code == 422

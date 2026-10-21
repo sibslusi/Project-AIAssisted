@@ -2,13 +2,13 @@ import secrets
 from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from json import JSONDecodeError
 from typing import Any
 
 from fastapi import APIRouter, FastAPI, Form, Request, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from itsdangerous import BadSignature, URLSafeSerializer
+from itsdangerous import BadSignature, URLSafeTimedSerializer
 
 from app.application.models import Actor, Role
 from app.application.ports import ClockPort
@@ -50,12 +50,8 @@ class HTTPExceptionResponse(Exception):
         self.detail = detail
 
 
-class SystemClock:
-    def now(self) -> datetime:
-        return datetime.now(UTC)
-
-
 router = APIRouter()
+SESSION_MAX_AGE = 8 * 60 * 60
 
 
 def _services(request: Request) -> Services:
@@ -88,9 +84,9 @@ def _actor(request: Request) -> Actor | None:
     if value is None:
         return None
     try:
-        data = URLSafeSerializer(
+        data = URLSafeTimedSerializer(
             _services(request).session_secret, salt="session"
-        ).loads(value)
+        ).loads(value, max_age=SESSION_MAX_AGE)
     except BadSignature:
         return None
     return Actor(data["id"], Role(data["role"]), data["department_id"])
@@ -132,10 +128,17 @@ def login(
         actor = _services(request).authenticate(session, email, password)
     if actor is None:
         raise HTTPExceptionResponse(401, "Ungültige Anmeldung")
-    value = URLSafeSerializer(_services(request).session_secret, salt="session").dumps(
-        {"id": actor.id, "role": actor.role, "department_id": actor.department_id}
+    value = URLSafeTimedSerializer(
+        _services(request).session_secret, salt="session"
+    ).dumps({"id": actor.id, "role": actor.role, "department_id": actor.department_id})
+    response.set_cookie(
+        "session",
+        value,
+        max_age=SESSION_MAX_AGE,
+        httponly=True,
+        secure=True,
+        samesite="lax",
     )
-    response.set_cookie("session", value, httponly=True, secure=True, samesite="lax")
     response.set_cookie(
         "csrf_token", secrets.token_urlsafe(24), secure=True, samesite="lax"
     )
@@ -199,15 +202,20 @@ def start_round(request: Request, module_id: str):
 async def submit_answer(request: Request, round_id: str):
     actor = _require_actor(request)
     _check_csrf(request)
-    payload = await request.json()
+    try:
+        payload = await request.json()
+        position = payload["position"]
+        option_id = payload["option_id"]
+    except (JSONDecodeError, KeyError, TypeError) as error:
+        raise HTTPExceptionResponse(422, "Ungültige Antwort") from error
     with _session(request) as session:
         services = _services(request)
         assignments = services.assignment_repository(session)
         rounds = services.game_round_repository(session)
         try:
-            feedback = SubmitRoundAnswer(assignments, rounds, services.clock).execute(
-                actor, round_id, payload["position"], payload["option_id"]
-            )
+                feedback = SubmitRoundAnswer(
+                    assignments, rounds, services.clock
+                ).execute(actor, round_id, position, option_id)
         except AccessDenied as error:
             raise HTTPExceptionResponse(403, str(error)) from error
         except NotFound as error:

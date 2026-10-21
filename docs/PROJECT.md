@@ -314,7 +314,8 @@ activated.
 | Integration tests | `pytest tests/integration -q` |
 | E2E API tests | `pytest tests/e2e -q` |
 | Optional browser tests | `playwright test` |
-| Run locally | `uvicorn app.interfaces.http:app --reload` |
+| Run locally | `uvicorn app.main:app --reload` |
+| Seed data | `PYTHONPATH=src python scripts/seed.py` |
 | Coverage | `pytest --cov=src/app --cov-report=term-missing` |
 | Build/release | `docker build -t datenschutzfaelle-gemeindewesen .` |
 
