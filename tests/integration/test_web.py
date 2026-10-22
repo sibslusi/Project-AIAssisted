@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
@@ -176,6 +177,66 @@ def test_data_protection_navigation_contains_evaluation_and_assignments():
     assert 'href="/datenschutz/zuweisungen"' in response.text
     assert 'aria-current="page"' in response.text
     assert "Zuweisungen" in response.text
+
+
+def test_employee_navigation_excludes_data_protection_links_and_shows_role():
+    test_client = client()
+    _login(test_client, "marek.dalenor@grenchen.example")
+
+    response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
+
+    assert 'href="/datenschutz/zuweisungen"' not in response.text
+    assert "Mitarbeitende" in response.text
+    assert "modules" not in response.text
+
+
+def test_department_lead_navigation_marks_status_active_without_global_evaluation():
+    test_client = client()
+    _login(test_client, "liora.veylan@grenchen.example")
+
+    response = test_client.get(
+        "/abteilungsleitung/auswertung", headers=HTML_HEADERS
+    )
+
+    assert response.status_code == 200
+    assert "Abteilungsstatus" in response.text
+    assert 'aria-current="page"' in response.text
+    assert "Gesamtauswertung" not in response.text
+    assert "Abteilungsleitung" in response.text
+
+
+def test_login_page_has_no_authenticated_navigation():
+    response = client().get("/", headers=HTML_HEADERS)
+
+    assert '<nav class="main-nav"' not in response.text
+    assert "Abmelden" not in response.text
+
+
+def test_module_status_is_rendered_as_status_pill():
+    test_client = client()
+    _login(test_client, "marek.dalenor@grenchen.example")
+
+    response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
+
+    assert 'class="pill pill-open"' in response.text
+    assert "offen" in response.text
+
+
+def test_desktop_layout_uses_minimum_width_and_no_mobile_media_query():
+    css = (Path(__file__).parents[2] / "src/app/interfaces/static/style.css").read_text()
+
+    assert "min-width: 1024px" in css
+    assert "@media (max-width" not in css
+
+
+def test_role_and_department_are_visible_in_header():
+    test_client = client()
+    _login(test_client, "marek.dalenor@grenchen.example")
+
+    response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
+
+    assert "Mitarbeitende" in response.text
+    assert "Einwohnerdienste" in response.text
 
 
 CORRECT_OPTIONS = {
