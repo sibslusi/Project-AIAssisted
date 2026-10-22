@@ -3,7 +3,7 @@
     "id": "user-einwohnerdienste-leitung",
     "first_name": "Liora",
     "last_name": "Veylan",
-    "email": "liora.veylan@grenchen.example",
+    "email": "chef@mail.ch",
     "role": "department_lead",
     "department_id": "department-einwohnerdienste"
   },
@@ -11,7 +11,7 @@
     "id": "user-einwohnerdienste-01",
     "first_name": "Marek",
     "last_name": "Dalenor",
-    "email": "marek.dalenor@grenchen.example",
+    "email": "ma@mail.ch",
     "role": "employee",
     "department_id": "department-einwohnerdienste"
   },
@@ -123,7 +123,7 @@
     "id": "user-datenschutzverantwortlich",
     "first_name": "Yara",
     "last_name": "Merovan",
-    "email": "yara.merovan@grenchen.example",
+    "email": "ds@mail.ch",
     "role": "data_protection_officer",
     "department_id": "department-finanzen-informatik"
   }

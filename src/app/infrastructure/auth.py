@@ -3,13 +3,13 @@ from argon2.exceptions import VerifyMismatchError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.application.models import Actor, Role
+from app.application.models import Actor, Role, normalize_email
 from app.infrastructure.models import EmployeeModel
 
 
 def authenticate(session: Session, email: str, password: str) -> Actor | None:
     employee = session.scalar(
-        select(EmployeeModel).where(EmployeeModel.email == email)
+        select(EmployeeModel).where(EmployeeModel.email == normalize_email(email))
     )
     if employee is None:
         return None
