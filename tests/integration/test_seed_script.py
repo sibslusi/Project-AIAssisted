@@ -1,10 +1,12 @@
 import importlib.util
 from pathlib import Path
 
-from sqlalchemy import create_engine, func, select
+from sqlalchemy import create_engine, event, func, select
+from sqlalchemy.orm import Session
 
 import app.infrastructure.models  # noqa: F401
 from app.infrastructure.db import Base
+from app.infrastructure.seed import load_seed_data
 
 SCRIPT = Path(__file__).parents[2] / "scripts" / "seed.py"
 
@@ -40,3 +42,22 @@ def test_seed_script_can_run_on_every_container_start(tmp_path, monkeypatch):
 
     assert first["employees"] > 0
     assert row_counts(engine) == first
+
+
+def test_seed_respects_foreign_keys_on_empty_database(tmp_path, monkeypatch):
+    # PostgreSQL prüft Fremdschlüssel immer, SQLite nur mit PRAGMA foreign_keys.
+    database_url = f"sqlite:///{tmp_path / 'fk.db'}"
+    engine = create_engine(database_url)
+    event.listen(
+        engine,
+        "connect",
+        lambda connection, _: connection.execute("PRAGMA foreign_keys=ON"),
+    )
+    Base.metadata.create_all(engine)
+    monkeypatch.setenv("DEMO_PASSWORD", "demo-password")
+
+    with Session(engine) as session:
+        load_seed_data(session, SCRIPT.parents[1] / "data" / "seed")
+        session.commit()
+
+    assert row_counts(engine)["module_scenarios"] > 0
