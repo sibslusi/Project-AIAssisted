@@ -9,9 +9,14 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   structure:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,6 +25,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
 
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
@@ -42,10 +48,71 @@ jobs:
       - name: Lint
         run: ruff check .
 
+      - name: Check formatting
+        run: ruff format --check .
+
       - name: Check architecture
         run: lint-imports
         env:
           PYTHONPATH: src
 
-      - name: Run tests
-        run: pytest -q || [ $? -eq 5 ]
+      - name: Run tests with coverage
+        run: pytest --cov=src/app --cov-report=term-missing --cov-fail-under=90
+
+      - name: Audit dependencies
+        run: pip-audit -r requirements.txt
+
+  postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://ci:ci-only-password@localhost:5432/ci
+      DEMO_PASSWORD: ci-only-demo-password
+      PYTHONPATH: src
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Migrate
+        run: alembic upgrade head
+
+      - name: Check migrations match models
+        run: alembic check
+
+      - name: Seed twice
+        run: |
+          python scripts/seed.py
+          python scripts/seed.py
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build --build-arg APP_VERSION=ci-${{ github.sha }} .
