@@ -32,6 +32,9 @@ def load_seed_data(session: Session, seed_dir: Path) -> None:
         raise RuntimeError("DEMO_PASSWORD muss gesetzt sein")
     for item in _read(seed_dir, "departments.json"):
         session.merge(DepartmentModel(**item))
+    # Szenarien vor den Modulen, weil module_scenarios auf sie verweist.
+    for item in _read(seed_dir, "scenarios.json"):
+        _add_missing(session, ScenarioModel(**item))
     for item in _read(seed_dir, "modules.json"):
         scenario_ids = item.pop("scenario_ids")
         session.merge(ModuleModel(**item))
@@ -41,8 +44,6 @@ def load_seed_data(session: Session, seed_dir: Path) -> None:
                     module_id=item["id"], position=position, scenario_id=scenario_id
                 )
             )
-    for item in _read(seed_dir, "scenarios.json"):
-        _add_missing(session, ScenarioModel(**item))
     for item in _read(seed_dir, "assignments.json"):
         item["due_date"] = date.fromisoformat(item["due_date"])
         _add_missing(session, AssignmentModel(**item))
