@@ -153,6 +153,31 @@ def test_html_employee_page_shows_only_assigned_modules_and_csrf_forms():
     assert FOOTER in response.text
 
 
+def test_employee_navigation_marks_modules_as_active():
+    test_client = client()
+    _login(test_client, "marek.dalenor@grenchen.example")
+
+    response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
+
+    assert '<nav class="main-nav"' in response.text
+    assert 'aria-current="page"' in response.text
+    assert 'href="/mitarbeitende/module"' in response.text
+    assert "Meine Module" in response.text
+
+
+def test_data_protection_navigation_contains_evaluation_and_assignments():
+    test_client = client()
+    _login(test_client, "yara.merovan@grenchen.example")
+
+    response = test_client.get("/datenschutz/zuweisungen", headers=HTML_HEADERS)
+
+    assert response.status_code == 200
+    assert response.text.count('class="nav-link active"') == 1
+    assert 'href="/datenschutz/zuweisungen"' in response.text
+    assert 'aria-current="page"' in response.text
+    assert "Zuweisungen" in response.text
+
+
 CORRECT_OPTIONS = {
     "scenario-einwohnerdienste-01": "a",
     "scenario-einwohnerdienste-02": "b",
