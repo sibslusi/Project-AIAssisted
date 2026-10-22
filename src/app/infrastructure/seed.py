@@ -21,6 +21,11 @@ def _read(seed_dir: Path, name: str):
     return json.loads((seed_dir / name).read_text(encoding="utf-8"))
 
 
+def _add_missing(session: Session, model) -> None:
+    if session.get(type(model), model.id) is None:
+        session.add(model)
+
+
 def load_seed_data(session: Session, seed_dir: Path) -> None:
     password = os.environ.get("DEMO_PASSWORD")
     if not password:
@@ -37,10 +42,10 @@ def load_seed_data(session: Session, seed_dir: Path) -> None:
                 )
             )
     for item in _read(seed_dir, "scenarios.json"):
-        session.merge(ScenarioModel(**item))
+        _add_missing(session, ScenarioModel(**item))
     for item in _read(seed_dir, "assignments.json"):
         item["due_date"] = date.fromisoformat(item["due_date"])
-        session.merge(AssignmentModel(**item))
+        _add_missing(session, AssignmentModel(**item))
     hasher = PasswordHasher()
     password_hash = hasher.hash(password)
     for item in _read(seed_dir, "users.json"):
