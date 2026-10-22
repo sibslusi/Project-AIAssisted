@@ -43,7 +43,7 @@ def test_seed_loader_loads_assignments_and_argon2_password_hashes(monkeypatch):
         assignments = assignment_repo.for_department("department-einwohnerdienste")
         employee = session.scalar(
             select(EmployeeModel).where(
-                EmployeeModel.email == "marek.dalenor@grenchen.example"
+                EmployeeModel.email == "ma@mail.ch"
             )
         )
 
@@ -52,6 +52,23 @@ def test_seed_loader_loads_assignments_and_argon2_password_hashes(monkeypatch):
     assert assignments[0].due_date == date(2026, 11, 30)
     assert employee is not None
     assert employee.password_hash.startswith("$argon2")
+
+
+def test_seed_loader_updates_existing_employee_email_by_id(monkeypatch):
+    monkeypatch.setenv("DEMO_PASSWORD", "demo-only-password")
+    engine = database()
+
+    with Session(engine) as session:
+        load_seed_data(session, SEED_DIR)
+        employee = session.get(EmployeeModel, "user-einwohnerdienste-01")
+        employee.email = "old@example.invalid"
+        session.commit()
+        load_seed_data(session, SEED_DIR)
+        session.commit()
+
+        updated = session.get(EmployeeModel, "user-einwohnerdienste-01")
+
+    assert updated.email == "ma@mail.ch"
 
 
 def test_scenario_repository_returns_only_active_scenarios_in_module_order():

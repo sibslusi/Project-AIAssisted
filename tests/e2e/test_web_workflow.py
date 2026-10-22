@@ -79,7 +79,7 @@ def start_round(test_client: TestClient) -> str:
 
 def test_employee_plays_round_sees_badge_and_logs_out():
     test_client = client()
-    login(test_client, "marek.dalenor@grenchen.example")
+    login(test_client, "ma@mail.ch")
     play_round(test_client, start_round(test_client))
 
     result = play_round(test_client, start_round(test_client))
@@ -94,7 +94,7 @@ def test_employee_plays_round_sees_badge_and_logs_out():
 
 def test_department_lead_sees_no_individual_scores():
     test_client = client()
-    login(test_client, "liora.veylan@grenchen.example")
+    login(test_client, "chef@mail.ch")
 
     response = test_client.get("/abteilungsleitung/auswertung", headers=HTML_HEADERS)
 
@@ -107,7 +107,7 @@ def test_department_lead_sees_no_individual_scores():
 
 def test_data_protection_officer_assigns_module_and_downloads_csv():
     test_client = client()
-    login(test_client, "yara.merovan@grenchen.example")
+    login(test_client, "ds@mail.ch")
     test_client.get("/datenschutz/zuweisungen", headers=HTML_HEADERS)
 
     try:
@@ -143,7 +143,7 @@ def test_data_protection_officer_assigns_module_and_downloads_csv():
 
 def test_every_html_post_without_csrf_returns_403():
     test_client = client()
-    login(test_client, "marek.dalenor@grenchen.example")
+    login(test_client, "ma@mail.ch")
     round_page = start_round(test_client)
     posts = {
         "/login": {"email": "x@grenchen.example", "password": "x"},

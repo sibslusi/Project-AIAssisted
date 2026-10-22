@@ -54,7 +54,7 @@ def answer_all(test_client: TestClient, round_id: str, options: list[str]) -> di
 def test_ac001_full_workflow_login_start_five_answers_status_logout():
     """AC-001: Login, Start, fünf Antworten, Abschluss, Status und Logout."""
     test_client = client()
-    login(test_client, "marek.dalenor@grenchen.example")
+    login(test_client, "ma@mail.ch")
     round_data = start_round(test_client, "module-einwohnerdienste")
 
     assert round_data["attempt_number"] >= 1
@@ -74,7 +74,7 @@ def test_ac001_full_workflow_login_start_five_answers_status_logout():
 def test_ac002_employee_sees_only_own_department_modules():
     """AC-002: Module bleiben auf die eigene Abteilung beschränkt."""
     test_client = client()
-    login(test_client, "marek.dalenor@grenchen.example")
+    login(test_client, "ma@mail.ch")
 
     response = test_client.get("/api/modules")
 
@@ -179,7 +179,7 @@ def test_ac008_invalid_option_is_unprocessable_and_does_not_advance():
 def test_ac009_foreign_department_is_hidden():
     """AC-009: Ein fremdes Modul liefert ohne Inhaltsleck 404."""
     test_client = client()
-    login(test_client, "marek.dalenor@grenchen.example")
+    login(test_client, "ma@mail.ch")
 
     response = test_client.post(
         "/api/modules/module-soziale-dienste/rounds", headers=csrf(test_client)
@@ -255,7 +255,7 @@ def test_ac012_incomplete_active_module_is_rejected_without_five_active_cases():
 def test_ac013_scenario_management_endpoints_are_not_exposed():
     """AC-013: UC-001 bietet keine Änderungs- oder Lösch-API für Szenarien."""
     test_client = client()
-    login(test_client, "yara.merovan@grenchen.example")
+    login(test_client, "ds@mail.ch")
 
     assert test_client.patch("/api/scenarios/scenario-1").status_code == 404
     assert test_client.delete("/api/scenarios/scenario-1").status_code == 404
