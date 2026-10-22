@@ -54,6 +54,7 @@ def create_app():
             clock=SystemClock(),
             authenticate=authenticate,
             session_secret=session_secret,
+            app_version=os.environ.get("APP_VERSION") or "dev",
         )
     )
     application.state.engine = engine

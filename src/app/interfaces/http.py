@@ -44,6 +44,7 @@ class Services:
     clock: ClockPort
     authenticate: Callable[[Any, str, str], Actor | None]
     session_secret: str
+    app_version: str = "dev"
 
 
 class HTTPExceptionResponse(Exception):
@@ -137,8 +138,8 @@ def _check_csrf(request: Request) -> None:
 
 
 @router.get("/health")
-def health():
-    return {"status": "ok"}
+def health(request: Request):
+    return {"status": "ok", "version": _services(request).app_version}
 
 
 @router.get("/login")
