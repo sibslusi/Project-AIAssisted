@@ -32,8 +32,8 @@ Abteilungsleitung, Mitarbeitende, Anwendung
 3. Die Anwendung prüft die Eingaben und speichert eine `Assignment`.
 4. Die zugewiesenen Mitarbeitenden sehen das Modul und ihren persönlichen
    Schulungsstatus.
-5. Die Anwendung berechnet den Status anhand des besten abgeschlossenen
-  Versuchs und der Frist: `offen`, `erledigt`, `verspätet erledigt` oder
+5. Die Anwendung berechnet den Status anhand des ersten bestandenen Versuchs
+  und der Frist (Punktzahl: bester Versuch): `offen`, `erledigt`, `verspätet erledigt` oder
   `Frist überschritten`.
 6. Die Datenschutzverantwortliche sieht den Status und aggregierte Ergebnisse
    aller Abteilungen.
