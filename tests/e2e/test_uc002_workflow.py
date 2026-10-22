@@ -353,9 +353,11 @@ def test_ac013_officer_exports_csv():
         "abgeschlossen",
         "5",
         "ja",
-        "2026-10-21T14:05:00+02:00",
+        "21.10.2026 14:05",
     ]
     assert len(marek[8].split("|")) == 5
+    assert "scenario-" not in marek[8]
+    assert "Am Schalter beantragt eine Person" in marek[8]
     assert rows["Elina Norveth"][5:7] == ["3", "nein"]
 
 
@@ -411,8 +413,8 @@ def test_equal_score_attempts_use_earlier_completion_and_csv_lists_both():
     csv = client.get(
         f"/api/assignments/{assignment['id']}/training-evidence.csv"
     ).content.decode("utf-8-sig")
-    assert "2026-10-21T14:05:00+02:00" in csv
-    assert "2026-10-21T15:05:00+02:00" in csv
+    assert "21.10.2026 14:05" in csv
+    assert "21.10.2026 15:05" in csv
 
 
 def test_error_contracts_for_all_uc002_endpoints():

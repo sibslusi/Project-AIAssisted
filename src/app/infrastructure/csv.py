@@ -35,10 +35,10 @@ class TrainingEvidenceCsvAdapter:
                     "" if row.passed is None else ("ja" if row.passed else "nein"),
                     ""
                     if row.completed_at is None
-                    else row.completed_at.astimezone(zurich).isoformat(
-                        timespec="seconds"
+                    else row.completed_at.astimezone(zurich).strftime(
+                        "%d.%m.%Y %H:%M"
                     ),
-                    "|".join(row.scenario_ids),
+                    "|".join(row.scenario_titles or row.scenario_ids),
                 )
             )
         return "\ufeff" + output.getvalue()
