@@ -2,7 +2,7 @@
 {% block title %}{{ title }} | Datenschutzfälle{% endblock %}
 {% block content %}
 <div class="page-heading">
-  <p class="eyebrow">{{ active_nav|default('')|replace('-', ' ') }}</p>
+  <p class="eyebrow">{{ role_label }}</p>
   <h1>{{ title }}</h1>
 </div>
 {% block page_content %}{% endblock %}

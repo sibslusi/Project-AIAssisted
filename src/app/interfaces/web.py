@@ -61,7 +61,7 @@ def _render(request: Request, template: str, **values: Any) -> HTMLResponse:
         active_nav = "modules"
     elif path.startswith("/abteilungsleitung"):
         active_nav = "department"
-    elif path == "/datenschutz/zuweisungen":
+    elif path.startswith("/datenschutz/zuweisungen"):
         active_nav = "assignments"
     elif path.startswith("/datenschutz"):
         active_nav = "evaluation"
@@ -71,7 +71,15 @@ def _render(request: Request, template: str, **values: Any) -> HTMLResponse:
         request=request,
         name=template,
         context=_context(
-            request, csrf_token=csrf_token, active_nav=active_nav, **values
+            request,
+            csrf_token=csrf_token,
+            active_nav=active_nav,
+            role_label={
+                "employee": "Mitarbeitende",
+                "department_lead": "Abteilungsleitung",
+                "data_protection_officer": "Datenschutzverantwortliche",
+            }.get(_actor(request).role.value if _actor(request) else ""),
+            **values,
         ),
     )
     if request.cookies.get("csrf_token") is None:

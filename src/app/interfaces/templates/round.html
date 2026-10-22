@@ -1,7 +1,8 @@
 {% extends "page.html" %}
 {% block page_content %}
+<div class="round-layout">
 {% if feedback %}
-<section class="summary feedback">
+<section class="summary feedback {% if feedback.correct %}feedback-correct{% else %}feedback-wrong{% endif %}">
   <h2>{% if feedback.correct %}Richtig{% else %}Falsch{% endif %}</h2>
   <p><strong>Erklärung:</strong> {{ feedback.explanation }}</p>
   <p><strong>Rechtsgrundlage:</strong> {{ feedback.legal_basis }}</p>
@@ -9,14 +10,15 @@
 {% endif %}
 {% if scenario %}
 <form class="form-panel" action="/mitarbeitende/runden/{{ game_round.id }}/antworten" method="post">
-  <p class="eyebrow">Fall {{ position }} von {{ total }} · Versuch {{ game_round.attempt_number }}</p>
+  <div class="progress-copy"><p class="eyebrow">Fall {{ position }} von {{ total }}</p><span>Versuch {{ game_round.attempt_number }}</span></div>
+  <div class="progress-track"><span style="width: {{ (position / total * 100)|round }}%"></span></div>
   <p>{{ scenario.situation }}</p>
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
   <input type="hidden" name="round_id" value="{{ game_round.id }}">
   <input type="hidden" name="position" value="{{ position }}">
   <input type="hidden" name="scenario_id" value="{{ scenario.id }}">
   {% for option in scenario.options %}
-  <label><input type="radio" name="option_id" value="{{ option.id }}" required> {{ option.text }}</label>
+  <label class="option-tile"><input type="radio" name="option_id" value="{{ option.id }}" required> <span>{{ option.text }}</span></label>
   {% endfor %}
   <button type="submit">Antwort bestätigen</button>
 </form>
@@ -29,4 +31,5 @@
   <a href="/mitarbeitende/module">Zurück zu meinen Modulen</a>
 </section>
 {% endif %}
+</div>
 {% endblock %}

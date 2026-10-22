@@ -10,7 +10,7 @@
   <header class="site-header">
     <div class="header-inner">
       <a class="brand" href="/">
-        <span class="brand-mark">D</span>
+        <span class="brand-mark" aria-hidden="true"></span>
         <span>Datenschutzfälle<small>Schulungsplattform</small></span>
       </a>
       {% if actor %}
@@ -28,12 +28,13 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <button class="logout-button" type="submit">Abmelden</button>
       </form>
+      <span class="identity">{{ role_label }} · {% if names is defined and names.departments is defined %}{{ names.departments.get(actor.department_id, actor.department_id) }}{% else %}{{ actor.department_id }}{% endif %}</span>
       {% endif %}
     </div>
   </header>
   <main>
     {% block content %}{% endblock %}
   </main>
-  <footer>Schulungsplattform mit fiktiven Daten. Keine Rechtsberatung.</footer>
+  <footer><span>Schulungsplattform mit fiktiven Daten. Keine Rechtsberatung.</span><span>Fiktive Demo-Daten · Kanton Solothurn, InfoDG</span></footer>
 </body>
 </html>

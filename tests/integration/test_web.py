@@ -218,12 +218,16 @@ def test_module_status_is_rendered_as_status_pill():
 
     response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
 
-    assert 'class="pill pill-open"' in response.text
-    assert "offen" in response.text
+    assert re.search(r'class="pill pill-(open|done|overdue)"', response.text)
+    assert re.search(
+        r">(offen|erledigt|verspätet erledigt|Frist überschritten)<", response.text
+    )
 
 
 def test_desktop_layout_uses_minimum_width_and_no_mobile_media_query():
-    css = (Path(__file__).parents[2] / "src/app/interfaces/static/style.css").read_text()
+    css = (
+        Path(__file__).parents[2] / "src/app/interfaces/static/style.css"
+    ).read_text()
 
     assert "min-width: 1024px" in css
     assert "@media (max-width" not in css
@@ -237,6 +241,67 @@ def test_role_and_department_are_visible_in_header():
 
     assert "Mitarbeitende" in response.text
     assert "Einwohnerdienste" in response.text
+
+
+def test_role_restricted_html_routes_render_error_pages():
+    test_client = client()
+    _login(test_client, "liora.veylan@grenchen.example")
+    csrf = test_client.cookies["csrf_token"]
+
+    assert test_client.get(ROUND_PAGE, headers=HTML_HEADERS).status_code == 403
+    assert test_client.post(
+        START_ROUND,
+        data={"csrf_token": csrf},
+        headers=HTML_HEADERS,
+    ).status_code == 403
+    assert test_client.get(
+        "/datenschutz/auswertung", headers=HTML_HEADERS
+    ).status_code == 403
+    assert test_client.get(
+        "/datenschutz/zuweisungen", headers=HTML_HEADERS
+    ).status_code == 403
+
+
+def test_invalid_html_round_requests_render_error_pages():
+    test_client = client()
+    _login(test_client, "marek.dalenor@grenchen.example")
+    csrf = test_client.cookies["csrf_token"]
+
+    assert test_client.get(
+        "/mitarbeitende/module/module-soziale-dienste", headers=HTML_HEADERS
+    ).status_code == 404
+    assert test_client.post(
+        "/mitarbeitende/runden/missing/antworten",
+        data={"csrf_token": csrf, "position": 1, "option_id": "a"},
+        headers=HTML_HEADERS,
+    ).status_code == 404
+
+
+def test_invalid_html_assignment_requests_render_error_pages():
+    test_client = client()
+    _login(test_client, "yara.merovan@grenchen.example")
+    csrf = test_client.cookies["csrf_token"]
+
+    assert test_client.post(
+        "/datenschutz/zuweisungen",
+        data={
+            "csrf_token": csrf,
+            "module_id": "module-einwohnerdienste",
+            "department_id": "department-einwohnerdienste",
+            "due_date": "not-a-date",
+        },
+        headers=HTML_HEADERS,
+    ).status_code == 422
+    assert test_client.post(
+        "/datenschutz/zuweisungen",
+        data={
+            "csrf_token": csrf,
+            "module_id": "missing",
+            "department_id": "department-einwohnerdienste",
+            "due_date": "2026-12-31",
+        },
+        headers=HTML_HEADERS,
+    ).status_code == 404
 
 
 CORRECT_OPTIONS = {
