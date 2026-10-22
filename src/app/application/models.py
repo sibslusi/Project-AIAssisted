@@ -1,6 +1,8 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from enum import StrEnum
+
+from app.domain.models import Assignment
 
 
 class Role(StrEnum):
@@ -47,6 +49,19 @@ class EmployeeRecord:
 
 
 @dataclass(frozen=True)
+class EvidenceRow:
+    person: str
+    department: str
+    module: str
+    attempt_number: int
+    status: str
+    score: int | None
+    passed: bool | None
+    completed_at: datetime | None
+    scenario_ids: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class PersonalStatus:
     assignment_id: str
     module_id: str
@@ -88,8 +103,24 @@ class OverallEvaluation:
 @dataclass(frozen=True)
 class ModuleRecord:
     id: str
+    name: str = ""
 
 
 @dataclass(frozen=True)
 class DepartmentRecord:
     id: str
+    name: str = ""
+
+
+@dataclass(frozen=True)
+class AssignmentOverview:
+    assignments: tuple[Assignment, ...]
+    modules: tuple[ModuleRecord, ...]
+    departments: tuple[DepartmentRecord, ...]
+
+
+@dataclass(frozen=True)
+class DisplayNames:
+    employees: dict[str, str]
+    modules: dict[str, str]
+    departments: dict[str, str]

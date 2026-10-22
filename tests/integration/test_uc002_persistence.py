@@ -5,7 +5,8 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from app.domain.models import Assignment, EvidenceRecord
+from app.application.models import EvidenceRow
+from app.domain.models import Assignment
 from app.infrastructure.csv import TrainingEvidenceCsvAdapter
 from app.infrastructure.db import Base
 from app.infrastructure.repositories import (
@@ -47,6 +48,22 @@ def test_assignment_repository_supports_save_and_employee_lookup():
         }
 
 
+def test_master_data_repositories_provide_display_names():
+    engine = database()
+    with Session(engine) as session:
+        load_seed_data(session, SEED_DIR)
+        department = SqlAlchemyDepartmentRepository(session).get(
+            "department-einwohnerdienste"
+        )
+        modules = SqlAlchemyModuleRepository(session).all()
+
+        assert department.name == "Einwohnerdienste"
+        assert len(modules) == 3
+        assert {module.id: module.name for module in modules}[
+            "module-einwohnerdienste"
+        ] == "Datenschutz in den Einwohnerdiensten"
+
+
 def test_master_data_repositories_load_seed_entities():
     engine = database()
     with Session(engine) as session:
@@ -68,16 +85,37 @@ def test_master_data_repositories_load_seed_entities():
 def test_csv_adapter_uses_requested_evidence_format():
     csv = TrainingEvidenceCsvAdapter().render(
         (
-            EvidenceRecord(
-                employee_id="employee-1",
-                module_id="module-1",
+            EvidenceRow(
+                person="Marek Dalenor",
+                department="Einwohnerdienste",
+                module="Datenschutz am Schalter",
+                attempt_number=1,
+                status="abgeschlossen",
+                score=3,
+                passed=False,
                 completed_at=datetime(2026, 10, 21, 14, 5, tzinfo=ZURICH),
+                scenario_ids=("scenario-1", "scenario-2"),
+            ),
+            EvidenceRow(
+                person="Marek Dalenor",
+                department="Einwohnerdienste",
+                module="Datenschutz am Schalter",
+                attempt_number=2,
+                status="offen",
+                score=None,
+                passed=None,
+                completed_at=None,
+                scenario_ids=("scenario-3",),
             ),
         )
     )
 
     expected = (
-        "\ufeffPerson;Abteilung;Modul;Abgeschlossen am\r\n"
-        "employee-1;;module-1;2026-10-21T14:05:00+02:00\r\n"
+        "\ufeffPerson;Abteilung;Modul;Versuch;Status;Punktzahl;Bestanden;"
+        "Abgeschlossen am;Szenarien\r\n"
+        "Marek Dalenor;Einwohnerdienste;Datenschutz am Schalter;1;abgeschlossen;"
+        "3;nein;2026-10-21T14:05:00+02:00;scenario-1|scenario-2\r\n"
+        "Marek Dalenor;Einwohnerdienste;Datenschutz am Schalter;2;offen;"
+        ";;;scenario-3\r\n"
     )
     assert csv == expected

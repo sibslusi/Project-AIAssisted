@@ -42,7 +42,10 @@ Abteilungsleitung, Mitarbeitende, Anwendung
 8. Teamwerte werden erst ab mindestens drei Personen mit abgeschlossenem
   Versuch angezeigt.
 9. Ausschliesslich die Datenschutzverantwortliche kann einen Schulungsnachweis
-  als CSV mit Person, Modul und Abschlusszeitpunkt exportieren.
+  als CSV exportieren. Die CSV enthält jeden Versuch der Zuweisung, auch nicht
+  bestandene und offene, mit Name der Person, Abteilung der Person, Modulname,
+  Versuchsnummer, Status, Punktzahl, Bestanden, Abschlusszeitpunkt und den
+  Szenario-IDs der Runde (Snapshot, Szenarien sind unveränderlich).
 
 ## Errors
 
@@ -148,7 +151,9 @@ Teilnehmende`.
 **Given** eine angemeldete Datenschutzverantwortliche und eine gültige
 Zuweisung  
 **When** sie den Schulungsnachweis exportiert  
-**Then** erhält sie eine CSV-Datei mit Person, Modul und Abschlusszeitpunkt.
+**Then** erhält sie eine CSV-Datei mit einer Zeile pro Versuch:
+`Person;Abteilung;Modul;Versuch;Status;Punktzahl;Bestanden;Abgeschlossen am;Szenarien`,
+sortiert nach Abteilung, Person und Versuch.
 
 ### AC-014: CSV-Export für Abteilungsleitung verweigern
 
@@ -209,7 +214,7 @@ Zugriffsregeln und validiert Eingaben vor dem Aufruf der Repository-Ports.
 | `GetDepartmentStatus` | Principal, angeforderte Abteilungs-ID, optional Zuweisungsfilter, Zeitpunkt | Status pro Person; keine Einzelpunkte oder Einzelfehler |
 | `CreateTeamAggregation` | Principal, Abteilungs-ID, optional Zuweisungsfilter | Aggregat aus Punkte- und Fehlerwerten oder `zu wenige Teilnehmende` |
 | `GetOverallEvaluation` | Principal, optional Filter, Zeitpunkt vom Clock-Port | Status und zulässige Auswertungen aller Abteilungen |
-| `ExportTrainingEvidence` | Principal, Zuweisungs-ID | CSV-Inhalt mit Person, Modul und Abschlusszeitpunkt |
+| `ExportTrainingEvidence` | Principal, Zuweisungs-ID | eine `EvidenceRow` pro Versuch mit Person, Abteilung, Modul, Versuch, Status, Punktzahl, Bestanden, Abschlusszeitpunkt, Szenario-IDs |
 
 `AssignModule` ist nur für Datenschutzverantwortliche erlaubt. Mitarbeitende
 erhalten ausschliesslich eigene Status- und Ergebnisdaten. Abteilungsleitungen
@@ -290,13 +295,16 @@ Testdateien oder Implementierung an.
 | AC-010 | Für drei verschiedene Personen der eigenen Abteilung abgeschlossene Versuche bereitstellen und die Teamaggregation abrufen; aggregierte Punkte und Fehler erscheinen, keine Einzelwerte oder identifizierbaren Versuchsdaten. |
 | AC-011 | Aggregation zunächst mit zwei, dann mit null abgeschlossenen Personen abrufen; jeweils `200` mit `zu wenige Teilnehmende` und ohne Punkte- oder Fehlerwerte. |
 | AC-012 | Als Datenschutzverantwortliche Gesamtauswertung abrufen; Status und zulässige Auswertung enthalten alle fiktiven Abteilungen und Zuweisungen. |
-| AC-013 | Als Datenschutzverantwortliche für eine gültige Zuweisung CSV exportieren; `200`, `text/csv`, mit Person, Modul und Abschlusszeitpunkt für abgeschlossene Nachweise. |
+| AC-013 | Als Datenschutzverantwortliche für eine gültige Zuweisung CSV exportieren; `200`, `text/csv`, eine Zeile pro Versuch mit Namen, Abteilung, Modul, Punktzahl, Bestanden, Abschlusszeitpunkt und Szenario-IDs, auch für nicht bestandene Versuche. |
 | AC-014 | Als Abteilungsleitung denselben CSV-Endpunkt aufrufen; `403`, ohne CSV-Inhalt. |
 | AC-015 | Dieselbe Zuweisung ohne bestandenen Versuch mit kontrolliertem Zeitpunkt vor, genau am Fristende (23:59:59) und ab dem Folgetag in `Europe/Zurich` abfragen; der Status wechselt von `offen` zu `Frist überschritten`, ohne direkte Systemzeitabhängigkeit. |
 
 Zusätzlicher E2E-Fall: Zwei bestandene Versuche mit gleicher Punktzahl und
-unterschiedlichen Abschlusszeitpunkten bereitstellen. Status und Nachweis
-verwenden den zuerst abgeschlossenen Versuch.
+unterschiedlichen Abschlusszeitpunkten bereitstellen. Der Status verwendet den
+zuerst abgeschlossenen Versuch, die CSV enthält beide Versuche.
+
+Zusätzlicher E2E-Fall: Zwei Personen derselben Zuweisung, eine schliesst mit
+5/5 ab. Die andere sieht im persönlichen Status `offen` und keine Punktzahl.
 
 Zusätzlich werden die Fehlerverträge durch E2E-Aufrufe geprüft: unangemeldete
 Zugriffe `401`, unzulässige Rollen und fremde Abteilungen `403`, ungültige

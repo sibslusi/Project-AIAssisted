@@ -3,8 +3,11 @@ from uuid import uuid4
 from app.application.models import (
     Actor,
     AssignedModule,
+    AssignmentOverview,
     DepartmentStatus,
+    DisplayNames,
     EmployeeRecord,
+    EvidenceRow,
     OverallEvaluation,
     PersonalStatus,
     PersonStatus,
@@ -22,7 +25,7 @@ from app.application.ports import (
     ModuleRepository,
     ScenarioRepository,
 )
-from app.domain.models import Assignment, EvidenceRecord, GameRound
+from app.domain.models import Assignment, GameRound
 from app.domain.rules import best_attempt, team_aggregation, training_status
 
 
@@ -70,6 +73,56 @@ class AssignModule:
         return self.assignments.save(assignment)
 
 
+class ListAssignments:
+    def __init__(
+        self,
+        assignments: AssignmentRepository,
+        modules: ModuleRepository,
+        departments: DepartmentRepository,
+    ):
+        self.assignments = assignments
+        self.modules = modules
+        self.departments = departments
+
+    def execute(self, actor: Actor) -> AssignmentOverview:
+        if actor.role is not Role.DATA_PROTECTION_OFFICER:
+            raise AccessDenied("Nur Datenschutzverantwortliche dürfen zuweisen")
+        return AssignmentOverview(
+            self.assignments.all(), self.modules.all(), self.departments.all()
+        )
+
+
+class GetDisplayNames:
+    def __init__(
+        self,
+        employees: EmployeeRepository,
+        modules: ModuleRepository,
+        departments: DepartmentRepository,
+    ):
+        self.employees = employees
+        self.modules = modules
+        self.departments = departments
+
+    def execute(self, actor: Actor) -> DisplayNames:
+        if actor.role is Role.DATA_PROTECTION_OFFICER:
+            employees = self.employees.all()
+            departments = self.departments.all()
+        else:
+            employees = self.employees.for_department(actor.department_id)
+            departments = tuple(
+                department
+                for department in self.departments.all()
+                if department.id == actor.department_id
+            )
+        if actor.role is Role.EMPLOYEE:
+            employees = tuple(item for item in employees if item.id == actor.id)
+        return DisplayNames(
+            {item.id: f"{item.first_name} {item.last_name}" for item in employees},
+            {item.id: item.name for item in self.modules.all()},
+            {item.id: item.name for item in departments},
+        )
+
+
 def _status_and_score(attempts, assignment, clock):
     completed = tuple(
         attempt for attempt in attempts if attempt.completed_at is not None
@@ -105,7 +158,13 @@ class GetPersonalStatus:
             for assignment in assignments
             for status, score in (
                 _status_and_score(
-                    self.rounds.for_assignment(assignment.id), assignment, self.clock
+                    tuple(
+                        attempt
+                        for attempt in self.rounds.for_assignment(assignment.id)
+                        if attempt.employee_id == actor.id
+                    ),
+                    assignment,
+                    self.clock,
                 ),
             )
         )
@@ -237,11 +296,21 @@ class GetOverallEvaluation:
 
 
 class ExportTrainingEvidence:
-    def __init__(self, assignments, rounds):
+    def __init__(
+        self,
+        assignments: AssignmentRepository,
+        rounds: GameRoundRepository,
+        employees: EmployeeRepository,
+        departments: DepartmentRepository,
+        modules: ModuleRepository,
+    ):
         self.assignments = assignments
         self.rounds = rounds
+        self.employees = employees
+        self.departments = departments
+        self.modules = modules
 
-    def execute(self, actor: Actor, assignment_id: str) -> tuple[EvidenceRecord, ...]:
+    def execute(self, actor: Actor, assignment_id: str) -> tuple[EvidenceRow, ...]:
         if actor.role is not Role.DATA_PROTECTION_OFFICER:
             raise AccessDenied(
                 "Nur Datenschutzverantwortliche dürfen Nachweise exportieren"
@@ -249,18 +318,40 @@ class ExportTrainingEvidence:
         assignment = self.assignments.get(assignment_id)
         if assignment is None:
             raise NotFound("Zuweisung nicht gefunden")
-        by_employee: dict[str, list[GameRound]] = {}
+        module = self.modules.get(assignment.module_id)
+        module_name = module.name if module and module.name else assignment.module_id
+        rows = []
         for attempt in self.rounds.for_assignment(assignment_id):
-            if attempt.completed_at is not None:
-                by_employee.setdefault(attempt.employee_id, []).append(attempt)
-        return tuple(
-            EvidenceRecord(
-                employee_id,
-                assignment.module_id,
-                best_attempt(tuple(attempts)).completed_at,
-                assignment.department_id,
+            person = self.employees.get(attempt.employee_id)
+            department_id = person.department_id if person else assignment.department_id
+            department = self.departments.get(department_id)
+            rows.append(
+                EvidenceRow(
+                    person=(
+                        f"{person.first_name} {person.last_name}"
+                        if person
+                        else attempt.employee_id
+                    ),
+                    department=(
+                        department.name if department and department.name
+                        else department_id
+                    ),
+                    module=module_name,
+                    attempt_number=attempt.attempt_number,
+                    status=(
+                        "offen" if attempt.completed_at is None else "abgeschlossen"
+                    ),
+                    score=attempt.score,
+                    passed=attempt.passed,
+                    completed_at=attempt.completed_at,
+                    scenario_ids=tuple(scenario.id for scenario in attempt.scenarios),
+                )
             )
-            for employee_id, attempts in by_employee.items()
+        return tuple(
+            sorted(
+                rows,
+                key=lambda row: (row.department, row.person, row.attempt_number),
+            )
         )
 
 
@@ -296,6 +387,28 @@ class ListAssignedModules:
         return tuple(
             AssignedModule(item.id, item.module_id, item.due_date)
             for item in assignments
+        )
+
+
+class GetOpenGameRound:
+    def __init__(self, assignments: AssignmentRepository, rounds: GameRoundRepository):
+        self.assignments = assignments
+        self.rounds = rounds
+
+    def execute(self, actor: Actor, module_id: str) -> RoundView | None:
+        if actor.role is not Role.EMPLOYEE:
+            raise AccessDenied("Nur Mitarbeitende dürfen Runden spielen")
+        candidates = _assignments_for_actor(self.assignments, actor, module_id)
+        if not candidates:
+            raise NotFound("Modul nicht gefunden")
+        return next(
+            (
+                _round_view(game_round)
+                for candidate in candidates
+                if (game_round := self.rounds.open_for(actor.id, candidate.id))
+                is not None
+            ),
+            None,
         )
 
 

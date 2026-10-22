@@ -24,14 +24,6 @@ class Assignment:
 
 
 @dataclass(frozen=True)
-class EvidenceRecord:
-    employee_id: str
-    module_id: str
-    completed_at: datetime
-    department_id: str | None = None
-
-
-@dataclass(frozen=True)
 class Scenario:
     id: str
     situation: str

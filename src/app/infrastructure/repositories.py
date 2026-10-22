@@ -137,11 +137,11 @@ class SqlAlchemyDepartmentRepository:
 
     def get(self, department_id: str) -> DepartmentRecord | None:
         row = self.session.get(DepartmentModel, department_id)
-        return None if row is None else DepartmentRecord(row.id)
+        return None if row is None else DepartmentRecord(row.id, row.name)
 
     def all(self) -> tuple[DepartmentRecord, ...]:
         return tuple(
-            DepartmentRecord(row.id)
+            DepartmentRecord(row.id, row.name)
             for row in self.session.scalars(select(DepartmentModel))
         )
 
@@ -152,7 +152,13 @@ class SqlAlchemyModuleRepository:
 
     def get(self, module_id: str) -> ModuleRecord | None:
         row = self.session.get(ModuleModel, module_id)
-        return None if row is None else ModuleRecord(row.id)
+        return None if row is None else ModuleRecord(row.id, row.name)
+
+    def all(self) -> tuple[ModuleRecord, ...]:
+        return tuple(
+            ModuleRecord(row.id, row.name)
+            for row in self.session.scalars(select(ModuleModel))
+        )
 
 
 class SqlAlchemyScenarioRepository:

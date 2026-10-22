@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
@@ -16,8 +17,10 @@ from app.application.use_cases import (
     CreateTeamAggregation,
     ExportTrainingEvidence,
     GetDepartmentStatus,
+    GetDisplayNames,
     GetOverallEvaluation,
     GetPersonalStatus,
+    ListAssignments,
 )
 from app.domain.models import AnswerOption, Assignment, GameRound, Scenario
 
@@ -80,8 +83,13 @@ class FakeDepartments:
 
 
 class FakeModules:
+    items = (ModuleRecord("module-a", "Modul A"),)
+
     def get(self, module_id):
-        return ModuleRecord(module_id) if module_id == "module-a" else None
+        return next((item for item in self.items if item.id == module_id), None)
+
+    def all(self):
+        return self.items
 
 
 class FakeRounds:
@@ -155,6 +163,21 @@ def test_personal_status_is_limited_to_own_assignments():
     assert status[0].score is None
 
 
+def test_personal_status_ignores_rounds_of_other_people():
+    assignments = FakeAssignments(
+        [Assignment("a", "module-a", "department-a", date(2026, 12, 31))]
+    )
+    other = completed_round(
+        "employee-2", 5, datetime(2026, 10, 21, 10, tzinfo=ZURICH)
+    )
+    status = GetPersonalStatus(
+        assignments, FakeRounds((other,)), FakeClock()
+    ).execute(employee())
+
+    assert status[0].status == "offen"
+    assert status[0].score is None
+
+
 def test_department_status_has_person_status_without_individual_scores():
     assignments = FakeAssignments(
         [Assignment("a", "module-a", "department-a", date(2026, 12, 31))]
@@ -194,19 +217,73 @@ def test_data_protection_officer_gets_overall_evaluation():
     ]
 
 
-def test_evidence_export_contains_person_module_and_completion_only():
+class EvidenceEmployees(FakeEmployees):
+    items = (
+        EmployeeRecord("employee-1", "department-a", "Zora", "Alt"),
+        EmployeeRecord("employee-2", "department-a", "Anna", "Berg"),
+    )
+
+
+class EvidenceDepartments(FakeDepartments):
+    items = (DepartmentRecord("department-a", "Einwohnerdienste"),)
+
+
+def test_evidence_export_lists_every_attempt_with_names_and_scenarios():
     assignments = FakeAssignments(
         [Assignment("a", "module-a", "department-a", date(2026, 12, 31))]
     )
-    completed = completed_round(
+    passed = completed_round(
         "employee-1", 5, datetime(2026, 10, 21, 14, 5, tzinfo=ZURICH)
     )
-    result = ExportTrainingEvidence(assignments, FakeRounds((completed,))).execute(
-        employee(Role.DATA_PROTECTION_OFFICER), "a"
+    failed = completed_round(
+        "employee-2", 3, datetime(2026, 10, 21, 9, tzinfo=ZURICH)
+    )
+    open_round = replace(
+        completed_round("employee-1", 5, datetime(2026, 10, 21, 15, tzinfo=ZURICH)),
+        id="round-open",
+        attempt_number=2,
+        answers={},
+        completed_at=None,
+        score=None,
+        passed=None,
     )
 
-    assert result[0].module_id == "module-a"
-    assert not hasattr(result[0], "score")
+    result = ExportTrainingEvidence(
+        assignments,
+        FakeRounds((open_round, passed, failed)),
+        EvidenceEmployees(),
+        EvidenceDepartments(),
+        FakeModules(),
+    ).execute(employee(Role.DATA_PROTECTION_OFFICER), "a")
+
+    assert [(row.person, row.attempt_number, row.status) for row in result] == [
+        ("Anna Berg", 1, "abgeschlossen"),
+        ("Zora Alt", 1, "abgeschlossen"),
+        ("Zora Alt", 2, "offen"),
+    ]
+    assert result[0].department == "Einwohnerdienste"
+    assert result[0].module == "Modul A"
+    assert (result[0].score, result[0].passed) == (3, False)
+    assert (result[2].score, result[2].passed, result[2].completed_at) == (
+        None,
+        None,
+        None,
+    )
+    assert result[1].scenario_ids == tuple(f"scenario-{n}" for n in range(1, 6))
+
+
+def test_evidence_export_is_only_for_data_protection_officer():
+    use_case = ExportTrainingEvidence(
+        FakeAssignments(
+            [Assignment("a", "module-a", "department-a", date(2026, 12, 31))]
+        ),
+        FakeRounds(),
+        EvidenceEmployees(),
+        EvidenceDepartments(),
+        FakeModules(),
+    )
+    with pytest.raises(AccessDenied):
+        use_case.execute(employee(Role.DEPARTMENT_LEAD), "a")
 
 
 def test_personal_status_returns_each_assignment():
@@ -255,3 +332,54 @@ def test_team_aggregation_is_separate_for_each_assignment():
         employee(Role.DEPARTMENT_LEAD), "department-a"
     )
     assert {item.assignment_id for item in result} == {"a", "b"}
+
+
+def test_list_assignments_is_only_for_data_protection_officer():
+    assignments = FakeAssignments(
+        [Assignment("a", "module-a", "department-a", date(2026, 12, 31))]
+    )
+    use_case = ListAssignments(assignments, FakeModules(), FakeDepartments())
+
+    result = use_case.execute(employee(Role.DATA_PROTECTION_OFFICER))
+
+    assert [item.id for item in result.assignments] == ["a"]
+    assert [item.id for item in result.modules] == ["module-a"]
+    assert [item.id for item in result.departments] == ["department-a", "department-b"]
+    for role in (Role.EMPLOYEE, Role.DEPARTMENT_LEAD):
+        with pytest.raises(AccessDenied):
+            use_case.execute(employee(role))
+
+
+class NamedEmployees(FakeEmployees):
+    items = (
+        EmployeeRecord("employee-1", "department-a", "Ada", "Muster"),
+        EmployeeRecord("employee-9", "department-b", "Bea", "Beispiel"),
+    )
+
+
+class NamedDepartments(FakeDepartments):
+    items = (
+        DepartmentRecord("department-a", "Abteilung A"),
+        DepartmentRecord("department-b", "Abteilung B"),
+    )
+
+
+def test_display_names_follow_role_visibility():
+    use_case = GetDisplayNames(NamedEmployees(), FakeModules(), NamedDepartments())
+
+    lead = use_case.execute(employee(Role.DEPARTMENT_LEAD))
+    officer = use_case.execute(employee(Role.DATA_PROTECTION_OFFICER))
+    own = use_case.execute(employee(Role.EMPLOYEE))
+
+    assert lead.employees == {"employee-1": "Ada Muster"}
+    assert lead.departments == {"department-a": "Abteilung A"}
+    assert officer.employees == {
+        "employee-1": "Ada Muster",
+        "employee-9": "Bea Beispiel",
+    }
+    assert officer.departments == {
+        "department-a": "Abteilung A",
+        "department-b": "Abteilung B",
+    }
+    assert own.employees == {"employee-1": "Ada Muster"}
+    assert own.modules == {"module-a": "Modul A"}

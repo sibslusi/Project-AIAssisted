@@ -3,11 +3,13 @@ from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass
 from json import JSONDecodeError
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, FastAPI, Form, Request, Response
 from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
 from itsdangerous import BadSignature, URLSafeTimedSerializer
 
 from app.application.models import Actor, Role
@@ -51,7 +53,13 @@ class HTTPExceptionResponse(Exception):
 
 
 router = APIRouter()
+error_templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 SESSION_MAX_AGE = 8 * 60 * 60
+START_PAGES = {
+    Role.EMPLOYEE: "/mitarbeitende/module",
+    Role.DEPARTMENT_LEAD: "/abteilungsleitung/auswertung",
+    Role.DATA_PROTECTION_OFFICER: "/datenschutz/auswertung",
+}
 
 
 def _services(request: Request) -> Services:
@@ -77,6 +85,28 @@ def _csrf(response: Response) -> str:
         "csrf_token", token, httponly=False, secure=True, samesite="lax"
     )
     return token
+
+
+def _set_session_cookies(response: Response, actor: Actor, secret: str) -> None:
+    session = URLSafeTimedSerializer(secret, salt="session").dumps(
+        {"id": actor.id, "role": actor.role, "department_id": actor.department_id}
+    )
+    response.set_cookie(
+        "session",
+        session,
+        max_age=SESSION_MAX_AGE,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+    )
+    response.set_cookie(
+        "csrf_token", secrets.token_urlsafe(24), secure=True, samesite="lax"
+    )
+
+
+def _delete_session_cookies(response: Response) -> None:
+    response.delete_cookie("session", secure=True, httponly=True, samesite="lax")
+    response.delete_cookie("csrf_token", secure=True, samesite="lax")
 
 
 def _actor(request: Request) -> Actor | None:
@@ -111,6 +141,8 @@ def health():
 
 @router.get("/login")
 def login_form(response: Response):
+    if "text/html" in response.headers.get("accept", ""):
+        return {"csrf_token": _csrf(response)}
     return {"csrf_token": _csrf(response)}
 
 
@@ -120,35 +152,38 @@ def login(
     response: Response,
     email: str = Form(),
     password: str = Form(),
-    csrf_token: str = Form(),
+    csrf_token: str | None = Form(default=None),
 ):
-    if csrf_token != request.cookies.get("csrf_token"):
+    if csrf_token is None or csrf_token != request.cookies.get("csrf_token"):
         raise HTTPExceptionResponse(403, "Ungültiger CSRF-Token")
     with _session(request) as session:
         actor = _services(request).authenticate(session, email, password)
     if actor is None:
         raise HTTPExceptionResponse(401, "Ungültige Anmeldung")
-    value = URLSafeTimedSerializer(
-        _services(request).session_secret, salt="session"
-    ).dumps({"id": actor.id, "role": actor.role, "department_id": actor.department_id})
-    response.set_cookie(
-        "session",
-        value,
-        max_age=SESSION_MAX_AGE,
-        httponly=True,
-        secure=True,
-        samesite="lax",
-    )
-    response.set_cookie(
-        "csrf_token", secrets.token_urlsafe(24), secure=True, samesite="lax"
-    )
+    if "text/html" in request.headers.get("accept", ""):
+        redirect = RedirectResponse(START_PAGES[actor.role], status_code=303)
+        _set_session_cookies(redirect, actor, _services(request).session_secret)
+        return redirect
+    _set_session_cookies(response, actor, _services(request).session_secret)
     return {"status": "ok"}
 
 
 @router.post("/logout")
-def logout(request: Request, response: Response):
-    _check_csrf(request)
-    response.delete_cookie("session")
+def logout(
+    request: Request,
+    response: Response,
+    csrf_token: str | None = Form(default=None),
+):
+    if csrf_token is not None:
+        if csrf_token != request.cookies.get("csrf_token"):
+            raise HTTPExceptionResponse(403, "Ungültiger CSRF-Token")
+    else:
+        _check_csrf(request)
+    if "text/html" in request.headers.get("accept", ""):
+        redirect = RedirectResponse("/", status_code=303)
+        _delete_session_cookies(redirect)
+        return redirect
+    _delete_session_cookies(response)
     return {"status": "ok"}
 
 
@@ -358,16 +393,19 @@ def training_evidence(request: Request, assignment_id: str):
     with _session(request) as session:
         services = _services(request)
         try:
-            records = ExportTrainingEvidence(
+            rows = ExportTrainingEvidence(
                 services.assignment_repository(session),
                 services.game_round_repository(session),
+                services.employee_repository(session),
+                services.department_repository(session),
+                services.module_repository(session),
             ).execute(actor, assignment_id)
         except AccessDenied as error:
             raise HTTPExceptionResponse(403, str(error)) from error
         except NotFound as error:
             raise HTTPExceptionResponse(404, str(error)) from error
         return Response(
-            content=services.csv_adapter.render(records),
+            content=services.csv_adapter.render(rows),
             media_type="text/csv",
             headers={
                 "Content-Disposition": (
@@ -384,6 +422,22 @@ def create_app(services: Services) -> FastAPI:
 
     @application.exception_handler(HTTPExceptionResponse)
     async def handle_http_error(request: Request, exc: HTTPExceptionResponse):
+        if "text/html" in request.headers.get("accept", ""):
+            template = "error.html"
+            message = {
+                403: "Zugriff verweigert",
+                404: "Modul nicht gefunden",
+            }.get(exc.status_code, exc.detail)
+            return HTMLResponse(
+                content=error_templates.get_template(template).render(
+                    request=request,
+                    actor=_actor(request),
+                    csrf_token=request.cookies.get("csrf_token"),
+                    status_code=exc.status_code,
+                    message=message,
+                ),
+                status_code=exc.status_code,
+            )
         return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
 
     return application

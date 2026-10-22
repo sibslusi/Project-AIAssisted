@@ -1,8 +1,13 @@
 from datetime import date, datetime
 from typing import Protocol
 
-from app.application.models import DepartmentRecord, EmployeeRecord, ModuleRecord
-from app.domain.models import Assignment, EvidenceRecord, GameRound, Scenario
+from app.application.models import (
+    DepartmentRecord,
+    EmployeeRecord,
+    EvidenceRow,
+    ModuleRecord,
+)
+from app.domain.models import Assignment, GameRound, Scenario
 
 
 class AssignmentRepository(Protocol):
@@ -34,9 +39,11 @@ class DepartmentRepository(Protocol):
 class ModuleRepository(Protocol):
     def get(self, module_id: str) -> ModuleRecord | None: ...
 
+    def all(self) -> tuple[ModuleRecord, ...]: ...
+
 
 class TrainingEvidenceCsvPort(Protocol):
-    def render(self, records: tuple[EvidenceRecord, ...]) -> str: ...
+    def render(self, rows: tuple[EvidenceRow, ...]) -> str: ...
 
 
 class ScenarioRepository(Protocol):

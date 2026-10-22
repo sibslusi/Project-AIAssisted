@@ -1,0 +1,32 @@
+{% extends "page.html" %}
+{% block page_content %}
+{% if feedback %}
+<section class="summary feedback">
+  <h2>{% if feedback.correct %}Richtig{% else %}Falsch{% endif %}</h2>
+  <p><strong>Erklärung:</strong> {{ feedback.explanation }}</p>
+  <p><strong>Rechtsgrundlage:</strong> {{ feedback.legal_basis }}</p>
+</section>
+{% endif %}
+{% if scenario %}
+<form class="form-panel" action="/mitarbeitende/runden/{{ game_round.id }}/antworten" method="post">
+  <p class="eyebrow">Fall {{ position }} von {{ total }} · Versuch {{ game_round.attempt_number }}</p>
+  <p>{{ scenario.situation }}</p>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <input type="hidden" name="round_id" value="{{ game_round.id }}">
+  <input type="hidden" name="position" value="{{ position }}">
+  <input type="hidden" name="scenario_id" value="{{ scenario.id }}">
+  {% for option in scenario.options %}
+  <label><input type="radio" name="option_id" value="{{ option.id }}" required> {{ option.text }}</label>
+  {% endfor %}
+  <button type="submit">Antwort bestätigen</button>
+</form>
+{% else %}
+<section class="summary">
+  <h2>Runde abgeschlossen</h2>
+  <p>Punktzahl: {{ game_round.score }}/{{ total }}</p>
+  <p>Ergebnis: {% if game_round.passed %}bestanden{% else %}nicht bestanden{% endif %}</p>
+  {% if game_round.passed %}<p class="badge">Abzeichen Datenschutz erhalten</p>{% endif %}
+  <a href="/mitarbeitende/module">Zurück zu meinen Modulen</a>
+</section>
+{% endif %}
+{% endblock %}

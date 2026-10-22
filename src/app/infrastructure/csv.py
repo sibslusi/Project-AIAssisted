@@ -2,24 +2,43 @@ import csv
 from io import StringIO
 from zoneinfo import ZoneInfo
 
-from app.domain.models import EvidenceRecord
+from app.application.models import EvidenceRow
+
+HEADER = (
+    "Person",
+    "Abteilung",
+    "Modul",
+    "Versuch",
+    "Status",
+    "Punktzahl",
+    "Bestanden",
+    "Abgeschlossen am",
+    "Szenarien",
+)
 
 
 class TrainingEvidenceCsvAdapter:
-    def render(self, records: tuple[EvidenceRecord, ...]) -> str:
+    def render(self, rows: tuple[EvidenceRow, ...]) -> str:
         output = StringIO(newline="")
         writer = csv.writer(output, delimiter=";", lineterminator="\r\n")
-        writer.writerow(("Person", "Abteilung", "Modul", "Abgeschlossen am"))
+        writer.writerow(HEADER)
         zurich = ZoneInfo("Europe/Zurich")
-        for record in records:
+        for row in rows:
             writer.writerow(
                 (
-                    record.employee_id,
-                    record.department_id or "",
-                    record.module_id,
-                    record.completed_at.astimezone(zurich).isoformat(
+                    row.person,
+                    row.department,
+                    row.module,
+                    row.attempt_number,
+                    row.status,
+                    "" if row.score is None else row.score,
+                    "" if row.passed is None else ("ja" if row.passed else "nein"),
+                    ""
+                    if row.completed_at is None
+                    else row.completed_at.astimezone(zurich).isoformat(
                         timespec="seconds"
                     ),
+                    "|".join(row.scenario_ids),
                 )
             )
         return "\ufeff" + output.getvalue()
