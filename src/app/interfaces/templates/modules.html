@@ -6,7 +6,7 @@
 <ul class="module-list">
 {% for module, status, has_open_round in modules %}
   <li>
-    <div class="module-card-heading"><strong>{{ names.modules.get(module.module_id, module.module_id) }}</strong>{% if status %}{{ status_pill(status.status) }}{% endif %}</div>
+    <div class="module-card-heading"><strong>{{ names.modules.get(module.module_id, module.module_id) }}</strong></div>
     <span>Frist: {{ module.due_date }}</span>
     {% if status %}
     <span class="status-detail">Status: {{ status_pill(status.status) }}</span>
