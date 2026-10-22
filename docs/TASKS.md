@@ -9,6 +9,25 @@ STATUS: in-progress
 
 HTML-Oberfläche UC-001/UC-002
 
+### Fast Track: Code-Review vom 21.10.
+
+- **Umfang:** Fehler F1–F3 und Spec-Abweichung S1 aus dem Code-Review vom
+  21.10. beheben, ungenutzten Code entfernen. Keine neue Funktion, keine
+  API- oder Datenänderung.
+- **Grund:** CSRF-Prüfung liess Anfragen ohne Cookie und Header durch
+  (`None == None`), entgegen ADR-002; `alembic/env.py` sah die Modelle nicht
+  (autogenerate hätte alle Tabellen gelöscht); der Seed setzte deaktivierte
+  Szenarien und geänderte Fristen zurück, entgegen ADR-003; der Friststatus
+  nahm den besten statt den ersten bestandenen Versuch, entgegen UC-002 AC-006.
+- **Akzeptanz:** POST ohne CSRF-Cookie und -Header ergibt 403; `alembic check`
+  meldet nach `upgrade head` keine Änderungen; ein erneuter Seed lässt
+  deaktivierte Szenarien und geänderte Fristen unverändert; rechtzeitig
+  bestanden und später verbessert bleibt `erledigt`.
+- **Regressionstests:** `tests/integration/test_http.py`,
+  `tests/integration/test_migrations.py`,
+  `tests/integration/test_persistence.py`,
+  `tests/unit/domain/test_scenario_and_round.py`.
+
 ### Fast Track: Rundenstart per POST
 
 - **Umfang:** Modulliste zeigt „Runde fortsetzen“ oder „Neue Runde starten“;
