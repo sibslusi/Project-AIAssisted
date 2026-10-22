@@ -25,12 +25,26 @@ Phase 4 Validate und Vorbereitung Phase 5 Deploy (CI/CD für UC-001/UC-002)
   Fremdschlüssel `module_scenarios.scenario_id` (SQLite prüfte ihn nicht);
   `alembic check` meldete auf PostgreSQL eine Scheinänderung beim
   Unique-Constraint, der dem Primärschlüssel entspricht.
+- **Release-Nachweis:** Tag `v0.1.0` auf `main` (921788e), Release-Lauf
+  grün am 22.10.: Tests mit Coverage, 35 E2E-Tests im gebauten Image gegen
+  PostgreSQL, Smoke-Test gegen den Container (`/health` mit Version
+  `v0.1.0`, Login `ma@mail.ch`), Image
+  `ghcr.io/sibslusi/project-aiassisted:v0.1.0` in GHCR, GitHub-Release
+  `v0.1.0`. Der Deploy-Job wurde wie vorgesehen übersprungen
+  (`CD_ENABLED` noch nicht gesetzt). CI auf `main` grün, alle drei Jobs
+  unter einer Minute.
 - **Ausgelassen, mit Grund:**
-  - `release.yml` und `cd.yml` laufen erst mit einem Tag bzw. nach dem
-    Einrichten von Render und Neon (Teil B, von Hand); Prüfung bisher per
-    Durchsicht, YAML-Parse und lokalem Nachstellen der Schritte.
+  - Playwright-Browsertests: nicht umgesetzt. Die Oberfläche ist über
+    TestClient-Tests (`tests/integration/test_web.py`,
+    `tests/e2e/test_web_workflow.py`) und manuelle Prüfung abgedeckt;
+    Playwright wäre ein zusätzliches Paket und laut Checkliste nur Bonus.
+  - `cd.yml` mit echtem Deploy: erst nach dem Einrichten von Render, Neon
+    und dem Environment `production` (Phase 5).
   - Echter Render-Deploy und Smoke-Test gegen die Live-URL: Phase 5.
-  - Workflows haben keine pytest-Tests; Beleg ist der grüne CI-Lauf im PR.
+  - Workflows haben keine pytest-Tests; Beleg sind die grünen Läufe von CI
+    und Release.
+  - Branch-Schutz auf `main` (empfohlen, nicht verlangt): noch nicht aktiv,
+    muss in den GitHub-Einstellungen gesetzt werden.
 
 ### Fast Track: Code-Review vom 21.10.
 
