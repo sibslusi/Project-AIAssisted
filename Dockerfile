@@ -1,6 +1,7 @@
 FROM python:3.12-slim
 
 ARG APP_VERSION=dev
+LABEL org.opencontainers.image.source="https://github.com/sibslusi/Project-AIAssisted"
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app/src \

@@ -24,7 +24,9 @@ docker compose up --build
 ```
 
 Die Anwendung ist danach unter `http://localhost:8000` erreichbar, PostgreSQL
-läuft im Compose-Netzwerk unter dem Hostnamen `db`. Zum Beenden:
+läuft im Compose-Netzwerk unter dem Hostnamen `db`. Beim Start werden die
+Migrationen ausgeführt und die fiktiven Seed-Daten geladen (`RUN_SEED=true`),
+die Demo-Konten unten funktionieren also direkt. Zum Beenden:
 
 ```bash
 docker compose down

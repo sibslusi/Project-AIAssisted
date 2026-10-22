@@ -82,6 +82,18 @@ jobs:
             --tag "$IMAGE_NAME:sha-${GITHUB_SHA::7}" \
             .
 
+      - name: Run E2E tests in the built image against Postgres
+        run: |
+          docker run --rm --network host \
+            -v "$PWD/tests:/app/tests:ro" \
+            -v "$PWD/pyproject.toml:/app/pyproject.toml:ro" \
+            -e DATABASE_URL=postgresql+psycopg://release:release-only-password@localhost:5432/release \
+            -e SESSION_SECRET=e2e-only-secret \
+            -e DEMO_PASSWORD=demo-password \
+            --entrypoint sh \
+            "$IMAGE_NAME:${{ github.ref_name }}" \
+            -c "alembic upgrade head && python -m pytest -p no:cacheprovider -q tests/e2e"
+
       - name: Start container against Postgres
         shell: bash
         run: |
