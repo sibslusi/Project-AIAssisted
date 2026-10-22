@@ -325,19 +325,36 @@ are implemented.
 
 ## CI/CD and deployment
 
-The application is built as a Docker container and deployed on Render. The
-PostgreSQL database runs on Neon. Render auto-deploy is disabled; deployments
-are started explicitly through a Render Deploy Hook.
+The application is built as a Docker image and runs on Render as an
+image-backed web service. The PostgreSQL database runs on Neon. Render
+auto-deploy is disabled; deployments are started explicitly through a Render
+Deploy Hook with the digest of the validated image (ADR-006).
 
-- `ci.yml` runs on every push and pull request. It checks code quality with
-	linting, verifies that the Domain layer imports no framework code, and runs
-	unit and integration tests.
-- `release.yml` builds the Docker image, runs the E2E API tests and publishes
-	the image only after all tests have passed.
-- `cd.yml` starts deployment through the Render Deploy Hook. During deployment,
-	Alembic database migrations are executed before the application is exposed.
-- After deployment, a smoke test calls the health endpoint and verifies that
-	the live application is reachable.
+- `ci.yml` runs on every push and pull request to `main`. Job `structure`
+	checks artefacts, whitespace, `ruff check`, `ruff format --check`,
+	import-linter, all unit, integration and E2E tests with coverage
+	(minimum 90 %) and `pip-audit`. Job `postgres` runs `alembic upgrade head`,
+	`alembic check` and the seed twice against PostgreSQL 16. Job `docker`
+	builds the image without pushing it.
+- `release.yml` runs on tags `v*`. It repeats the tests, builds the image with
+	`APP_VERSION=<tag>`, starts it against a PostgreSQL service with
+	`RUN_SEED=true` and runs `scripts/smoke_test.py` against it (health, version,
+	demo login, `/api/modules`). Only then it pushes the image to
+	`ghcr.io/sibslusi/project-aiassisted` (tags `<version>` and `sha-<short>`),
+	creates a GitHub Release and calls `cd.yml` with the image digest.
+- `cd.yml` runs in the GitHub environment `production`. If `CD_ENABLED` is not
+	`true`, it skips cleanly. Otherwise `scripts/deploy.sh` calls the Render
+	Deploy Hook with `imgURL=<image@digest>`, and `scripts/smoke_test.py` waits
+	until `RENDER_SERVICE_URL/health` reports the released version and a demo
+	login works.
+- On every container start `scripts/docker-entrypoint.sh` runs
+	`alembic upgrade head` and, if `RUN_SEED=true`, `scripts/seed.py`. The seed
+	adds missing scenarios and assignments but never overwrites them.
+
+GitHub environment `production` (names only, never values):
+
+- Secrets: `RENDER_DEPLOY_HOOK_URL`, `DEMO_PASSWORD`
+- Variables: `CD_ENABLED`, `RENDER_SERVICE_URL`, `SMOKE_EMAIL`
 
 Secrets are stored exclusively in GitHub Secrets for CI/CD or in a local
 gitignored `.env` file. Secrets are never stored in source code.
@@ -383,7 +400,10 @@ Required configuration variable names:
 
 - `DATABASE_URL`
 - `SESSION_SECRET`
+- `DEMO_PASSWORD` (password of all fictional demo accounts)
 - `ENVIRONMENT`
+- `APP_VERSION` (optional, set by the image build; default `dev`)
+- `RUN_SEED` (optional, `true` loads the seed on container start)
 - `LLM_API_KEY` (only for optional UC-003)
 - `LLM_MODEL` (only for optional UC-003)
 

@@ -1,5 +1,7 @@
 # AI-SDLC Project Template
 
+[![CI](https://github.com/sibslusi/Project-AIAssisted/actions/workflows/ci.yml/badge.svg)](https://github.com/sibslusi/Project-AIAssisted/actions/workflows/ci.yml)
+
 [![AI-SDLC](https://img.shields.io/badge/AI--SDLC-v1.0.0-blue)](https://ai-sdlc.aisl.science)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22833065.svg)](https://doi.org/10.5281/zenodo.22833065)
 [![arXiv](https://img.shields.io/badge/arXiv-2609.24348-b31b1b.svg)](https://doi.org/10.48550/arXiv.2609.24348)
@@ -42,6 +44,24 @@ Alle Demo-Konten sind fiktiv. Passwort = `DEMO_PASSWORD` (lokal zum Beispiel
 
 Jede Seite zeigt den Hinweis „Schulungsplattform mit fiktiven Daten. Keine
 Rechtsberatung.“
+
+## CI/CD
+
+| Workflow | Auslöser | Was er tut |
+|---|---|---|
+| `ci.yml` | Push und PR auf `main` | Ruff, Format, Import-Linter, alle Tests mit Coverage (min. 90 %), `pip-audit`, Migrationen und Seed gegen PostgreSQL, Docker-Build |
+| `release.yml` | Tag `v*` | Tests, Image bauen, Container mit PostgreSQL starten und Smoke-Test, dann Image nach GHCR, GitHub-Release, Aufruf von `cd.yml` |
+| `cd.yml` | von `release.yml` | Render Deploy Hook mit dem geprüften Image-Digest, danach Smoke-Test gegen die Live-URL |
+
+Der Smoke-Test lässt sich auch lokal gegen eine laufende Instanz ausführen:
+
+```bash
+BASE_URL=http://localhost:8000 SMOKE_EMAIL=ma@mail.ch DEMO_PASSWORD=demo python scripts/smoke_test.py
+```
+
+Details und die Namen der Secrets stehen in `docs/PROJECT.md`, Abschnitt
+„CI/CD and deployment“, der Entscheid in `docs/adr/ADR-006-DEPLOYMENT.md`.
+Die Live-URL folgt nach dem ersten Deploy.
 
 ## Create a project
 
