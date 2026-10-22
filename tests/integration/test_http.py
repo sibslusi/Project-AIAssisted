@@ -29,7 +29,7 @@ def test_health_is_available():
     response = client.get("/health")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.json() == {"status": "ok", "version": "dev"}
 
 
 def test_module_endpoints_require_login():
