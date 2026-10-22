@@ -130,7 +130,9 @@ def _require_actor(request: Request) -> Actor:
 
 
 def _check_csrf(request: Request) -> None:
-    if request.cookies.get("csrf_token") != request.headers.get("X-CSRF-Token"):
+    cookie = request.cookies.get("csrf_token")
+    header = request.headers.get("X-CSRF-Token")
+    if not cookie or not header or not secrets.compare_digest(cookie, header):
         raise HTTPExceptionResponse(403, "Ungültiger CSRF-Token")
 
 
