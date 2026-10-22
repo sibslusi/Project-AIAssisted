@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 from typing import Protocol
 
 from app.application.models import (
@@ -62,12 +62,5 @@ class GameRoundRepository(Protocol):
     def for_assignment(self, assignment_id: str) -> tuple[GameRound, ...]: ...
 
 
-class CurrentActorPort(Protocol):
-    def current_actor(self): ...
-
-
 class ClockPort(Protocol):
     def now(self) -> datetime: ...
-
-    def today(self) -> date:
-        return self.now().date()

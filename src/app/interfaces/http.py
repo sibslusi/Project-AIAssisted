@@ -195,8 +195,7 @@ def list_modules(request: Request):
     with _session(request) as session:
         services = _services(request)
         result = ListAssignedModules(
-            services.assignment_repository(session),
-            services.game_round_repository(session),
+            services.assignment_repository(session)
         ).execute(actor)
         return [item.__dict__ for item in result]
 
@@ -247,12 +246,11 @@ async def submit_answer(request: Request, round_id: str):
         raise HTTPExceptionResponse(422, "Ungültige Antwort") from error
     with _session(request) as session:
         services = _services(request)
-        assignments = services.assignment_repository(session)
         rounds = services.game_round_repository(session)
         try:
-                feedback = SubmitRoundAnswer(
-                    assignments, rounds, services.clock
-                ).execute(actor, round_id, position, option_id)
+            feedback = SubmitRoundAnswer(rounds, services.clock).execute(
+                actor, round_id, position, option_id
+            )
         except AccessDenied as error:
             raise HTTPExceptionResponse(403, str(error)) from error
         except NotFound as error:

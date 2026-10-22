@@ -118,7 +118,7 @@ def _assigned_modules(request: Request, actor):
             )
         except AccessDenied as error:
             raise HTTPExceptionResponse(403, str(error)) from error
-        modules = ListAssignedModules(assignments, rounds).execute(actor)
+        modules = ListAssignedModules(assignments).execute(actor)
         lookup = GetOpenGameRound(assignments, rounds)
         open_modules = {
             module.module_id
@@ -214,9 +214,9 @@ def submit_round_answer(
         services = _services(request)
         rounds = services.game_round_repository(session)
         try:
-            feedback = SubmitRoundAnswer(
-                services.assignment_repository(session), rounds, services.clock
-            ).execute(actor, round_id, position, option_id)
+            feedback = SubmitRoundAnswer(rounds, services.clock).execute(
+                actor, round_id, position, option_id
+            )
         except AccessDenied as error:
             raise HTTPExceptionResponse(403, str(error)) from error
         except NotFound as error:

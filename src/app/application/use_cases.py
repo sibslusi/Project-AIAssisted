@@ -378,9 +378,8 @@ def _assignments_for_actor(
 
 
 class ListAssignedModules:
-    def __init__(self, assignments: AssignmentRepository, rounds: GameRoundRepository):
+    def __init__(self, assignments: AssignmentRepository):
         self.assignments = assignments
-        self.rounds = rounds
 
     def execute(self, actor: Actor) -> tuple[AssignedModule, ...]:
         assignments = (
@@ -507,13 +506,7 @@ class GetTrainingProgress:
 
 
 class SubmitRoundAnswer:
-    def __init__(
-        self,
-        assignments: AssignmentRepository,
-        rounds: GameRoundRepository,
-        clock: ClockPort,
-    ):
-        self.assignments = assignments
+    def __init__(self, rounds: GameRoundRepository, clock: ClockPort):
         self.rounds = rounds
         self.clock = clock
 
