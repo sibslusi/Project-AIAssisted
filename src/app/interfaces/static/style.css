@@ -32,11 +32,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 main { min-height: 70vh; padding: clamp(2.5rem, 6vw, 6rem) 0; }
 .page-heading { margin-bottom: 2.5rem; }
 .page-heading .eyebrow { margin-bottom: .5rem; }
-.intro { max-width: 68ch; }
-h1 { max-width: 68ch; margin: .3rem 0 1rem; font-size: clamp(1.75rem, 1.2rem + 1.5vw, 2.5rem); letter-spacing: -.02em; line-height: 1.15; }
+.intro { max-width: 100%; }
+h1 { margin: .3rem 0 1rem; font-size: clamp(1.75rem, 1.2rem + 1.5vw, 2.5rem); letter-spacing: -.02em; line-height: 1.15; }
 .login-hero h1 { font-size: clamp(2.25rem, 1.5rem + 3vw, 4rem); }
 h2 { margin-top: 0; letter-spacing: -.02em; line-height: 1.15; }
-p, td, th, label { max-width: 68ch; }
 .eyebrow { margin: 0; color: var(--red); font-size: .72rem; font-weight: 750; letter-spacing: .11em; text-transform: uppercase; }
 .card, .form-panel, .summary { padding: clamp(1.25rem, 2vw, 1.75rem); border: 1px solid var(--line); background: var(--white); }
 .form-panel { display: grid; gap: .65rem; }
@@ -51,7 +50,7 @@ button:hover { background: #333; }
 .module-list strong { font-size: 1.12rem; }
 .module-list span { color: var(--muted); font-size: .88rem; }
 .module-list form { margin-top: .35rem; }
-.module-list li > a, .module-list li > form button { width: fit-content; padding-inline: 1.15rem; text-decoration: none; }
+.module-list li > a, .module-list li > form button { width: fit-content; padding: .7rem 1.4rem; color: var(--white); background: var(--ink); border-radius: 999px; text-decoration: none; }
 .pill { display: inline-block; width: fit-content; padding: .2rem .65rem; border-radius: 999px; font-size: .76rem; font-weight: 700; line-height: 1.4; }
 .pill-open { color: var(--ink); background: var(--soft); }
 .pill-done { color: var(--done); background: var(--done-soft); }
@@ -73,8 +72,7 @@ tr:last-child td { border-bottom: 0; }
 .login-card form label { margin-top: .35rem; color: var(--muted); font-size: .85rem; font-weight: 650; }
 .demo-hint { display: block; margin-top: 1rem; color: var(--muted); }
 .round-layout { display: grid; gap: 1.5rem; min-width: 0; }
-.round-layout > .form-panel { grid-area: question; }
-.round-layout > .feedback { grid-area: feedback; }
+.round-layout > .form-panel > p { max-width: 68ch; }
 .progress-copy { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 .progress-copy > span { color: var(--muted); font-size: .85rem; }
 .progress-track { height: .35rem; background: var(--soft); }
@@ -92,14 +90,16 @@ tr:last-child td { border-bottom: 0; }
 .round-layout .summary a { display: inline-block; padding: .45rem .85rem; background: var(--soft); border-radius: 999px; text-decoration: none; }
 .assignment-layout { display: grid; grid-template-columns: 1fr; gap: 2rem; }
 .assignment-layout > .form-panel { align-self: start; }
-.assignment-list { margin: 0; }
+.assignment-list { grid-template-columns: 1fr; margin: 0; }
 .assignment-list li { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .assignment-list a { flex: 0 0 auto; padding: .45rem .8rem; color: var(--ink); background: var(--soft); border-radius: 999px; text-decoration: none; }
 .error-page { max-width: 42rem; }
 footer { display: flex; justify-content: space-between; gap: 2rem; padding: 1rem 0 2rem; color: var(--muted); font-size: .82rem; }
 @media (min-width: 64rem) {
   .login-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 26rem); gap: 3rem; }
-  .round-layout { grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem); grid-template-areas: "question feedback"; align-items: start; }
+  .round-layout:has(.feedback) { grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem); grid-template-areas: "question feedback"; align-items: start; }
+  .round-layout:has(.feedback) > .form-panel { grid-area: question; }
+  .round-layout:has(.feedback) > .feedback { grid-area: feedback; }
   .assignment-layout { grid-template-columns: minmax(18rem, 22rem) minmax(0, 1fr); }
 }
 @media (min-width: 100rem) {
