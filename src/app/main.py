@@ -61,9 +61,7 @@ def create_app():
     application.state.seed_directory = Path(__file__).parents[2] / "data" / "seed"
     application.include_router(web_router)
     static_directory = Path(__file__).parent / "interfaces" / "static"
-    application.mount(
-        "/static", StaticFiles(directory=static_directory), name="static"
-    )
+    application.mount("/static", StaticFiles(directory=static_directory), name="static")
     return application
 
 

@@ -145,9 +145,7 @@ def test_writing_without_csrf_cookie_and_header_is_rejected():
 def test_expired_session_cookie_is_rejected(monkeypatch):
     issued_at = 1_000_000
     monkeypatch.setattr("itsdangerous.timed.time.time", lambda: issued_at)
-    token = URLSafeTimedSerializer(
-        "test-session-secret", salt="session"
-    ).dumps(
+    token = URLSafeTimedSerializer("test-session-secret", salt="session").dumps(
         {
             "id": "user-einwohnerdienste-01",
             "role": "employee",

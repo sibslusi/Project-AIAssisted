@@ -35,9 +35,7 @@ class TrainingEvidenceCsvAdapter:
                     "" if row.passed is None else ("ja" if row.passed else "nein"),
                     ""
                     if row.completed_at is None
-                    else row.completed_at.astimezone(zurich).strftime(
-                        "%d.%m.%Y %H:%M"
-                    ),
+                    else row.completed_at.astimezone(zurich).strftime("%d.%m.%Y %H:%M"),
                     "|".join(row.scenario_titles or row.scenario_ids),
                 )
             )

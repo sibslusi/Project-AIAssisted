@@ -241,9 +241,7 @@ def test_department_lead_navigation_marks_status_active_without_global_evaluatio
     test_client = client()
     _login(test_client, "chef@mail.ch")
 
-    response = test_client.get(
-        "/abteilungsleitung/auswertung", headers=HTML_HEADERS
-    )
+    response = test_client.get("/abteilungsleitung/auswertung", headers=HTML_HEADERS)
 
     assert response.status_code == 200
     assert "Abteilungsstatus" in response.text
@@ -330,17 +328,22 @@ def test_role_restricted_html_routes_render_error_pages():
     csrf = test_client.cookies["csrf_token"]
 
     assert test_client.get(ROUND_PAGE, headers=HTML_HEADERS).status_code == 403
-    assert test_client.post(
-        START_ROUND,
-        data={"csrf_token": csrf},
-        headers=HTML_HEADERS,
-    ).status_code == 403
-    assert test_client.get(
-        "/datenschutz/auswertung", headers=HTML_HEADERS
-    ).status_code == 403
-    assert test_client.get(
-        "/datenschutz/zuweisungen", headers=HTML_HEADERS
-    ).status_code == 403
+    assert (
+        test_client.post(
+            START_ROUND,
+            data={"csrf_token": csrf},
+            headers=HTML_HEADERS,
+        ).status_code
+        == 403
+    )
+    assert (
+        test_client.get("/datenschutz/auswertung", headers=HTML_HEADERS).status_code
+        == 403
+    )
+    assert (
+        test_client.get("/datenschutz/zuweisungen", headers=HTML_HEADERS).status_code
+        == 403
+    )
 
 
 def test_invalid_html_round_requests_render_error_pages():
@@ -348,14 +351,20 @@ def test_invalid_html_round_requests_render_error_pages():
     _login(test_client, "ma@mail.ch")
     csrf = test_client.cookies["csrf_token"]
 
-    assert test_client.get(
-        "/mitarbeitende/module/module-soziale-dienste", headers=HTML_HEADERS
-    ).status_code == 404
-    assert test_client.post(
-        "/mitarbeitende/runden/missing/antworten",
-        data={"csrf_token": csrf, "position": 1, "option_id": "a"},
-        headers=HTML_HEADERS,
-    ).status_code == 404
+    assert (
+        test_client.get(
+            "/mitarbeitende/module/module-soziale-dienste", headers=HTML_HEADERS
+        ).status_code
+        == 404
+    )
+    assert (
+        test_client.post(
+            "/mitarbeitende/runden/missing/antworten",
+            data={"csrf_token": csrf, "position": 1, "option_id": "a"},
+            headers=HTML_HEADERS,
+        ).status_code
+        == 404
+    )
 
 
 def test_invalid_html_assignment_requests_render_error_pages():
@@ -363,26 +372,32 @@ def test_invalid_html_assignment_requests_render_error_pages():
     _login(test_client, "ds@mail.ch")
     csrf = test_client.cookies["csrf_token"]
 
-    assert test_client.post(
-        "/datenschutz/zuweisungen",
-        data={
-            "csrf_token": csrf,
-            "module_id": "module-einwohnerdienste",
-            "department_id": "department-einwohnerdienste",
-            "due_date": "not-a-date",
-        },
-        headers=HTML_HEADERS,
-    ).status_code == 422
-    assert test_client.post(
-        "/datenschutz/zuweisungen",
-        data={
-            "csrf_token": csrf,
-            "module_id": "missing",
-            "department_id": "department-einwohnerdienste",
-            "due_date": "2026-12-31",
-        },
-        headers=HTML_HEADERS,
-    ).status_code == 404
+    assert (
+        test_client.post(
+            "/datenschutz/zuweisungen",
+            data={
+                "csrf_token": csrf,
+                "module_id": "module-einwohnerdienste",
+                "department_id": "department-einwohnerdienste",
+                "due_date": "not-a-date",
+            },
+            headers=HTML_HEADERS,
+        ).status_code
+        == 422
+    )
+    assert (
+        test_client.post(
+            "/datenschutz/zuweisungen",
+            data={
+                "csrf_token": csrf,
+                "module_id": "missing",
+                "department_id": "department-einwohnerdienste",
+                "due_date": "2026-12-31",
+            },
+            headers=HTML_HEADERS,
+        ).status_code
+        == 404
+    )
 
 
 CORRECT_OPTIONS = {
@@ -573,9 +588,7 @@ def test_html_department_lead_page_has_status_without_individual_scores():
     test_client = client()
     _login(test_client, "chef@mail.ch")
 
-    response = test_client.get(
-        "/abteilungsleitung/auswertung", headers=HTML_HEADERS
-    )
+    response = test_client.get("/abteilungsleitung/auswertung", headers=HTML_HEADERS)
 
     assert response.status_code == 200
     assert "Abteilungsstatus" in response.text

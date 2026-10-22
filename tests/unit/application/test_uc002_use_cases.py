@@ -167,12 +167,10 @@ def test_personal_status_ignores_rounds_of_other_people():
     assignments = FakeAssignments(
         [Assignment("a", "module-a", "department-a", date(2026, 12, 31))]
     )
-    other = completed_round(
-        "employee-2", 5, datetime(2026, 10, 21, 10, tzinfo=ZURICH)
+    other = completed_round("employee-2", 5, datetime(2026, 10, 21, 10, tzinfo=ZURICH))
+    status = GetPersonalStatus(assignments, FakeRounds((other,)), FakeClock()).execute(
+        employee()
     )
-    status = GetPersonalStatus(
-        assignments, FakeRounds((other,)), FakeClock()
-    ).execute(employee())
 
     assert status[0].status == "offen"
     assert status[0].score is None
@@ -235,9 +233,7 @@ def test_evidence_export_lists_every_attempt_with_names_and_scenarios():
     passed = completed_round(
         "employee-1", 5, datetime(2026, 10, 21, 14, 5, tzinfo=ZURICH)
     )
-    failed = completed_round(
-        "employee-2", 3, datetime(2026, 10, 21, 9, tzinfo=ZURICH)
-    )
+    failed = completed_round("employee-2", 3, datetime(2026, 10, 21, 9, tzinfo=ZURICH))
     open_round = replace(
         completed_round("employee-1", 5, datetime(2026, 10, 21, 15, tzinfo=ZURICH)),
         id="round-open",

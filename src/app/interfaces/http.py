@@ -194,9 +194,9 @@ def list_modules(request: Request):
     actor = _require_actor(request)
     with _session(request) as session:
         services = _services(request)
-        result = ListAssignedModules(
-            services.assignment_repository(session)
-        ).execute(actor)
+        result = ListAssignedModules(services.assignment_repository(session)).execute(
+            actor
+        )
         return [item.__dict__ for item in result]
 
 

@@ -232,9 +232,7 @@ def test_submit_answer_returns_feedback_and_rejects_foreign_round():
     rounds = FakeRounds()
     start = StartOrResumeGameRound(assignments, FakeScenarios(), rounds)
     started = start.execute(employee(), "module-a")
-    submit = SubmitRoundAnswer(
-        rounds, FakeClock(datetime(2026, 10, 21, tzinfo=ZURICH))
-    )
+    submit = SubmitRoundAnswer(rounds, FakeClock(datetime(2026, 10, 21, tzinfo=ZURICH)))
 
     feedback = submit.execute(employee(), started.id, 1, "right")
 

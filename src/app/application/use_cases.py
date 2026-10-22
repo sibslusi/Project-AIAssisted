@@ -333,7 +333,8 @@ class ExportTrainingEvidence:
                         else attempt.employee_id
                     ),
                     department=(
-                        department.name if department and department.name
+                        department.name
+                        if department and department.name
                         else department_id
                     ),
                     module=module_name,

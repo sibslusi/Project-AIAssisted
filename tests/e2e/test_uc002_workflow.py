@@ -290,9 +290,7 @@ def test_ac010_team_aggregation():
 
 def test_ac011_small_team_hides_values():
     client = make_client()
-    complete_round(
-        client, "ma@mail.ch", "module-einwohnerdienste", score=4
-    )
+    complete_round(client, "ma@mail.ch", "module-einwohnerdienste", score=4)
     complete_round(
         client, "elina.norveth@grenchen.example", "module-einwohnerdienste", score=4
     )
@@ -393,13 +391,9 @@ def test_equal_score_attempts_use_earlier_completion_and_csv_lists_both():
     client = make_client()
     assignment = assign(client, "module-soziale-dienste")
     set_clock(datetime(2026, 10, 21, 14, 5, tzinfo=ZURICH))
-    complete_round(
-        client, "ma@mail.ch", "module-soziale-dienste", score=4
-    )
+    complete_round(client, "ma@mail.ch", "module-soziale-dienste", score=4)
     set_clock(datetime(2026, 10, 21, 15, 5, tzinfo=ZURICH))
-    complete_round(
-        client, "ma@mail.ch", "module-soziale-dienste", score=4
-    )
+    complete_round(client, "ma@mail.ch", "module-soziale-dienste", score=4)
     login(client, "ma@mail.ch")
     assert (
         next(
