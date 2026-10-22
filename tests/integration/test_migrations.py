@@ -29,3 +29,17 @@ def test_alembic_upgrade_head_creates_all_tables(tmp_path):
         "game_round_scenarios",
         "round_answers",
     }
+
+
+def test_alembic_metadata_matches_migrations(tmp_path):
+    database_url = f"sqlite:///{tmp_path / 'check.sqlite3'}"
+    environment = {**os.environ, "DATABASE_URL": database_url}
+    for command in (["upgrade", "head"], ["check"]):
+        result = subprocess.run(
+            [sys.executable, "-m", "alembic", *command],
+            check=False,
+            capture_output=True,
+            text=True,
+            env=environment,
+        )
+        assert result.returncode == 0, result.stdout + result.stderr

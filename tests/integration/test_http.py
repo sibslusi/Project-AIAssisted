@@ -133,6 +133,15 @@ def test_logout_and_writing_without_csrf_are_rejected():
     assert client.get("/api/modules").status_code == 401
 
 
+def test_writing_without_csrf_cookie_and_header_is_rejected():
+    login("ma@mail.ch")
+    client.cookies.delete("csrf_token")
+
+    response = client.post("/api/modules/module-einwohnerdienste/rounds")
+
+    assert response.status_code == 403
+
+
 def test_expired_session_cookie_is_rejected(monkeypatch):
     issued_at = 1_000_000
     monkeypatch.setattr("itsdangerous.timed.time.time", lambda: issued_at)

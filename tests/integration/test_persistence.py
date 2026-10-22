@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.domain.models import AnswerOption, GameRound, Scenario
 from app.infrastructure.db import Base
-from app.infrastructure.models import EmployeeModel, ScenarioModel
+from app.infrastructure.models import AssignmentModel, EmployeeModel, ScenarioModel
 from app.infrastructure.repositories import (
     SqlAlchemyAssignmentRepository,
     SqlAlchemyGameRoundRepository,
@@ -187,6 +187,31 @@ def test_game_round_save_does_not_reactivate_deactivated_scenario():
         assert (
             session.get(ScenarioModel, "scenario-einwohnerdienste-01").active is False
         )
+
+
+def test_seed_reload_keeps_deactivated_scenarios_and_changed_due_dates(monkeypatch):
+    monkeypatch.setenv("DEMO_PASSWORD", "demo-password")
+    engine = database()
+    with Session(engine) as session:
+        load_seed_data(session, SEED_DIR)
+        session.commit()
+        session.get(ScenarioModel, "scenario-einwohnerdienste-01").active = False
+        session.get(AssignmentModel, "assignment-einwohnerdienste").due_date = date(
+            2026, 12, 31
+        )
+        session.commit()
+
+        load_seed_data(session, SEED_DIR)
+        session.commit()
+        load_seed_data(session, SEED_DIR)
+        session.commit()
+
+        assert (
+            session.get(ScenarioModel, "scenario-einwohnerdienste-01").active is False
+        )
+        assert session.get(
+            AssignmentModel, "assignment-einwohnerdienste"
+        ).due_date == date(2026, 12, 31)
 
 
 def test_module_scenario_position_has_named_unique_constraint():
