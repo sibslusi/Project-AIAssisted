@@ -313,15 +313,19 @@ activated.
 | Unit tests | `pytest tests/unit -q` |
 | Integration tests | `pytest tests/integration -q` |
 | E2E API tests | `pytest tests/e2e -q` |
-| Optional browser tests | `playwright test` |
+| Lint and format | `ruff check . && ruff format --check .` |
+| Architecture | `PYTHONPATH=src lint-imports` |
+| Dependency audit | `pip-audit -r requirements.txt` |
 | Run locally | `uvicorn app.main:app --reload` |
+| Migrate | `PYTHONPATH=src alembic upgrade head` |
 | Seed data | `PYTHONPATH=src python scripts/seed.py` |
 | Coverage | `pytest --cov=src/app --cov-report=term-missing` |
-| Build/release | `docker build -t datenschutzfaelle-gemeindewesen .` |
+| Build image | `docker build --build-arg APP_VERSION=dev -t project-aiassisted .` |
+| Run with Docker | `docker compose up --build` |
+| Smoke test | `BASE_URL=http://localhost:8000 python scripts/smoke_test.py` |
+| Release | push a tag `v*` (runs `release.yml`) |
 
-These commands describe the target project structure. The test and application
-paths become executable during DEVELOP after the corresponding vertical slices
-are implemented.
+Playwright browser tests are not part of the project; see `docs/TASKS.md`.
 
 ## CI/CD and deployment
 
