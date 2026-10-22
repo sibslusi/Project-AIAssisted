@@ -6,6 +6,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.infrastructure.models import GameRoundModel
+from app.interfaces.web import templates
 from app.main import app
 
 HTML_HEADERS = {"accept": "text/html"}
@@ -229,8 +230,42 @@ def test_desktop_layout_uses_minimum_width_and_no_mobile_media_query():
         Path(__file__).parents[2] / "src/app/interfaces/static/style.css"
     ).read_text()
 
-    assert "min-width: 1024px" in css
+    assert "min-width: 1024px" not in css
     assert "@media (max-width" not in css
+    assert "--content-max" in css
+    assert "clamp(" in css
+
+
+def test_module_cards_render_exactly_one_status_pill_each():
+    test_client = client()
+    _login(test_client, "marek.dalenor@grenchen.example")
+
+    response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
+
+    assert response.text.count('class="module-card-heading"') == 1
+    assert response.text.count('class="pill ') == 1
+
+
+def test_late_status_uses_late_status_pill():
+    macro = templates.env.get_template("macros.html").module
+
+    rendered = macro.status_pill("verspätet erledigt")
+
+    assert 'class="pill pill-late"' in rendered
+    assert "verspätet erledigt" in rendered
+
+
+def test_evaluation_tables_use_scrollable_table_wrapper():
+    lead = client()
+    _login(lead, "liora.veylan@grenchen.example")
+    department = lead.get("/abteilungsleitung/auswertung", headers=HTML_HEADERS)
+
+    officer = client()
+    _login(officer, "yara.merovan@grenchen.example")
+    evaluation = officer.get("/datenschutz/auswertung", headers=HTML_HEADERS)
+
+    assert 'class="table-wrap"' in department.text
+    assert 'class="table-wrap"' in evaluation.text
 
 
 def test_role_and_department_are_visible_in_header():
