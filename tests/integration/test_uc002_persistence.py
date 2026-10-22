@@ -95,6 +95,7 @@ def test_csv_adapter_uses_requested_evidence_format():
                 passed=False,
                 completed_at=datetime(2026, 10, 21, 14, 5, tzinfo=ZURICH),
                 scenario_ids=("scenario-1", "scenario-2"),
+                scenario_titles=("Adresse ändern", "Auskunft am Telefon"),
             ),
             EvidenceRow(
                 person="Marek Dalenor",
@@ -114,7 +115,7 @@ def test_csv_adapter_uses_requested_evidence_format():
         "\ufeffPerson;Abteilung;Modul;Versuch;Status;Punktzahl;Bestanden;"
         "Abgeschlossen am;Szenarien\r\n"
         "Marek Dalenor;Einwohnerdienste;Datenschutz am Schalter;1;abgeschlossen;"
-        "3;nein;2026-10-21T14:05:00+02:00;scenario-1|scenario-2\r\n"
+        "3;nein;21.10.2026 14:05;Adresse ändern|Auskunft am Telefon\r\n"
         "Marek Dalenor;Einwohnerdienste;Datenschutz am Schalter;2;offen;"
         ";;;scenario-3\r\n"
     )

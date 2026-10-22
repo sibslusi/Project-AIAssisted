@@ -345,6 +345,10 @@ class ExportTrainingEvidence:
                     passed=attempt.passed,
                     completed_at=attempt.completed_at,
                     scenario_ids=tuple(scenario.id for scenario in attempt.scenarios),
+                    scenario_titles=tuple(
+                        scenario.situation.split(".", 1)[0].strip()
+                        for scenario in attempt.scenarios
+                    ),
                 )
             )
         return tuple(

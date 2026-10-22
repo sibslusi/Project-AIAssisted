@@ -63,6 +63,7 @@ class EvidenceRow:
     passed: bool | None
     completed_at: datetime | None
     scenario_ids: tuple[str, ...]
+    scenario_titles: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
