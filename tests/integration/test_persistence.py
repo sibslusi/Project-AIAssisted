@@ -42,9 +42,7 @@ def test_seed_loader_loads_assignments_and_argon2_password_hashes(monkeypatch):
         assignment_repo = SqlAlchemyAssignmentRepository(session)
         assignments = assignment_repo.for_department("department-einwohnerdienste")
         employee = session.scalar(
-            select(EmployeeModel).where(
-                EmployeeModel.email == "ma@mail.ch"
-            )
+            select(EmployeeModel).where(EmployeeModel.email == "ma@mail.ch")
         )
 
     assert len(assignments) == 1

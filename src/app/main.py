@@ -54,6 +54,7 @@ def create_app():
             clock=SystemClock(),
             authenticate=authenticate,
             session_secret=session_secret,
+            app_version=os.environ.get("APP_VERSION") or "dev",
         )
     )
     application.state.engine = engine
@@ -61,9 +62,7 @@ def create_app():
     application.state.seed_directory = Path(__file__).parents[2] / "data" / "seed"
     application.include_router(web_router)
     static_directory = Path(__file__).parent / "interfaces" / "static"
-    application.mount(
-        "/static", StaticFiles(directory=static_directory), name="static"
-    )
+    application.mount("/static", StaticFiles(directory=static_directory), name="static")
     return application
 
 

@@ -1,8 +1,11 @@
 FROM python:3.12-slim
 
+ARG APP_VERSION=dev
+LABEL org.opencontainers.image.source="https://github.com/sibslusi/Project-AIAssisted"
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app/src
+    PYTHONPATH=/app/src \
+    APP_VERSION=${APP_VERSION}
 
 WORKDIR /app
 
@@ -12,6 +15,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src ./src
 COPY alembic ./alembic
 COPY alembic.ini .
+COPY data ./data
+COPY scripts/seed.py ./scripts/seed.py
 COPY scripts/docker-entrypoint.sh ./scripts/docker-entrypoint.sh
 RUN chmod 0755 ./scripts/docker-entrypoint.sh \
     && useradd --create-home --uid 10001 appuser \

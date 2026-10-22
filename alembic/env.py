@@ -21,11 +21,22 @@ def database_url() -> str:
     return value
 
 
+def include_object(object, name, type_, reflected, compare_to) -> bool:
+    # PostgreSQL legt einen Unique-Constraint mit denselben Spalten wie der
+    # Primärschlüssel nicht separat an (module_scenarios). Ohne diese Ausnahme
+    # meldet alembic check dort eine Änderung, die keine ist.
+    if type_ == "unique_constraint" and not reflected and compare_to is None:
+        primary_key = {column.name for column in object.table.primary_key}
+        return {column.name for column in object.columns} != primary_key
+    return True
+
+
 def run_migrations_offline() -> None:
     context.configure(
         url=database_url(),
         target_metadata=target_metadata,
         literal_binds=True,
+        include_object=include_object,
         dialect_opts={"paramstyle": "named"},
     )
     with context.begin_transaction():
@@ -41,7 +52,11 @@ def run_migrations_online() -> None:
         poolclass=pool.NullPool,
     )
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            include_object=include_object,
+        )
         with context.begin_transaction():
             context.run_migrations()
 

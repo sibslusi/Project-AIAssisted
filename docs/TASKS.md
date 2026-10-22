@@ -1,13 +1,36 @@
 # TASKS.md
 
-PHASE: 3
-STATUS: done
+PHASE: 4
+STATUS: in-progress
 
 (0=Bootstrap | 1=Specify | 2=Design | 3=Develop | 4=Validate | 5=Deploy)
 
 ## Current Use Case
 
-HTML-Oberfläche UC-001/UC-002
+Phase 4 Validate und Vorbereitung Phase 5 Deploy (CI/CD für UC-001/UC-002)
+
+### Phase 4: Validate
+
+- **Umfang:** Smoke-Test-Skript, Version in `/health`, Seed im Image,
+  `ci.yml`, `release.yml`, `cd.yml`, `scripts/deploy.sh`, ADR-006.
+- **Ergebnis:** 154 Tests grün, Coverage 96 %, Ruff (Check und Format),
+  Import-Linter, `pip-audit` ohne Befund. Docker-Image lokal gebaut, mit
+  PostgreSQL 16 und `RUN_SEED=true` gestartet, Smoke-Test mit Version und
+  Login grün, auch nach Neustart (Seed zweimal). `alembic check` auf
+  PostgreSQL und SQLite ohne Änderungen. `release.yml` führt die 35
+  E2E-Tests im gebauten Image gegen PostgreSQL aus (lokal nachgestellt:
+  35 bestanden). `docker compose up` lädt die Seed-Daten (`RUN_SEED`), die
+  Demo-Logins funktionieren lokal im Container.
+- **Dabei gefunden und behoben:** Seed scheiterte auf PostgreSQL am
+  Fremdschlüssel `module_scenarios.scenario_id` (SQLite prüfte ihn nicht);
+  `alembic check` meldete auf PostgreSQL eine Scheinänderung beim
+  Unique-Constraint, der dem Primärschlüssel entspricht.
+- **Ausgelassen, mit Grund:**
+  - `release.yml` und `cd.yml` laufen erst mit einem Tag bzw. nach dem
+    Einrichten von Render und Neon (Teil B, von Hand); Prüfung bisher per
+    Durchsicht, YAML-Parse und lokalem Nachstellen der Schritte.
+  - Echter Render-Deploy und Smoke-Test gegen die Live-URL: Phase 5.
+  - Workflows haben keine pytest-Tests; Beleg ist der grüne CI-Lauf im PR.
 
 ### Fast Track: Code-Review vom 21.10.
 
