@@ -70,8 +70,8 @@ def training_status(
             else TrainingStatus.OVERDUE
         )
 
-    best_passed = best_attempt(passed)
+    first_passed = min(passed, key=lambda attempt: attempt.completed_at)
     deadline = datetime.combine(due_date, time.max, tzinfo=ZURICH)
-    if best_passed.completed_at.astimezone(ZURICH) > deadline:
+    if first_passed.completed_at.astimezone(ZURICH) > deadline:
         return TrainingStatus.COMPLETED_LATE
     return TrainingStatus.COMPLETED

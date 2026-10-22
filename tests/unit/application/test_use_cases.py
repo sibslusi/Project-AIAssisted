@@ -127,7 +127,7 @@ def employee(department_id="department-a"):
 
 
 def test_employee_sees_only_assignments_of_own_department():
-    result = ListAssignedModules(FakeAssignments(), FakeRounds()).execute(employee())
+    result = ListAssignedModules(FakeAssignments()).execute(employee())
 
     assert [item.module_id for item in result] == ["module-a"]
 
@@ -233,7 +233,7 @@ def test_submit_answer_returns_feedback_and_rejects_foreign_round():
     start = StartOrResumeGameRound(assignments, FakeScenarios(), rounds)
     started = start.execute(employee(), "module-a")
     submit = SubmitRoundAnswer(
-        assignments, rounds, FakeClock(datetime(2026, 10, 21, tzinfo=ZURICH))
+        rounds, FakeClock(datetime(2026, 10, 21, tzinfo=ZURICH))
     )
 
     feedback = submit.execute(employee(), started.id, 1, "right")

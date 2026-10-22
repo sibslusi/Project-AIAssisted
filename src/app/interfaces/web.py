@@ -90,7 +90,8 @@ def _render(request: Request, template: str, **values: Any) -> HTMLResponse:
 
 
 def _check_form_csrf(request: Request, csrf_token: str | None) -> None:
-    if csrf_token is None or csrf_token != request.cookies.get("csrf_token"):
+    cookie = request.cookies.get("csrf_token")
+    if not cookie or not csrf_token or not secrets.compare_digest(cookie, csrf_token):
         raise HTTPExceptionResponse(403, "Ungültiger CSRF-Token")
 
 
@@ -117,7 +118,7 @@ def _assigned_modules(request: Request, actor):
             )
         except AccessDenied as error:
             raise HTTPExceptionResponse(403, str(error)) from error
-        modules = ListAssignedModules(assignments, rounds).execute(actor)
+        modules = ListAssignedModules(assignments).execute(actor)
         lookup = GetOpenGameRound(assignments, rounds)
         open_modules = {
             module.module_id
@@ -213,9 +214,9 @@ def submit_round_answer(
         services = _services(request)
         rounds = services.game_round_repository(session)
         try:
-            feedback = SubmitRoundAnswer(
-                services.assignment_repository(session), rounds, services.clock
-            ).execute(actor, round_id, position, option_id)
+            feedback = SubmitRoundAnswer(rounds, services.clock).execute(
+                actor, round_id, position, option_id
+            )
         except AccessDenied as error:
             raise HTTPExceptionResponse(403, str(error)) from error
         except NotFound as error:

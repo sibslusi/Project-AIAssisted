@@ -18,7 +18,10 @@ Fristen berücksichtigen.
 
 Domain und Application erhalten den aktuellen Zeitpunkt über `ClockPort`. Das
 Fristdatum gilt in `Europe/Zurich` bis einschliesslich 23:59:59 Uhr. Der
-Abschlusszeitpunkt des besten bestandenen Versuchs bestimmt den Friststatus.
+Abschlusszeitpunkt des ersten bestandenen Versuchs bestimmt den Friststatus;
+für die Punktzahl zählt weiterhin der beste Versuch. (Präzisiert am 22.10.2026
+nach dem Code-Review: Wer rechtzeitig bestanden hat, bleibt `erledigt`, auch
+wenn ein späterer Versuch besser ist; vgl. UC-002 AC-006.)
 
 ## Konsequenzen
 

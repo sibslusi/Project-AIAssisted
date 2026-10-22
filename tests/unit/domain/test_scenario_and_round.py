@@ -217,3 +217,23 @@ def test_training_status_uses_first_of_two_equal_late_passed_attempts():
         training_status((second, first), due_date, second_at)
         is TrainingStatus.COMPLETED_LATE
     )
+
+
+def test_training_status_keeps_completed_when_better_attempt_follows_after_deadline():
+    due_date = date(2026, 11, 30)
+    on_time = make_round()
+    on_time_at = datetime(2026, 11, 30, 18, 0, tzinfo=ZURICH)
+    for position in range(1, 5):
+        on_time.answer(position, "right", on_time_at)
+    on_time.answer(5, "wrong-1", on_time_at)
+    on_time.complete(on_time_at)
+    better = make_round()
+    better_at = datetime(2026, 12, 5, 9, 0, tzinfo=ZURICH)
+    for position in range(1, 6):
+        better.answer(position, "right", better_at)
+    better.complete(better_at)
+
+    assert (
+        training_status((better, on_time), due_date, better_at)
+        is TrainingStatus.COMPLETED
+    )
