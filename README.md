@@ -31,14 +31,14 @@ docker compose down
 ## Oberfläche
 
 Nach dem Start ist die Anmeldung unter `http://localhost:8000/` erreichbar.
-Alle Demo-Konten sind fiktiv (`@grenchen.example`); das Demo-Passwort steht
-nur in der eigenen `.env` (`DEMO_PASSWORD`).
+Alle Demo-Konten sind fiktiv. Passwort = `DEMO_PASSWORD` (lokal zum Beispiel
+`demo`); das konkrete Passwort wird nicht dokumentiert.
 
 | Rolle | Demo-Konto | Seiten |
 |---|---|---|
-| Mitarbeitende | `marek.dalenor@grenchen.example` | `/mitarbeitende/module` (Module, Frist, Status, Abzeichen), `/mitarbeitende/module/{modul}` (Runde spielen mit Feedback) |
-| Abteilungsleitung | `liora.veylan@grenchen.example` | `/abteilungsleitung/auswertung` (Status pro Person, Teamwerte ab 3 Personen) |
-| Datenschutzverantwortliche | `yara.merovan@grenchen.example` | `/datenschutz/auswertung` (Gesamtauswertung), `/datenschutz/zuweisungen` (Modul zuweisen, CSV-Nachweis) |
+| Mitarbeitende | `ma@mail.ch` | `/mitarbeitende/module` (Module, Frist, Status, Abzeichen), `/mitarbeitende/module/{modul}` (Runde spielen mit Feedback) |
+| Abteilungsleitung | `chef@mail.ch` | `/abteilungsleitung/auswertung` (Status pro Person, Teamwerte ab 3 Personen) |
+| Datenschutzverantwortliche | `ds@mail.ch` | `/datenschutz/auswertung` (Gesamtauswertung), `/datenschutz/zuweisungen` (Modul zuweisen, CSV-Nachweis) |
 
 Jede Seite zeigt den Hinweis „Schulungsplattform mit fiktiven Daten. Keine
 Rechtsberatung.“

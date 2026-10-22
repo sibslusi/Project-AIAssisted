@@ -41,7 +41,7 @@ def test_module_endpoints_require_login():
 
 
 def test_employee_can_start_resume_answer_and_complete_round():
-    login("marek.dalenor@grenchen.example")
+    login("ma@mail.ch")
 
     modules = client.get("/api/modules")
     assert modules.status_code == 200
@@ -85,13 +85,13 @@ def test_employee_can_start_resume_answer_and_complete_round():
 
 
 def test_employee_cannot_start_foreign_module_or_lead_rounds():
-    login("marek.dalenor@grenchen.example")
+    login("ma@mail.ch")
     foreign = client.post(
         "/api/modules/module-soziale-dienste/rounds", headers=csrf_headers()
     )
     assert foreign.status_code == 404
 
-    login("liora.veylan@grenchen.example")
+    login("chef@mail.ch")
     forbidden = client.post(
         "/api/modules/module-einwohnerdienste/rounds", headers=csrf_headers()
     )
@@ -118,14 +118,14 @@ def test_duplicate_answer_is_conflict_and_data_protection_officer_sees_all_modul
     )
     assert duplicate.status_code == 409
 
-    login("yara.merovan@grenchen.example")
+    login("ds@mail.ch")
     modules = client.get("/api/modules")
     assert modules.status_code == 200
     assert len(modules.json()) == 3
 
 
 def test_logout_and_writing_without_csrf_are_rejected():
-    login("marek.dalenor@grenchen.example")
+    login("ma@mail.ch")
     missing_csrf = client.post("/logout")
     assert missing_csrf.status_code == 403
     logged_out = client.post("/logout", headers=csrf_headers())
@@ -162,7 +162,7 @@ def test_expired_session_cookie_is_rejected(monkeypatch):
     ],
 )
 def test_invalid_answer_payload_returns_unprocessable_entity(request_kwargs):
-    login("marek.dalenor@grenchen.example")
+    login("ma@mail.ch")
     started = client.post(
         "/api/modules/module-einwohnerdienste/rounds", headers=csrf_headers()
     )

@@ -1,6 +1,7 @@
 import re
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -28,7 +29,7 @@ def test_home_page_contains_login_form_csrf_and_required_footer():
 
 def test_html_employee_modules_page_is_denied_for_department_lead():
     test_client = client()
-    _login(test_client, "liora.veylan@grenchen.example")
+    _login(test_client, "chef@mail.ch")
 
     response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
 
@@ -42,13 +43,13 @@ def test_html_login_requires_csrf_and_redirects_employee_to_modules():
 
     missing_csrf = test_client.post(
         "/login",
-        data={"email": "marek.dalenor@grenchen.example", "password": "demo-password"},
+        data={"email": "ma@mail.ch", "password": "demo-password"},
         headers=HTML_HEADERS,
     )
     logged_in = test_client.post(
         "/login",
         data={
-            "email": "marek.dalenor@grenchen.example",
+            "email": "ma@mail.ch",
             "password": "demo-password",
             "csrf_token": test_client.cookies["csrf_token"],
         },
@@ -62,6 +63,51 @@ def test_html_login_requires_csrf_and_redirects_employee_to_modules():
     assert logged_in.headers["location"] == "/mitarbeitende/module"
 
 
+@pytest.mark.parametrize(
+    ("email", "location"),
+    [
+        (" Ma@Mail.ch ", "/mitarbeitende/module"),
+        ("chef@MAIL.ch", "/abteilungsleitung/auswertung"),
+        ("DS@mail.ch", "/datenschutz/auswertung"),
+    ],
+)
+def test_demo_login_aliases_are_case_insensitive(email, location):
+    test_client = client()
+    page = test_client.get("/", headers=HTML_HEADERS)
+
+    response = test_client.post(
+        "/login",
+        data={
+            "email": email,
+            "password": "demo-password",
+            "csrf_token": test_client.cookies["csrf_token"],
+        },
+        headers=HTML_HEADERS,
+        follow_redirects=False,
+    )
+
+    assert page.status_code == 200
+    assert response.status_code == 303
+    assert response.headers["location"] == location
+
+
+def test_old_demo_email_is_rejected():
+    test_client = client()
+    test_client.get("/", headers=HTML_HEADERS)
+
+    response = test_client.post(
+        "/login",
+        data={
+            "email": "marek.dalenor@grenchen.example",
+            "password": "demo-password",
+            "csrf_token": test_client.cookies["csrf_token"],
+        },
+        headers=HTML_HEADERS,
+    )
+
+    assert response.status_code == 401
+
+
 def test_html_login_sets_session_cookie_and_logout_clears_access():
     test_client = client()
     test_client.get("/", headers=HTML_HEADERS)
@@ -69,7 +115,7 @@ def test_html_login_sets_session_cookie_and_logout_clears_access():
     logged_in = test_client.post(
         "/login",
         data={
-            "email": "marek.dalenor@grenchen.example",
+            "email": "ma@mail.ch",
             "password": "demo-password",
             "csrf_token": test_client.cookies["csrf_token"],
         },
@@ -106,7 +152,7 @@ def test_html_login_sets_session_cookie_and_logout_clears_access():
 
 def test_home_page_redirects_logged_in_user_to_role_start_page():
     test_client = client()
-    _login(test_client, "liora.veylan@grenchen.example")
+    _login(test_client, "chef@mail.ch")
 
     response = test_client.get("/", headers=HTML_HEADERS, follow_redirects=False)
 
@@ -141,7 +187,7 @@ def _login(test_client: TestClient, email: str) -> None:
 
 def test_html_employee_page_shows_only_assigned_modules_and_csrf_forms():
     test_client = client()
-    _login(test_client, "marek.dalenor@grenchen.example")
+    _login(test_client, "ma@mail.ch")
 
     response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
 
@@ -157,7 +203,7 @@ def test_html_employee_page_shows_only_assigned_modules_and_csrf_forms():
 
 def test_employee_navigation_marks_modules_as_active():
     test_client = client()
-    _login(test_client, "marek.dalenor@grenchen.example")
+    _login(test_client, "ma@mail.ch")
 
     response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
 
@@ -169,7 +215,7 @@ def test_employee_navigation_marks_modules_as_active():
 
 def test_data_protection_navigation_contains_evaluation_and_assignments():
     test_client = client()
-    _login(test_client, "yara.merovan@grenchen.example")
+    _login(test_client, "ds@mail.ch")
 
     response = test_client.get("/datenschutz/zuweisungen", headers=HTML_HEADERS)
 
@@ -182,7 +228,7 @@ def test_data_protection_navigation_contains_evaluation_and_assignments():
 
 def test_employee_navigation_excludes_data_protection_links_and_shows_role():
     test_client = client()
-    _login(test_client, "marek.dalenor@grenchen.example")
+    _login(test_client, "ma@mail.ch")
 
     response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
 
@@ -193,7 +239,7 @@ def test_employee_navigation_excludes_data_protection_links_and_shows_role():
 
 def test_department_lead_navigation_marks_status_active_without_global_evaluation():
     test_client = client()
-    _login(test_client, "liora.veylan@grenchen.example")
+    _login(test_client, "chef@mail.ch")
 
     response = test_client.get(
         "/abteilungsleitung/auswertung", headers=HTML_HEADERS
@@ -215,7 +261,7 @@ def test_login_page_has_no_authenticated_navigation():
 
 def test_module_status_is_rendered_as_status_pill():
     test_client = client()
-    _login(test_client, "marek.dalenor@grenchen.example")
+    _login(test_client, "ma@mail.ch")
 
     response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
 
@@ -238,7 +284,7 @@ def test_desktop_layout_uses_minimum_width_and_no_mobile_media_query():
 
 def test_module_cards_render_exactly_one_status_pill_each():
     test_client = client()
-    _login(test_client, "marek.dalenor@grenchen.example")
+    _login(test_client, "ma@mail.ch")
 
     response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
 
@@ -257,11 +303,11 @@ def test_late_status_uses_late_status_pill():
 
 def test_evaluation_tables_use_scrollable_table_wrapper():
     lead = client()
-    _login(lead, "liora.veylan@grenchen.example")
+    _login(lead, "chef@mail.ch")
     department = lead.get("/abteilungsleitung/auswertung", headers=HTML_HEADERS)
 
     officer = client()
-    _login(officer, "yara.merovan@grenchen.example")
+    _login(officer, "ds@mail.ch")
     evaluation = officer.get("/datenschutz/auswertung", headers=HTML_HEADERS)
 
     assert 'class="table-wrap"' in department.text
@@ -270,7 +316,7 @@ def test_evaluation_tables_use_scrollable_table_wrapper():
 
 def test_role_and_department_are_visible_in_header():
     test_client = client()
-    _login(test_client, "marek.dalenor@grenchen.example")
+    _login(test_client, "ma@mail.ch")
 
     response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
 
@@ -280,7 +326,7 @@ def test_role_and_department_are_visible_in_header():
 
 def test_role_restricted_html_routes_render_error_pages():
     test_client = client()
-    _login(test_client, "liora.veylan@grenchen.example")
+    _login(test_client, "chef@mail.ch")
     csrf = test_client.cookies["csrf_token"]
 
     assert test_client.get(ROUND_PAGE, headers=HTML_HEADERS).status_code == 403
@@ -299,7 +345,7 @@ def test_role_restricted_html_routes_render_error_pages():
 
 def test_invalid_html_round_requests_render_error_pages():
     test_client = client()
-    _login(test_client, "marek.dalenor@grenchen.example")
+    _login(test_client, "ma@mail.ch")
     csrf = test_client.cookies["csrf_token"]
 
     assert test_client.get(
@@ -314,7 +360,7 @@ def test_invalid_html_round_requests_render_error_pages():
 
 def test_invalid_html_assignment_requests_render_error_pages():
     test_client = client()
-    _login(test_client, "yara.merovan@grenchen.example")
+    _login(test_client, "ds@mail.ch")
     csrf = test_client.cookies["csrf_token"]
 
     assert test_client.post(
@@ -398,7 +444,7 @@ def _play_open_round(test_client: TestClient, html: str, wrong_scenario=None):
 
 def test_html_employee_can_play_round_with_feedback_and_badge():
     test_client = client()
-    _login(test_client, "marek.dalenor@grenchen.example")
+    _login(test_client, "ma@mail.ch")
     _play_open_round(test_client, _start_round(test_client))
 
     round_page = _start_round(test_client)
@@ -428,7 +474,7 @@ def test_html_employee_can_play_round_with_feedback_and_badge():
 
 def test_html_answer_requires_csrf():
     test_client = client()
-    _login(test_client, "marek.dalenor@grenchen.example")
+    _login(test_client, "ma@mail.ch")
     round_page = _start_round(test_client)
 
     response = test_client.post(
@@ -443,7 +489,7 @@ def test_html_answer_requires_csrf():
 
 def test_html_round_page_get_never_creates_a_round():
     test_client = client()
-    _login(test_client, "marek.dalenor@grenchen.example")
+    _login(test_client, "ma@mail.ch")
     _play_open_round(test_client, _start_round(test_client))
     before = _round_count("user-einwohnerdienste-01")
 
@@ -460,7 +506,7 @@ def test_html_round_page_get_never_creates_a_round():
 
 def test_html_start_round_requires_csrf():
     test_client = client()
-    _login(test_client, "marek.dalenor@grenchen.example")
+    _login(test_client, "ma@mail.ch")
     _play_open_round(test_client, _start_round(test_client))
     before = _round_count("user-einwohnerdienste-01")
 
@@ -472,7 +518,7 @@ def test_html_start_round_requires_csrf():
 
 def test_html_open_round_is_continued_from_module_list():
     test_client = client()
-    _login(test_client, "marek.dalenor@grenchen.example")
+    _login(test_client, "ma@mail.ch")
     started = _start_round(test_client)
 
     modules = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
@@ -487,7 +533,7 @@ def test_html_open_round_is_continued_from_module_list():
 
 def test_html_assignment_form_requires_csrf():
     test_client = client()
-    _login(test_client, "yara.merovan@grenchen.example")
+    _login(test_client, "ds@mail.ch")
 
     response = test_client.post(
         "/datenschutz/zuweisungen",
@@ -504,7 +550,7 @@ def test_html_assignment_form_requires_csrf():
 
 def test_html_data_protection_officer_can_submit_assignment_form():
     test_client = client()
-    _login(test_client, "yara.merovan@grenchen.example")
+    _login(test_client, "ds@mail.ch")
     test_client.get("/datenschutz/zuweisungen", headers=HTML_HEADERS)
 
     response = test_client.post(
@@ -525,7 +571,7 @@ def test_html_data_protection_officer_can_submit_assignment_form():
 
 def test_html_department_lead_page_has_status_without_individual_scores():
     test_client = client()
-    _login(test_client, "liora.veylan@grenchen.example")
+    _login(test_client, "chef@mail.ch")
 
     response = test_client.get(
         "/abteilungsleitung/auswertung", headers=HTML_HEADERS
@@ -543,7 +589,7 @@ def test_html_department_lead_page_has_status_without_individual_scores():
 
 def test_html_data_protection_pages_show_assignment_form_and_csv_links():
     test_client = client()
-    _login(test_client, "yara.merovan@grenchen.example")
+    _login(test_client, "ds@mail.ch")
 
     assignments = test_client.get("/datenschutz/zuweisungen", headers=HTML_HEADERS)
     evaluation = test_client.get("/datenschutz/auswertung", headers=HTML_HEADERS)
@@ -565,7 +611,7 @@ def test_html_data_protection_pages_show_assignment_form_and_csv_links():
 
 def test_html_errors_render_status_pages_without_data_leaks():
     test_client = client()
-    _login(test_client, "marek.dalenor@grenchen.example")
+    _login(test_client, "ma@mail.ch")
 
     foreign = test_client.get(
         "/mitarbeitende/module/module-soziale-dienste", headers=HTML_HEADERS

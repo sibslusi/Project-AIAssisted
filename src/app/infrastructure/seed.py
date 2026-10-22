@@ -6,6 +6,7 @@ from pathlib import Path
 from argon2 import PasswordHasher
 from sqlalchemy.orm import Session
 
+from app.application.models import normalize_email
 from app.infrastructure.models import (
     AssignmentModel,
     DepartmentModel,
@@ -43,5 +44,6 @@ def load_seed_data(session: Session, seed_dir: Path) -> None:
     hasher = PasswordHasher()
     password_hash = hasher.hash(password)
     for item in _read(seed_dir, "users.json"):
+        item["email"] = normalize_email(item["email"])
         session.merge(EmployeeModel(**item, password_hash=password_hash))
     session.flush()

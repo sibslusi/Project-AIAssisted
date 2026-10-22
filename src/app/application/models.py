@@ -5,6 +5,10 @@ from enum import StrEnum
 from app.domain.models import Assignment
 
 
+def normalize_email(email: str) -> str:
+    return email.strip().lower()
+
+
 class Role(StrEnum):
     EMPLOYEE = "employee"
     DEPARTMENT_LEAD = "department_lead"
