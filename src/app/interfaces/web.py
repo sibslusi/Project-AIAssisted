@@ -56,10 +56,31 @@ def _display_names(request: Request):
 def _render(request: Request, template: str, **values: Any) -> HTMLResponse:
     csrf_token = request.cookies.get("csrf_token") or secrets.token_urlsafe(24)
     values.setdefault("names", _display_names(request))
+    path = request.url.path
+    if path.startswith("/mitarbeitende"):
+        active_nav = "modules"
+    elif path.startswith("/abteilungsleitung"):
+        active_nav = "department"
+    elif path.startswith("/datenschutz/zuweisungen"):
+        active_nav = "assignments"
+    elif path.startswith("/datenschutz"):
+        active_nav = "evaluation"
+    else:
+        active_nav = None
     response = templates.TemplateResponse(
         request=request,
         name=template,
-        context=_context(request, csrf_token=csrf_token, **values),
+        context=_context(
+            request,
+            csrf_token=csrf_token,
+            active_nav=active_nav,
+            role_label={
+                "employee": "Mitarbeitende",
+                "department_lead": "Abteilungsleitung",
+                "data_protection_officer": "Datenschutzverantwortliche",
+            }.get(_actor(request).role.value if _actor(request) else ""),
+            **values,
+        ),
     )
     if request.cookies.get("csrf_token") is None:
         response.set_cookie(

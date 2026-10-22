@@ -8,17 +8,33 @@
 </head>
 <body>
   <header class="site-header">
-    <a href="/">Datenschutzfälle</a>
-    {% if actor %}
-    <form action="/logout" method="post">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-      <button type="submit">Abmelden</button>
-    </form>
-    {% endif %}
+    <div class="header-inner">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>Datenschutzfälle<small>Schulungsplattform</small></span>
+      </a>
+      {% if actor %}
+      <nav class="main-nav" aria-label="Hauptnavigation">
+        {% if actor.role.value == "employee" %}
+        <a class="nav-link{% if active_nav == 'modules' %} active{% endif %}" href="/mitarbeitende/module"{% if active_nav == 'modules' %} aria-current="page"{% endif %}>Meine Module</a>
+        {% elif actor.role.value == "department_lead" %}
+        <a class="nav-link{% if active_nav == 'department' %} active{% endif %}" href="/abteilungsleitung/auswertung"{% if active_nav == 'department' %} aria-current="page"{% endif %}>Abteilungsstatus</a>
+        {% else %}
+        <a class="nav-link{% if active_nav == 'evaluation' %} active{% endif %}" href="/datenschutz/auswertung"{% if active_nav == 'evaluation' %} aria-current="page"{% endif %}>Gesamtauswertung</a>
+        <a class="nav-link{% if active_nav == 'assignments' %} active{% endif %}" href="/datenschutz/zuweisungen"{% if active_nav == 'assignments' %} aria-current="page"{% endif %}>Zuweisungen</a>
+        {% endif %}
+      </nav>
+      <form action="/logout" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="logout-button" type="submit">Abmelden</button>
+      </form>
+      <span class="identity">{{ role_label }} · {% if names is defined and names.departments is defined %}{{ names.departments.get(actor.department_id, actor.department_id) }}{% else %}{{ actor.department_id }}{% endif %}</span>
+      {% endif %}
+    </div>
   </header>
   <main>
     {% block content %}{% endblock %}
   </main>
-  <footer>Schulungsplattform mit fiktiven Daten. Keine Rechtsberatung.</footer>
+  <footer><span>Schulungsplattform mit fiktiven Daten. Keine Rechtsberatung.</span><span>Fiktive Demo-Daten · Kanton Solothurn, InfoDG</span></footer>
 </body>
 </html>

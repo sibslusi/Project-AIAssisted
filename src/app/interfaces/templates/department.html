@@ -1,10 +1,11 @@
 {% extends "page.html" %}
+{% from "macros.html" import status_pill %}
 {% block page_content %}
 <p>Status der Personen Ihrer Abteilung. Einzelpunkte werden nicht angezeigt.</p>
-<table>
+<div class="table-wrap"><table>
   <thead><tr><th>Person</th><th>Modul</th><th>Status</th></tr></thead>
-  <tbody>{% for person in persons %}<tr><td>{{ names.employees.get(person.employee_id, person.employee_id) }}</td><td>{{ names.modules.get(person.module_id, person.module_id) }}</td><td>{{ person.status }}</td></tr>{% endfor %}</tbody>
-</table>
+  <tbody>{% for person in persons %}<tr><td>{{ names.employees.get(person.employee_id, person.employee_id) }}</td><td>{{ names.modules.get(person.module_id, person.module_id) }}</td><td>{{ status_pill(person.status) }}</td></tr>{% endfor %}</tbody>
+</table></div>
 {% for aggregation in aggregations %}
 <section class="summary"><h2>{{ names.modules.get(aggregation.module_id, aggregation.module_id) }}</h2>{% if aggregation.available %}<p>Team: {{ aggregation.participant_count }} Teilnehmende, {{ aggregation.total_score }} Punkte</p>{% else %}<p>{{ aggregation.message }}</p>{% endif %}</section>
 {% endfor %}

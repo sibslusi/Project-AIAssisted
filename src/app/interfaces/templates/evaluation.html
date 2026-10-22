@@ -1,12 +1,13 @@
 {% extends "page.html" %}
+{% from "macros.html" import status_pill %}
 {% block page_content %}
 <p>Auswertung aller Abteilungen.</p>
 {% for department in departments %}
 <section class="summary"><h2>{{ names.departments.get(department.department_id, department.department_id) }}</h2>
-<table>
+<div class="table-wrap"><table>
   <thead><tr><th>Person</th><th>Modul</th><th>Status</th></tr></thead>
-  <tbody>{% for person in department.persons %}<tr><td>{{ names.employees.get(person.employee_id, person.employee_id) }}</td><td>{{ names.modules.get(person.module_id, person.module_id) }}</td><td>{{ person.status }}</td></tr>{% endfor %}</tbody>
-</table>
+  <tbody>{% for person in department.persons %}<tr><td>{{ names.employees.get(person.employee_id, person.employee_id) }}</td><td>{{ names.modules.get(person.module_id, person.module_id) }}</td><td>{{ status_pill(person.status) }}</td></tr>{% endfor %}</tbody>
+</table></div>
 </section>
 {% endfor %}
 {% endblock %}

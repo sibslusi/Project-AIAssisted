@@ -1,10 +1,12 @@
 import re
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.infrastructure.models import GameRoundModel
+from app.interfaces.web import templates
 from app.main import app
 
 HTML_HEADERS = {"accept": "text/html"}
@@ -151,6 +153,190 @@ def test_html_employee_page_shows_only_assigned_modules_and_csrf_forms():
     assert "Frist: 2026-11-30" in response.text
     assert "Status:" in response.text
     assert FOOTER in response.text
+
+
+def test_employee_navigation_marks_modules_as_active():
+    test_client = client()
+    _login(test_client, "marek.dalenor@grenchen.example")
+
+    response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
+
+    assert '<nav class="main-nav"' in response.text
+    assert 'aria-current="page"' in response.text
+    assert 'href="/mitarbeitende/module"' in response.text
+    assert "Meine Module" in response.text
+
+
+def test_data_protection_navigation_contains_evaluation_and_assignments():
+    test_client = client()
+    _login(test_client, "yara.merovan@grenchen.example")
+
+    response = test_client.get("/datenschutz/zuweisungen", headers=HTML_HEADERS)
+
+    assert response.status_code == 200
+    assert response.text.count('class="nav-link active"') == 1
+    assert 'href="/datenschutz/zuweisungen"' in response.text
+    assert 'aria-current="page"' in response.text
+    assert "Zuweisungen" in response.text
+
+
+def test_employee_navigation_excludes_data_protection_links_and_shows_role():
+    test_client = client()
+    _login(test_client, "marek.dalenor@grenchen.example")
+
+    response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
+
+    assert 'href="/datenschutz/zuweisungen"' not in response.text
+    assert "Mitarbeitende" in response.text
+    assert "modules" not in response.text
+
+
+def test_department_lead_navigation_marks_status_active_without_global_evaluation():
+    test_client = client()
+    _login(test_client, "liora.veylan@grenchen.example")
+
+    response = test_client.get(
+        "/abteilungsleitung/auswertung", headers=HTML_HEADERS
+    )
+
+    assert response.status_code == 200
+    assert "Abteilungsstatus" in response.text
+    assert 'aria-current="page"' in response.text
+    assert "Gesamtauswertung" not in response.text
+    assert "Abteilungsleitung" in response.text
+
+
+def test_login_page_has_no_authenticated_navigation():
+    response = client().get("/", headers=HTML_HEADERS)
+
+    assert '<nav class="main-nav"' not in response.text
+    assert "Abmelden" not in response.text
+
+
+def test_module_status_is_rendered_as_status_pill():
+    test_client = client()
+    _login(test_client, "marek.dalenor@grenchen.example")
+
+    response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
+
+    assert re.search(r'class="pill pill-(open|done|overdue)"', response.text)
+    assert re.search(
+        r">(offen|erledigt|verspätet erledigt|Frist überschritten)<", response.text
+    )
+
+
+def test_desktop_layout_uses_minimum_width_and_no_mobile_media_query():
+    css = (
+        Path(__file__).parents[2] / "src/app/interfaces/static/style.css"
+    ).read_text()
+
+    assert "min-width: 1024px" not in css
+    assert "@media (max-width" not in css
+    assert "--content-max" in css
+    assert "clamp(" in css
+
+
+def test_module_cards_render_exactly_one_status_pill_each():
+    test_client = client()
+    _login(test_client, "marek.dalenor@grenchen.example")
+
+    response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
+
+    assert response.text.count('class="module-card-heading"') == 1
+    assert response.text.count('class="pill ') == 1
+
+
+def test_late_status_uses_late_status_pill():
+    macro = templates.env.get_template("macros.html").module
+
+    rendered = macro.status_pill("verspätet erledigt")
+
+    assert 'class="pill pill-late"' in rendered
+    assert "verspätet erledigt" in rendered
+
+
+def test_evaluation_tables_use_scrollable_table_wrapper():
+    lead = client()
+    _login(lead, "liora.veylan@grenchen.example")
+    department = lead.get("/abteilungsleitung/auswertung", headers=HTML_HEADERS)
+
+    officer = client()
+    _login(officer, "yara.merovan@grenchen.example")
+    evaluation = officer.get("/datenschutz/auswertung", headers=HTML_HEADERS)
+
+    assert 'class="table-wrap"' in department.text
+    assert 'class="table-wrap"' in evaluation.text
+
+
+def test_role_and_department_are_visible_in_header():
+    test_client = client()
+    _login(test_client, "marek.dalenor@grenchen.example")
+
+    response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
+
+    assert "Mitarbeitende" in response.text
+    assert "Einwohnerdienste" in response.text
+
+
+def test_role_restricted_html_routes_render_error_pages():
+    test_client = client()
+    _login(test_client, "liora.veylan@grenchen.example")
+    csrf = test_client.cookies["csrf_token"]
+
+    assert test_client.get(ROUND_PAGE, headers=HTML_HEADERS).status_code == 403
+    assert test_client.post(
+        START_ROUND,
+        data={"csrf_token": csrf},
+        headers=HTML_HEADERS,
+    ).status_code == 403
+    assert test_client.get(
+        "/datenschutz/auswertung", headers=HTML_HEADERS
+    ).status_code == 403
+    assert test_client.get(
+        "/datenschutz/zuweisungen", headers=HTML_HEADERS
+    ).status_code == 403
+
+
+def test_invalid_html_round_requests_render_error_pages():
+    test_client = client()
+    _login(test_client, "marek.dalenor@grenchen.example")
+    csrf = test_client.cookies["csrf_token"]
+
+    assert test_client.get(
+        "/mitarbeitende/module/module-soziale-dienste", headers=HTML_HEADERS
+    ).status_code == 404
+    assert test_client.post(
+        "/mitarbeitende/runden/missing/antworten",
+        data={"csrf_token": csrf, "position": 1, "option_id": "a"},
+        headers=HTML_HEADERS,
+    ).status_code == 404
+
+
+def test_invalid_html_assignment_requests_render_error_pages():
+    test_client = client()
+    _login(test_client, "yara.merovan@grenchen.example")
+    csrf = test_client.cookies["csrf_token"]
+
+    assert test_client.post(
+        "/datenschutz/zuweisungen",
+        data={
+            "csrf_token": csrf,
+            "module_id": "module-einwohnerdienste",
+            "department_id": "department-einwohnerdienste",
+            "due_date": "not-a-date",
+        },
+        headers=HTML_HEADERS,
+    ).status_code == 422
+    assert test_client.post(
+        "/datenschutz/zuweisungen",
+        data={
+            "csrf_token": csrf,
+            "module_id": "missing",
+            "department_id": "department-einwohnerdienste",
+            "due_date": "2026-12-31",
+        },
+        headers=HTML_HEADERS,
+    ).status_code == 404
 
 
 CORRECT_OPTIONS = {

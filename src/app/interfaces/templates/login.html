@@ -1,17 +1,24 @@
 {% extends "base.html" %}
 {% block title %}Anmelden | Datenschutzfälle{% endblock %}
 {% block content %}
-<section class="intro">
-  <p class="eyebrow">Fiktive Demo-Anwendung</p>
-  <h1>Datenschutzfälle trainieren</h1>
-  <p>Bitte melden Sie sich mit einem Demo-Konto an.</p>
+<section class="login-hero">
+  <div class="intro">
+    <p class="eyebrow">Fiktive Demo-Anwendung</p>
+    <h1>Datenschutzfälle trainieren</h1>
+    <p>Stärken Sie Ihre Sicherheit im Verwaltungsalltag – Fall für Fall.</p>
+  </div>
+  <div class="card login-card">
+    <h2>Anmelden</h2>
+    <p>Bitte melden Sie sich mit einem Demo-Konto an.</p>
+    <form action="/login" method="post">
+      <label for="email">E-Mail</label>
+      <input id="email" name="email" type="email" autocomplete="username" required>
+      <label for="password">Passwort</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button type="submit">Anmelden</button>
+    </form>
+    <small class="demo-hint">Demo-Konten: siehe README</small>
+  </div>
 </section>
-<form action="/login" method="post">
-  <label for="email">E-Mail</label>
-  <input id="email" name="email" type="email" autocomplete="username" required>
-  <label for="password">Passwort</label>
-  <input id="password" name="password" type="password" autocomplete="current-password" required>
-  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-  <button type="submit">Anmelden</button>
-</form>
 {% endblock %}

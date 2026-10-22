@@ -1,14 +1,15 @@
 {% extends "page.html" %}
+{% from "macros.html" import status_pill %}
 {% block page_content %}
 <p>Ihre zugewiesenen Module und Fristen.</p>
 {% if modules %}
 <ul class="module-list">
 {% for module, status, has_open_round in modules %}
   <li>
-    <strong>{{ names.modules.get(module.module_id, module.module_id) }}</strong>
+    <div class="module-card-heading"><strong>{{ names.modules.get(module.module_id, module.module_id) }}</strong></div>
     <span>Frist: {{ module.due_date }}</span>
     {% if status %}
-    <span>Status: {{ status.status }}</span>
+    <span class="status-detail">Status: {{ status_pill(status.status) }}</span>
     {% if status.score is not none %}<span>Bester Versuch: {{ status.score }}/5</span>{% endif %}
     {% if status.status in ("erledigt", "verspätet erledigt") %}<span class="badge">Abzeichen Datenschutz</span>{% endif %}
     {% endif %}

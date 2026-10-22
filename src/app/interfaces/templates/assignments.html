@@ -1,5 +1,6 @@
 {% extends "page.html" %}
 {% block page_content %}
+<div class="assignment-layout">
 <form class="form-panel" action="/datenschutz/zuweisungen" method="post">
   <label for="module_id">Modul</label>
   <select id="module_id" name="module_id" required>{% for module in modules %}<option value="{{ module.id }}">{{ module.name or module.id }}</option>{% endfor %}</select>
@@ -10,5 +11,6 @@
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
   <button type="submit">Zuweisung speichern</button>
 </form>
-<ul class="module-list">{% for assignment in assignments %}<li><span>{{ names.modules.get(assignment.module_id, assignment.module_id) }} · {{ names.departments.get(assignment.department_id, assignment.department_id) }} · Frist {{ assignment.due_date }}</span><a href="/api/assignments/{{ assignment.id }}/training-evidence.csv">CSV-Nachweis</a></li>{% endfor %}</ul>
+<ul class="module-list assignment-list">{% for assignment in assignments %}<li><span>{{ names.modules.get(assignment.module_id, assignment.module_id) }} · {{ names.departments.get(assignment.department_id, assignment.department_id) }} · Frist {{ assignment.due_date }}</span><a href="/api/assignments/{{ assignment.id }}/training-evidence.csv">CSV-Nachweis</a></li>{% endfor %}</ul>
+</div>
 {% endblock %}

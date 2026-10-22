@@ -1,0 +1,11 @@
+{% macro status_pill(status) -%}
+  {% if status == "offen" %}
+    <span class="pill pill-open">{{ status }}</span>
+  {% elif status == "erledigt" %}
+    <span class="pill pill-done">{{ status }}</span>
+  {% elif status == "verspätet erledigt" %}
+    <span class="pill pill-late">{{ status }}</span>
+  {% else %}
+    <span class="pill pill-overdue">{{ status }}</span>
+  {% endif %}
+{%- endmacro %}
