@@ -83,8 +83,18 @@ Pro Agenten-Sitzung ein kurzer Eintrag. Daraus entsteht am Schluss die Reflexion
 
 ## Wahl Agent + Modell und Begründung
 
-- Agent: GitHub Copilot
-- Modell(e): `azure_ai/gpt-6-luna`, `gpt-5.6-luna`
-- Agenten: GitHub Copilot und Codex CLI
+- Agenten:
+	- GitHub Copilot (Chat): Phase 0 und 1 (Projektdefinition, Specs) sowie
+	  Vorbereitung Phase 2.
+	- Codex CLI: Phase 2 (Design) und Phase 3, Umsetzung von UC-001, UC-002,
+	  Docker, Oberfläche, Demo-Logins und CSV.
+	- Claude Code (VS Code und Cloud-Projekt-Thread): Prompts, Reviews,
+	  Persona-Test und PRs; ab 21.10. auch Umsetzung (HTML-Oberfläche,
+	  Code-Review-Fixes, Phase 4 CI/CD, Release `v0.1.0`).
+- Modell(e): `azure_ai/gpt-6-luna`, `gpt-5.6-luna` und GPT-5 über LiteLLM
+	(Copilot, Codex); Claude Opus 5.5 (Claude Code).
 - Warum: verfügbare Coding-Agenten mit repository-lokalem Kontext, Skills und
-	nachvollziehbaren Quality-Gate-Prüfungen.
+	nachvollziehbaren Quality-Gate-Prüfungen. Claude Code kam dazu, weil Codex
+	keinen GitHub-Zugang (`gh`) hat und PRs, CI-Beobachtung und Reviews einen
+	zweiten, vom umsetzenden Agenten unabhängigen Blick brauchten. Wegen
+	LiteLLM-Limits (429) lief immer nur ein Agent gleichzeitig.
