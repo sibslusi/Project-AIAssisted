@@ -379,6 +379,8 @@ ein Agent gleichzeitig.
     Training verwendet.
   - **Rechte (Least Privilege):** nur Lesen öffentlicher Dokumentation. Kein
     API-Key, kein Zugriff auf Repository, Dateisystem oder Secrets.
+  - **Nachweis:** [`docs/MCP-NACHWEIS.md`](docs/MCP-NACHWEIS.md) vergleicht
+    dieselbe Frage ohne und mit Context7, mit Screenshots der Aufrufe.
 
 **Protokoll:** [`docs/AI-LOG.md`](docs/AI-LOG.md) hält pro Agentenauftrag
 Phase, Agent, Modell, Ergebnis, menschliche Korrekturen und Lernpunkte fest.
