@@ -80,9 +80,8 @@ als optionale Erweiterung beschrieben und nicht umgesetzt.
 
 **URL:** <https://grenchen-datenschutz.onrender.com> (Render, Datenbank auf Neon)
 
-Alle Konten sind fiktiv. Das Passwort ist der Wert von `DEMO_PASSWORD`
-(lokal zum Beispiel `demo`). Das Passwort der Live-Instanz ist ein Secret und
-steht nicht im Repository.
+Alle Konten sind fiktiv. Passwort für alle Konten auf der Live-Instanz:
+`demo`. Lokal ist es der Wert von `DEMO_PASSWORD`.
 
 | Rolle | Konto | Einstieg |
 |---|---|---|

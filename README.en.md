@@ -82,9 +82,8 @@ as an optional extension and is not implemented.
 
 **URL:** <https://grenchen-datenschutz.onrender.com> (Render, database on Neon)
 
-All accounts are fictional. The password is the value of `DEMO_PASSWORD`
-(locally, for example, `demo`). The password of the live instance is a secret
-and is not stored in the repository.
+All accounts are fictional. Password for all accounts on the live instance:
+`demo`. Locally it is the value of `DEMO_PASSWORD`.
 
 | Role | Account | Start page |
 |---|---|---|
