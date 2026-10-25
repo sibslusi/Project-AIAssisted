@@ -43,6 +43,27 @@ von Context7 liegt in der überprüfbaren Quelle und im aktuellen Versionsstand.
 Ohne MCP hat das Modell eine Quellenangabe vorgetäuscht, indem es die Version aus
 der Frage übernommen hat.
 
+## Rechte und Kontrolle
+
+- **Least Privilege:** Context7 liest nur öffentliche Bibliotheks-Doku. Kein
+  API-Key, kein Zugriff auf Repository, Dateisystem oder Secrets. Im Versuch war
+  ausser Context7 kein Werkzeug aktiv.
+- **Mensch bestätigt:** Copilot zeigte jedes Tool-Ergebnis zuerst zur Freigabe an
+  („Approve Tool Result“). Nach dem ersten geprüften Ergebnis wurde für diese
+  Sitzung „Allow Without Review“ gewählt, weil nur öffentliche Doku gelesen wird.
+- **Restrisiko:** Gelesene Doku kann Anweisungen enthalten (Prompt Injection).
+  Deshalb bleibt der Agent bei MCP-Nutzung ohne Schreib- und Terminalrechte, und
+  das Ergebnis wurde gegen den Projektcode geprüft, nicht blind übernommen.
+
+## Grenzen des Versuchs
+
+- Ein einzelner Durchlauf pro Variante mit einer Frage, also kein Messwert,
+  sondern ein Beispiel.
+- Beide Fragen betreffen stabile APIs. Ein Unterschied im Code war darum nicht zu
+  erwarten. Bei neuen oder geänderten APIs wäre der Nutzen von Context7 grösser.
+- Die Werkzeugeinstellung von Durchlauf A (0 Selected) ist nicht per Screenshot
+  belegt.
+
 ## Belege
 
 Ohne MCP, Quellenangabe aus dem Modellwissen:
