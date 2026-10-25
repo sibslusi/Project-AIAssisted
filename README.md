@@ -372,8 +372,8 @@ Die verwendeten Prompts stehen in [`docs/PROMPTS.md`](docs/PROMPTS.md).
 - Keine Registrierung, kein Single Sign-on, keine E-Mail-Benachrichtigungen.
 - Keine Browser-Tests mit Playwright; die Oberfläche ist über TestClient-Tests
   abgedeckt.
-- Das Session-Cookie ist `Secure`: Lokal funktioniert der Login in den meisten Browsern über
-  `http://localhost`, sonst nur über HTTPS.
+- Das Session-Cookie ist `Secure`: Lokal funktioniert der Login in den
+  meisten Browsern über `http://localhost`, sonst nur über HTTPS.
 
 ## Dokumentation im Repository
 
