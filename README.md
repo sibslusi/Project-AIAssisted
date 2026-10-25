@@ -50,6 +50,11 @@ Abzeichen.
 Die erste Version umfasst drei Abteilungen mit je einem Modul aus fünf Fällen:
 Einwohnerdienste, Soziale Dienste sowie Finanzen und Informatik.
 
+**Was neu ist:** Statt einer Pflichtschulung zum Durchklicken trainieren
+Mitarbeitende echte Situationen aus ihrer eigenen Abteilung. Die Auswertung
+folgt selbst dem Datenschutz (Privacy by Design): Abteilungsleitungen sehen
+keine Einzelpunkte, sondern nur Teamwerte ab drei Personen.
+
 ## Rollen und Use Cases
 
 | Rolle | Sieht | Darf |
@@ -351,9 +356,12 @@ laut [`AGENTS.md`](AGENTS.md) endet jede Phase mit dem Quality Gate. Der aktuell
 | Codex CLI | `gpt-5.6-luna` über den LiteLLM-Proxy der FHNW | Phase 2 und 3: Design, Umsetzung von UC-001 und UC-002, Docker, Oberfläche |
 | Claude Code | Claude Opus 5.5 | Prompts, Code-Reviews, Persona-Test, Pull Requests; ab 21.10. auch Umsetzung (Oberfläche, Review-Fixes, CI/CD, Release) |
 
-Es lief immer nur ein Agent gleichzeitig (Rate Limits von LiteLLM). Codex hat
-keinen GitHub-Zugang, deshalb öffnete Claude Code die PRs und prüfte den Code
-als zweiter, unabhängiger Blick.
+**Warum diese Wahl:** Die Agenten arbeiten mit dem Kontext im Repository
+(AGENTS.md, Specs, Skills), und jede Phase lässt sich über das Quality Gate
+nachprüfen. Die Modelle über LiteLLM stellt die FHNW bereit. Codex hat keinen
+GitHub-Zugang, deshalb öffnete Claude Code die PRs und prüfte den Code als
+zweiter, unabhängiger Blick. Wegen der Rate Limits von LiteLLM lief immer nur
+ein Agent gleichzeitig.
 
 **Steuerung der Agenten**
 
@@ -365,8 +373,12 @@ als zweiter, unabhängiger Blick.
 - [`skills/`](skills/): `ai-sdlc-0` bis `ai-sdlc-5` pro Phase, dazu eigene
   Skills `ai-sdlc-quality-gate` (Checkliste vor jedem Phasenabschluss) und
   `ai-log-eintrag` (Protokolleintrag nach jeder Aufgabe).
-- MCP: Context7 ([`.vscode/mcp.json`](.vscode/mcp.json)) für aktuelle
-  Bibliotheksdokumentation, nur lesend.
+- MCP-Server Context7 ([`.vscode/mcp.json`](.vscode/mcp.json)):
+  - **Zweck:** aktuelle Dokumentation von Bibliotheken wie FastAPI,
+    SQLAlchemy und Alembic, damit der Agent keine veralteten APIs aus seinem
+    Training verwendet.
+  - **Rechte (Least Privilege):** nur Lesen öffentlicher Dokumentation. Kein
+    API-Key, kein Zugriff auf Repository, Dateisystem oder Secrets.
 
 **Protokoll:** [`docs/AI-LOG.md`](docs/AI-LOG.md) hält pro Agentenauftrag
 Phase, Agent, Modell, Ergebnis, menschliche Korrekturen und Lernpunkte fest.
@@ -413,4 +425,6 @@ skills/            AI-SDLC- und eigene Skills
 Erstellt aus dem [AI-SDLC-Template](https://github.com/AIaSDev/ai-sdlc-template).
 Die Methode ist in der [AISL-Dokumentation](https://docs.aisl.science/learning-and-resources/ai-sdlc)
 beschrieben. Für einen anderen Agenten verlinkt `bash scripts/setup-skills.sh`
-die Skills (zum Beispiel `codex`, `claude`, `copilot`).
+die Skills (zum Beispiel `codex`, `claude`, `copilot`). `CITATION.cff` und
+`.zenodo.json` stammen unverändert aus dem Template und zitieren die
+AI-SDLC-Methode, nicht dieses Projekt.

@@ -53,6 +53,11 @@ The first version covers three departments with one module of five cases each:
 Einwohnerdienste (residents' services), Soziale Dienste (social services) and
 Finanzen und Informatik (finance and IT).
 
+**What is new:** instead of a click-through compliance course, staff train on
+real situations from their own department. The reporting itself follows data
+protection (privacy by design): department leads see no individual scores,
+only team values from three people.
+
 ## Roles and use cases
 
 | Role | Sees | Can |
@@ -347,9 +352,11 @@ according to [`AGENTS.md`](AGENTS.md) every phase ends with the quality gate. Th
 | Codex CLI | `gpt-5.6-luna` via the FHNW LiteLLM proxy | phases 2 and 3: design, implementation of UC-001 and UC-002, Docker, UI |
 | Claude Code | Claude Opus 5.5 | prompts, code reviews, persona test, pull requests; from 21 Oct also implementation (UI, review fixes, CI/CD, release) |
 
-Only one agent ran at a time (LiteLLM rate limits). Codex has no GitHub
-access, so Claude Code opened the PRs and reviewed the code as a second,
-independent view.
+**Why this choice:** the agents work with the context in the repository
+(AGENTS.md, specs, skills), and every phase can be checked through the quality
+gate. The models via LiteLLM are provided by FHNW. Codex has no GitHub access,
+so Claude Code opened the PRs and reviewed the code as a second, independent
+view. Because of LiteLLM rate limits only one agent ran at a time.
 
 **How the agents are steered**
 
@@ -361,8 +368,13 @@ independent view.
 - [`skills/`](skills/): `ai-sdlc-0` to `ai-sdlc-5` per phase, plus the custom
   skills `ai-sdlc-quality-gate` (checklist before closing a phase) and
   `ai-log-eintrag` (log entry after every task).
-- MCP: Context7 ([`.vscode/mcp.json`](.vscode/mcp.json)) for up-to-date library
-  documentation, read-only.
+- MCP server Context7 ([`.vscode/mcp.json`](.vscode/mcp.json)):
+  - **Purpose:** up-to-date documentation of libraries such as FastAPI,
+    SQLAlchemy and Alembic, so the agent does not use outdated APIs from its
+    training data.
+  - **Permissions (least privilege):** read-only access to public
+    documentation. No API key, no access to the repository, file system or
+    secrets.
 
 **Log:** [`docs/AI-LOG.md`](docs/AI-LOG.md) records phase, agent, model, result,
 human corrections and lessons learned for every agent task. The prompts used
@@ -408,4 +420,5 @@ skills/            AI-SDLC and custom skills
 Created from the [AI-SDLC template](https://github.com/AIaSDev/ai-sdlc-template).
 The method is described in the [AISL documentation](https://docs.aisl.science/learning-and-resources/ai-sdlc).
 To use another agent, `bash scripts/setup-skills.sh` links the skills (for
-example `codex`, `claude`, `copilot`).
+example `codex`, `claude`, `copilot`). `CITATION.cff` and `.zenodo.json` come
+unchanged from the template and cite the AI-SDLC method, not this project.
