@@ -29,7 +29,7 @@ nicht aus `src/app/` abschreiben und auch nicht per `curl` im Terminal suchen.
 | | A, ohne MCP | B, mit Context7 |
 |---|---|---|
 | Code | `response.set_cookie(httponly=True, secure=True, samesite="lax")` und `Mapped[...] = mapped_column(JSON)` | gleich |
-| Quelle | „FastAPI 0.148.0“ und „SQLAlchemy 2.1“, also die Versionen aus der Frage, nicht nachgeprüft | `set_cookie`-Signatur aus fastapi.tiangolo.com/reference/response; SQLAlchemy-Doku docs.sqlalchemy.org/en/21 mit Stand **2.1.6, Release 21. Oktober 2026** |
+| Quelle | „FastAPI 0.148.0“ und „SQLAlchemy 2.1“, also die Versionen aus der Frage, nicht nachgeprüft | `set_cookie`-Signatur aus https://fastapi.tiangolo.com/fr/reference/response/ (Context7 lieferte die französische Fassung der Referenz); SQLAlchemy-Doku docs.sqlalchemy.org/en/21 mit Stand **2.1.6, Release 21. Oktober 2026** |
 | Ehrlichkeit | nennt eine Version, die es nicht belegt | sagt offen, dass die FastAPI-Seite keine eigene Versionsnummer nennt |
 | Werkzeugaufrufe | keine | `resolve-library-id` für beide Bibliotheken, danach mehrere `query-docs` (laut Copilot 7 Schritte in 25 s) |
 
