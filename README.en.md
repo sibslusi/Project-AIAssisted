@@ -31,7 +31,7 @@ users are Swiss German-speaking municipal staff.
 - [Running locally](#running-locally)
 - [Tests and quality](#tests-and-quality)
 - [CI/CD and deployment](#cicd-and-deployment)
-- [Use of AI](#use-of-ai)
+- [AI tooling](#ai-tooling)
 - [Limitations of version 1](#limitations-of-version-1)
 - [Repository layout](#repository-layout)
 
@@ -340,7 +340,7 @@ The smoke test can also be run locally against a running instance:
 BASE_URL=http://localhost:8000 SMOKE_EMAIL=ma@mail.ch DEMO_PASSWORD=demo python scripts/smoke_test.py
 ```
 
-## Use of AI
+## AI tooling
 
 The project was built following the AI-SDLC: phases 0 to 5 (bootstrap,
 specify, design, develop, validate, deploy), Each phase has a skill, and

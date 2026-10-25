@@ -28,7 +28,7 @@ entwickelt nach dem AI-SDLC mit Coding-Agenten.
 - [Lokal starten](#lokal-starten)
 - [Tests und Qualität](#tests-und-qualität)
 - [CI/CD und Deployment](#cicd-und-deployment)
-- [KI-Einsatz](#ki-einsatz)
+- [KI-Tooling](#ki-tooling)
 - [Grenzen der Version 1](#grenzen-der-version-1)
 - [Dokumentation im Repository](#dokumentation-im-repository)
 
@@ -343,7 +343,7 @@ Den Smoke-Test kann man auch lokal gegen eine laufende Instanz ausführen:
 BASE_URL=http://localhost:8000 SMOKE_EMAIL=ma@mail.ch DEMO_PASSWORD=demo python scripts/smoke_test.py
 ```
 
-## KI-Einsatz
+## KI-Tooling
 
 Das Projekt wurde nach dem AI-SDLC entwickelt: Phasen 0 bis 5 (Bootstrap,
 Specify, Design, Develop, Validate, Deploy), Jede Phase hat einen Skill, und

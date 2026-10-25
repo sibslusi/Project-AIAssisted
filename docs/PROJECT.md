@@ -388,9 +388,10 @@ Die Präsentation und das README enthalten folgende überprüfbare Nachweise:
 	erfolgreichen Durchlaufs;
 - `docs/AI-LOG.md` mit verwendeten Modellen, Prompts und Lernerkenntnissen;
 - konkretes Beispiel für den Einsatz eines Skills und eines MCP-Servers, zum
-	Beispiel der Develop-Skill für die TDD-Umsetzung von UC-001 sowie ein
-	Playwright-MCP-Server für einen E2E-Test mit ausschliesslichen Test- und
-	Browser-Rechten.
+	Beispiel der Develop-Skill für die TDD-Umsetzung von UC-001 sowie der
+	Context7-MCP-Server (`.vscode/mcp.json`) für aktuelle
+	Bibliotheksdokumentation mit ausschliesslich lesendem Zugriff auf
+	öffentliche Dokumentation.
 
 ## Dependencies and configuration
 
