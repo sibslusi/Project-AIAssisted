@@ -75,7 +75,7 @@ als optionale Erweiterung beschrieben und nicht umgesetzt.
 
 ## Live-Demo
 
-**URL:** <https://grenchen-datenschutz.onrender.com> (Render, Datenbank auf Neon; nach längerer Pause braucht der erste Aufruf etwas Zeit)
+**URL:** <https://grenchen-datenschutz.onrender.com> (Render, Datenbank auf Neon)
 
 Alle Konten sind fiktiv. Das Passwort ist der Wert von `DEMO_PASSWORD`
 (lokal zum Beispiel `demo`).

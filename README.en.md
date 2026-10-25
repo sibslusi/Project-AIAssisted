@@ -76,7 +76,7 @@ as an optional extension and is not implemented.
 
 ## Live demo
 
-**URL:** <https://grenchen-datenschutz.onrender.com> (Render, database on Neon; after a longer idle period the first request takes a moment)
+**URL:** <https://grenchen-datenschutz.onrender.com> (Render, database on Neon)
 
 All accounts are fictional. The password is the value of `DEMO_PASSWORD`
 (locally, for example, `demo`).
