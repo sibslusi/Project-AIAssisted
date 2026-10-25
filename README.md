@@ -75,7 +75,7 @@ als optionale Erweiterung beschrieben und nicht umgesetzt.
 
 ## Live-Demo
 
-**URL:** _folgt nach dem ersten Deploy auf Render (Phase 5)_
+**URL:** <https://grenchen-datenschutz.onrender.com> (Render, Datenbank auf Neon; nach längerer Pause braucht der erste Aufruf etwas Zeit)
 
 Alle Konten sind fiktiv. Das Passwort ist der Wert von `DEMO_PASSWORD`
 (lokal zum Beispiel `demo`).
@@ -288,7 +288,7 @@ Die Datenbank läuft auf Neon. Beim Container-Start führt
 `scripts/docker-entrypoint.sh` `alembic upgrade head` und optional den Seed aus.
 
 Erster Release: [`v0.1.0`](https://github.com/sibslusi/Project-AIAssisted/releases/tag/v0.1.0).
-**Live-URL:** _folgt nach Phase 5_
+**Live-URL:** <https://grenchen-datenschutz.onrender.com>
 
 Den Smoke-Test kann man auch lokal gegen eine laufende Instanz ausführen:
 

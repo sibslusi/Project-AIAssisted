@@ -76,7 +76,7 @@ as an optional extension and is not implemented.
 
 ## Live demo
 
-**URL:** _follows after the first deploy to Render (phase 5)_
+**URL:** <https://grenchen-datenschutz.onrender.com> (Render, database on Neon; after a longer idle period the first request takes a moment)
 
 All accounts are fictional. The password is the value of `DEMO_PASSWORD`
 (locally, for example, `demo`).
@@ -287,7 +287,7 @@ runs on Neon. On container start `scripts/docker-entrypoint.sh` runs
 `alembic upgrade head` and, optionally, the seed.
 
 First release: [`v0.1.0`](https://github.com/sibslusi/Project-AIAssisted/releases/tag/v0.1.0).
-**Live URL:** _follows after phase 5_
+**Live URL:** <https://grenchen-datenschutz.onrender.com>
 
 The smoke test can also be run locally against a running instance:
 
