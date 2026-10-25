@@ -375,6 +375,9 @@ view. Because of LiteLLM rate limits only one agent ran at a time.
   - **Permissions (least privilege):** read-only access to public
     documentation. No API key, no access to the repository, file system or
     secrets.
+  - **Evidence:** [`docs/MCP-NACHWEIS.md`](docs/MCP-NACHWEIS.md) (German)
+    compares the same question without and with Context7, with screenshots of
+    the tool calls.
 
 **Log:** [`docs/AI-LOG.md`](docs/AI-LOG.md) records phase, agent, model, result,
 human corrections and lessons learned for every agent task. The prompts used
