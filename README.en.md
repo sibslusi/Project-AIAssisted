@@ -190,6 +190,9 @@ erDiagram
   ANSWER_OPTION ||--o{ ROUND_ANSWER : selected
 ```
 
+The diagram shows the logical model: `ANSWER_OPTION` is a domain entity but
+not a table of its own (see above).
+
 Cases are immutable ([ADR-003](docs/adr/ADR-003-UNVERAENDERLICHE-SZENARIEN.md)).
 In this version they come from the seed data only
 ([`data/seed/scenarios.json`](data/seed/scenarios.json)); there is no UI yet for

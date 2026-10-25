@@ -192,6 +192,9 @@ erDiagram
   ANSWER_OPTION ||--o{ ROUND_ANSWER : selected
 ```
 
+Das Diagramm zeigt das logische Modell: `ANSWER_OPTION` ist eine Entität im
+Domain-Modell, aber keine eigene Tabelle (siehe oben).
+
 Fälle sind unveränderlich ([ADR-003](docs/adr/ADR-003-UNVERAENDERLICHE-SZENARIEN.md)).
 In dieser Version kommen sie ausschliesslich aus den Seed-Daten
 ([`data/seed/scenarios.json`](data/seed/scenarios.json)); eine Oberfläche zum
