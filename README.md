@@ -41,9 +41,11 @@ beurteilen.
 
 Die Plattform löst das mit kurzen Runden zu je fünf Fällen. Jeder Fall hat
 drei bis vier Antworten (im Seed je vier), genau eine richtige, eine Erklärung
-und eine Rechtsgrundlage (zum Beispiel ein Artikel des InfoDG). Nach jeder Antwort gibt
-es sofort Feedback; ab 80 % richtigen Antworten ist die Runde bestanden und es
-gibt ein Abzeichen.
+und ein Feld für die Rechtsgrundlage. Nach jeder Antwort gibt es sofort
+Feedback; ab 80 % richtigen Antworten ist die Runde bestanden und es gibt ein
+Abzeichen.
+
+![Runde spielen: Feedback mit Erklärung und Rechtsgrundlage](docs/images/runde.png)
 
 Die erste Version umfasst drei Abteilungen mit je einem Modul aus fünf Fällen:
 Einwohnerdienste, Soziale Dienste sowie Finanzen und Informatik.
@@ -93,6 +95,13 @@ Weitere fiktive Mitarbeitende (`…@grenchen.example`) stehen in
 `DEMO_PASSWORD`. Der Seed enthält keine gespielten Runden: Damit die
 Abteilungsleitung Teamwerte sieht, müssen zuerst drei Personen derselben
 Abteilung eine Runde abschliessen.
+
+| Anmeldung | Abteilungsleitung | Datenschutzverantwortliche |
+|---|---|---|
+| ![Anmeldung](docs/images/login.png) | ![Abteilungsstatus mit Teamwert ab drei Personen](docs/images/abteilung.png) | ![Zuweisungen mit CSV-Nachweis](docs/images/zuweisungen.png) |
+
+Die Screenshots stammen aus einer lokalen Instanz mit Seed-Daten, nachdem drei
+Mitarbeitende eine Runde abgeschlossen hatten.
 
 ## Architektur
 
@@ -368,6 +377,8 @@ Die verwendeten Prompts stehen in [`docs/PROMPTS.md`](docs/PROMPTS.md).
 
 - Fälle kommen nur aus den Seed-Daten; eine Oberfläche zum Anlegen oder
   Deaktivieren fehlt noch.
+- Die Rechtsgrundlage lautet in allen 15 Seed-Fällen „InfoDG SO (Artikel zu
+  prüfen)“; die konkreten Artikel sind noch nicht fachlich zugeordnet.
 - UC-003 (KI-Entwurf von Fällen) ist nicht umgesetzt.
 - Keine Registrierung, kein Single Sign-on, keine E-Mail-Benachrichtigungen.
 - Keine Browser-Tests mit Playwright; die Oberfläche ist über TestClient-Tests

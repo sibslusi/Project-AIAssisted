@@ -43,8 +43,11 @@ whether staff judge real situations at the counter correctly.
 
 The platform addresses this with short rounds of five cases each. Every case
 has three to four answers (four each in the seed), exactly one of them
-correct, an explanation and a legal basis (for example an article of the InfoDG). Feedback appears right
-after each answer; a round is passed at 80 % correct answers and earns a badge.
+correct, an explanation and a field for the legal basis. Feedback appears
+right after each answer; a round is passed at 80 % correct answers and earns a
+badge.
+
+![Playing a round: feedback with explanation and legal basis](docs/images/runde.png)
 
 The first version covers three departments with one module of five cases each:
 Einwohnerdienste (residents' services), Soziale Dienste (social services) and
@@ -93,6 +96,13 @@ More fictional employees (`…@grenchen.example`) are listed in
 [`data/seed/users.json`](data/seed/users.json); their password is also
 `DEMO_PASSWORD`. The seed contains no played rounds: before the department lead
 sees team values, three people of the same department must complete a round.
+
+| Login | Department lead | Data protection officer |
+|---|---|---|
+| ![Login](docs/images/login.png) | ![Department status with team value from three people](docs/images/abteilung.png) | ![Assignments with CSV evidence](docs/images/zuweisungen.png) |
+
+The screenshots come from a local instance with seed data after three
+employees had completed a round.
 
 ## Architecture
 
@@ -363,6 +373,8 @@ are in [`docs/PROMPTS.md`](docs/PROMPTS.md). Both are in German.
 
 - Cases come from the seed data only; there is no UI yet for creating or
   deactivating them.
+- The legal basis reads "InfoDG SO (Artikel zu prüfen)" in all 15 seed cases;
+  the specific articles have not been assigned yet.
 - UC-003 (AI drafts of cases) is not implemented.
 - No registration, no single sign-on, no e-mail notifications.
 - No Playwright browser tests; the UI is covered by TestClient tests.
