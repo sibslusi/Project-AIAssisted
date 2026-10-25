@@ -32,6 +32,7 @@ users are Swiss German-speaking municipal staff.
 - [Tests and quality](#tests-and-quality)
 - [CI/CD and deployment](#cicd-and-deployment)
 - [Use of AI](#use-of-ai)
+- [Limitations of version 1](#limitations-of-version-1)
 - [Repository layout](#repository-layout)
 
 ## Problem and solution
@@ -41,8 +42,8 @@ is hard to see who has been trained, which risks exist in which department and
 whether staff judge real situations at the counter correctly.
 
 The platform addresses this with short rounds of five cases each. Every case
-has three to four answers (four each in the seed), exactly one of them correct, an explanation and a
-legal basis (for example an article of the InfoDG). Feedback appears right
+has three to four answers (four each in the seed), exactly one of them
+correct, an explanation and a legal basis (for example an article of the InfoDG). Feedback appears right
 after each answer; a round is passed at 80 % correct answers and earns a badge.
 
 The first version covers three departments with one module of five cases each:
@@ -79,7 +80,8 @@ as an optional extension and is not implemented.
 **URL:** <https://grenchen-datenschutz.onrender.com> (Render, database on Neon)
 
 All accounts are fictional. The password is the value of `DEMO_PASSWORD`
-(locally, for example, `demo`).
+(locally, for example, `demo`). The password of the live instance is a secret
+and is not stored in the repository.
 
 | Role | Account | Start page |
 |---|---|---|
@@ -140,9 +142,18 @@ The layer rules are checked by [import-linter](.importlinter) in every CI run.
 (Neon) or SQLite locally, Argon2, pytest, Ruff, Docker.
 
 **Security:** Argon2 password hashes, session cookie with `HttpOnly`, `Secure`
-and `SameSite`, CSRF protection on all state-changing requests, role and
-department come from the signed session cookie, never from form values. Modules of another
-department return 404, other departments' reports return 403.
+and `SameSite`, CSRF protection on all state-changing requests. Role and
+department come from the signed session cookie, never from form values.
+Modules of another department return 404, other departments' reports return
+403 ([ADR-005](docs/adr/ADR-005-FREMDE-ABTEILUNG.md)).
+
+**Interfaces:** Besides the HTML pages there is a JSON API, also used by the
+E2E tests, for example `GET /health` (status and version), `POST /login`,
+`GET /api/modules`, `POST /api/modules/{id}/rounds`,
+`POST /api/rounds/{id}/answers`, `POST /api/assignments`,
+`GET /api/training/evaluation` and
+`GET /api/assignments/{id}/training-evidence.csv`. All routes are in
+[`src/app/interfaces/http.py`](src/app/interfaces/http.py).
 
 ### Architecture decision records (ADRs, in German)
 
@@ -269,7 +280,18 @@ pip-audit -r requirements.txt                     # dependencies
 CI requires at least 90 % coverage. Playwright browser tests were deliberately
 left out (reason in [`docs/TASKS.md`](docs/TASKS.md)).
 
-<!-- TODO: link a TDD example (commit with a red test, then a commit with green code). -->
+**TDD evidence:** the commits follow the pattern "test first, then code", for
+example:
+
+| Step | Commit | Result |
+|---|---|---|
+| Red | `09b97e5` test: redirect logged-in user from home page by role | new test in `tests/integration/test_web.py` fails |
+| Green | `7a4020e` fix: redirect logged-in user from home page by role | change only in `src/app/interfaces/web.py`, test passes |
+| Red | `b2e6d76` test: Smoke-Test-Skript für Health, Version und Demo-Login | tests for a script that does not exist yet |
+| Green | `c3bd13d` feat: Smoke-Test-Skript mit Retry, Versionsprüfung und Login | `scripts/smoke_test.py`, tests pass |
+
+The first pair was re-checked: on `09b97e5` exactly the new test fails
+(1 failed, 13 passed), on `7a4020e` all 14 tests pass.
 
 ## CI/CD and deployment
 
@@ -336,6 +358,16 @@ independent view.
 **Log:** [`docs/AI-LOG.md`](docs/AI-LOG.md) records phase, agent, model, result,
 human corrections and lessons learned for every agent task. The prompts used
 are in [`docs/PROMPTS.md`](docs/PROMPTS.md). Both are in German.
+
+## Limitations of version 1
+
+- Cases come from the seed data only; there is no UI yet for creating or
+  deactivating them.
+- UC-003 (AI drafts of cases) is not implemented.
+- No registration, no single sign-on, no e-mail notifications.
+- No Playwright browser tests; the UI is covered by TestClient tests.
+- The session cookie is `Secure`: locally, login works in most browsers via
+  `http://localhost`, otherwise only via HTTPS.
 
 ## Repository layout
 

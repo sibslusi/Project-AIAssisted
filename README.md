@@ -29,6 +29,7 @@ entwickelt nach dem AI-SDLC mit Coding-Agenten.
 - [Tests und Qualität](#tests-und-qualität)
 - [CI/CD und Deployment](#cicd-und-deployment)
 - [KI-Einsatz](#ki-einsatz)
+- [Grenzen der Version 1](#grenzen-der-version-1)
 - [Dokumentation im Repository](#dokumentation-im-repository)
 
 ## Problem und Lösung
@@ -39,8 +40,8 @@ Abteilungen bestehen und ob Mitarbeitende Situationen am Schalter richtig
 beurteilen.
 
 Die Plattform löst das mit kurzen Runden zu je fünf Fällen. Jeder Fall hat
-drei bis vier Antworten (im Seed je vier), genau eine richtige, eine Erklärung und eine
-Rechtsgrundlage (zum Beispiel ein Artikel des InfoDG). Nach jeder Antwort gibt
+drei bis vier Antworten (im Seed je vier), genau eine richtige, eine Erklärung
+und eine Rechtsgrundlage (zum Beispiel ein Artikel des InfoDG). Nach jeder Antwort gibt
 es sofort Feedback; ab 80 % richtigen Antworten ist die Runde bestanden und es
 gibt ein Abzeichen.
 
@@ -78,7 +79,8 @@ als optionale Erweiterung beschrieben und nicht umgesetzt.
 **URL:** <https://grenchen-datenschutz.onrender.com> (Render, Datenbank auf Neon)
 
 Alle Konten sind fiktiv. Das Passwort ist der Wert von `DEMO_PASSWORD`
-(lokal zum Beispiel `demo`).
+(lokal zum Beispiel `demo`). Das Passwort der Live-Instanz ist ein Secret und
+steht nicht im Repository.
 
 | Rolle | Konto | Einstieg |
 |---|---|---|
@@ -141,9 +143,18 @@ Die Schichtenregeln prüft [import-linter](.importlinter) in jeder CI.
 (Neon) bzw. SQLite lokal, Argon2, pytest, Ruff, Docker.
 
 **Sicherheit:** Passwörter mit Argon2, Session-Cookie `HttpOnly`, `Secure`,
-`SameSite`, CSRF-Schutz für alle schreibenden Requests, Rolle und Abteilung
-kommen aus dem signierten Session-Cookie, nie aus Formularwerten. Fremde Module ergeben 404, fremde
-Abteilungen 403.
+`SameSite`, CSRF-Schutz für alle schreibenden Requests. Rolle und Abteilung
+kommen aus dem signierten Session-Cookie, nie aus Formularwerten. Fremde Module
+ergeben 404, fremde Abteilungen 403
+([ADR-005](docs/adr/ADR-005-FREMDE-ABTEILUNG.md)).
+
+**Schnittstellen:** Neben den HTML-Seiten gibt es eine JSON-API, die auch die
+E2E-Tests verwenden, zum Beispiel `GET /health` (Status und Version),
+`POST /login`, `GET /api/modules`, `POST /api/modules/{id}/rounds`,
+`POST /api/rounds/{id}/answers`, `POST /api/assignments`,
+`GET /api/training/evaluation` und
+`GET /api/assignments/{id}/training-evidence.csv`. Alle Routen stehen in
+[`src/app/interfaces/http.py`](src/app/interfaces/http.py).
 
 ### Architekturentscheide (ADRs)
 
@@ -273,7 +284,18 @@ pip-audit -r requirements.txt                     # Abhängigkeiten
 Die CI verlangt mindestens 90 % Coverage. Playwright-Browsertests sind bewusst
 nicht umgesetzt (Begründung in [`docs/TASKS.md`](docs/TASKS.md)).
 
-<!-- TODO: Beispiel für einen TDD-Nachweis (Commit mit rotem Test, danach Commit mit grünem Code) verlinken. -->
+**TDD-Nachweis:** Die Commits zeigen das Muster „zuerst Test, dann Code“,
+zum Beispiel:
+
+| Schritt | Commit | Ergebnis |
+|---|---|---|
+| Rot | `09b97e5` test: redirect logged-in user from home page by role | neuer Test in `tests/integration/test_web.py` schlägt fehl |
+| Grün | `7a4020e` fix: redirect logged-in user from home page by role | Änderung nur in `src/app/interfaces/web.py`, Test grün |
+| Rot | `b2e6d76` test: Smoke-Test-Skript für Health, Version und Demo-Login | Tests für ein noch fehlendes Skript |
+| Grün | `c3bd13d` feat: Smoke-Test-Skript mit Retry, Versionsprüfung und Login | `scripts/smoke_test.py`, Tests grün |
+
+Das erste Paar ist nachgeprüft: Auf `09b97e5` schlägt genau der neue Test fehl
+(1 failed, 13 passed), auf `7a4020e` laufen alle 14 Tests durch.
 
 ## CI/CD und Deployment
 
@@ -341,6 +363,17 @@ als zweiter, unabhängiger Blick.
 **Protokoll:** [`docs/AI-LOG.md`](docs/AI-LOG.md) hält pro Agentenauftrag
 Phase, Agent, Modell, Ergebnis, menschliche Korrekturen und Lernpunkte fest.
 Die verwendeten Prompts stehen in [`docs/PROMPTS.md`](docs/PROMPTS.md).
+
+## Grenzen der Version 1
+
+- Fälle kommen nur aus den Seed-Daten; eine Oberfläche zum Anlegen oder
+  Deaktivieren fehlt noch.
+- UC-003 (KI-Entwurf von Fällen) ist nicht umgesetzt.
+- Keine Registrierung, kein Single Sign-on, keine E-Mail-Benachrichtigungen.
+- Keine Browser-Tests mit Playwright; die Oberfläche ist über TestClient-Tests
+  abgedeckt.
+- Das Session-Cookie ist `Secure`: Lokal funktioniert der Login in den meisten Browsern über
+  `http://localhost`, sonst nur über HTTPS.
 
 ## Dokumentation im Repository
 
