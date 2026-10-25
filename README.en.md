@@ -41,7 +41,7 @@ is hard to see who has been trained, which risks exist in which department and
 whether staff judge real situations at the counter correctly.
 
 The platform addresses this with short rounds of five cases each. Every case
-has three to four answers, exactly one of them correct, an explanation and a
+has three to four answers (four each in the seed), exactly one of them correct, an explanation and a
 legal basis (for example an article of the InfoDG). Feedback appears right
 after each answer; a round is passed at 80 % correct answers and earns a badge.
 
@@ -88,8 +88,9 @@ All accounts are fictional. The password is the value of `DEMO_PASSWORD`
 | Data protection officer | `ds@mail.ch` | `/datenschutz/auswertung`, `/datenschutz/zuweisungen` |
 
 More fictional employees (`…@grenchen.example`) are listed in
-[`data/seed/users.json`](data/seed/users.json); they make the team values from
-three people visible.
+[`data/seed/users.json`](data/seed/users.json); their password is also
+`DEMO_PASSWORD`. The seed contains no played rounds: before the department lead
+sees team values, three people of the same department must complete a round.
 
 ## Architecture
 
@@ -140,7 +141,7 @@ The layer rules are checked by [import-linter](.importlinter) in every CI run.
 
 **Security:** Argon2 password hashes, session cookie with `HttpOnly`, `Secure`
 and `SameSite`, CSRF protection on all state-changing requests, role and
-department always taken from the server-side session. Modules of another
+department come from the signed session cookie, never from form values. Modules of another
 department return 404, other departments' reports return 403.
 
 ### Architecture decision records (ADRs, in German)
@@ -156,7 +157,10 @@ department return 404, other departments' reports return 403.
 
 ## Domain model
 
-Eight entities, all mapped with the ORM and an Alembic migration:
+Eight entities in the domain model. Seven of them have their own table (ORM
+models in `src/app/infrastructure/models.py`, migration in `alembic/`);
+`AnswerOption` is stored as the JSON column `options` in `scenarios`. The join
+tables `module_scenarios` and `game_round_scenarios` come on top.
 
 | Entity | Meaning |
 |---|---|
@@ -246,7 +250,7 @@ acceptance criterion to a test that is written before the code.
 
 | Level | Folder | Tests |
 |---|---|---|
-| Unit (domain, application, configuration) | `tests/unit/` | 57 |
+| Unit (domain, application, configuration, smoke-test script) | `tests/unit/` | 57 |
 | Integration (DB, migrations, seed, HTTP, HTML) | `tests/integration/` | 62 |
 | End-to-end (UC-001, UC-002 and UI workflows via TestClient) | `tests/e2e/` | 35 |
 | **Total** | | **154, coverage 96 %** |

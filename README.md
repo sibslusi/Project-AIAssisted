@@ -39,7 +39,7 @@ Abteilungen bestehen und ob Mitarbeitende Situationen am Schalter richtig
 beurteilen.
 
 Die Plattform löst das mit kurzen Runden zu je fünf Fällen. Jeder Fall hat
-drei bis vier Antworten, genau eine richtige, eine Erklärung und eine
+drei bis vier Antworten (im Seed je vier), genau eine richtige, eine Erklärung und eine
 Rechtsgrundlage (zum Beispiel ein Artikel des InfoDG). Nach jeder Antwort gibt
 es sofort Feedback; ab 80 % richtigen Antworten ist die Runde bestanden und es
 gibt ein Abzeichen.
@@ -87,8 +87,10 @@ Alle Konten sind fiktiv. Das Passwort ist der Wert von `DEMO_PASSWORD`
 | Datenschutzverantwortliche | `ds@mail.ch` | `/datenschutz/auswertung`, `/datenschutz/zuweisungen` |
 
 Weitere fiktive Mitarbeitende (`…@grenchen.example`) stehen in
-[`data/seed/users.json`](data/seed/users.json); sie sorgen dafür, dass die
-Teamwerte ab drei Personen sichtbar werden.
+[`data/seed/users.json`](data/seed/users.json); ihr Passwort ist ebenfalls
+`DEMO_PASSWORD`. Der Seed enthält keine gespielten Runden: Damit die
+Abteilungsleitung Teamwerte sieht, müssen zuerst drei Personen derselben
+Abteilung eine Runde abschliessen.
 
 ## Architektur
 
@@ -140,7 +142,7 @@ Die Schichtenregeln prüft [import-linter](.importlinter) in jeder CI.
 
 **Sicherheit:** Passwörter mit Argon2, Session-Cookie `HttpOnly`, `Secure`,
 `SameSite`, CSRF-Schutz für alle schreibenden Requests, Rolle und Abteilung
-immer aus der serverseitigen Session. Fremde Module ergeben 404, fremde
+kommen aus dem signierten Session-Cookie, nie aus Formularwerten. Fremde Module ergeben 404, fremde
 Abteilungen 403.
 
 ### Architekturentscheide (ADRs)
@@ -156,7 +158,11 @@ Abteilungen 403.
 
 ## Domain-Modell
 
-Acht Entitäten, alle mit ORM-Abbildung und Alembic-Migration:
+Acht Entitäten im Domain-Modell. Sieben davon haben eine eigene Tabelle
+(ORM-Modelle in `src/app/infrastructure/models.py`, Migration in `alembic/`);
+`AnswerOption` wird als JSON-Spalte `options` in `scenarios` gespeichert.
+Dazu kommen die Verbindungstabellen `module_scenarios` und
+`game_round_scenarios`.
 
 | Entität | Bedeutung |
 |---|---|
@@ -248,7 +254,7 @@ wird.
 
 | Ebene | Ordner | Tests |
 |---|---|---|
-| Unit (Domain, Application, Konfiguration) | `tests/unit/` | 57 |
+| Unit (Domain, Application, Konfiguration, Smoke-Test-Skript) | `tests/unit/` | 57 |
 | Integration (DB, Migrationen, Seed, HTTP, HTML) | `tests/integration/` | 62 |
 | End-to-End (Workflows UC-001, UC-002, Oberfläche über TestClient) | `tests/e2e/` | 35 |
 | **Total** | | **154, Coverage 96 %** |
