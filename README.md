@@ -186,10 +186,13 @@ erDiagram
   ANSWER_OPTION ||--o{ ROUND_ANSWER : selected
 ```
 
-Veröffentlichte Fälle werden nie bearbeitet: Ein fehlerhafter Fall wird
-deaktiviert und durch einen neuen ersetzt. `game_round_scenarios` hält fest,
-welche fünf Fälle eine Runde hatte, damit alte Runden gültig bleiben
-([ADR-003](docs/adr/ADR-003-UNVERAENDERLICHE-SZENARIEN.md)).
+Fälle sind unveränderlich ([ADR-003](docs/adr/ADR-003-UNVERAENDERLICHE-SZENARIEN.md)).
+In dieser Version kommen sie ausschliesslich aus den Seed-Daten
+([`data/seed/scenarios.json`](data/seed/scenarios.json)); eine Oberfläche zum
+Anlegen oder Deaktivieren von Fällen gibt es noch nicht. Das Modell ist dafür
+vorbereitet: Neue Runden verwenden nur Fälle mit `active = true`, und
+`game_round_scenarios` hält fest, welche fünf Fälle eine Runde hatte, damit
+alte Runden gültig bleiben.
 
 ## Lokal starten
 

@@ -186,10 +186,12 @@ erDiagram
   ANSWER_OPTION ||--o{ ROUND_ANSWER : selected
 ```
 
-Published cases are never edited: a faulty case is deactivated and replaced by
-a new one. `game_round_scenarios` records which five cases a round contained,
-so historical rounds stay valid
-([ADR-003](docs/adr/ADR-003-UNVERAENDERLICHE-SZENARIEN.md)).
+Cases are immutable ([ADR-003](docs/adr/ADR-003-UNVERAENDERLICHE-SZENARIEN.md)).
+In this version they come from the seed data only
+([`data/seed/scenarios.json`](data/seed/scenarios.json)); there is no UI yet for
+creating or deactivating cases. The model is prepared for it: new rounds only
+use cases with `active = true`, and `game_round_scenarios` records which five
+cases a round contained, so historical rounds stay valid.
 
 ## Running locally
 
