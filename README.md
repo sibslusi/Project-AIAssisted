@@ -342,8 +342,8 @@ BASE_URL=http://localhost:8000 SMOKE_EMAIL=ma@mail.ch DEMO_PASSWORD=demo python 
 ## KI-Einsatz
 
 Das Projekt wurde nach dem AI-SDLC entwickelt: Phasen 0 bis 5 (Bootstrap,
-Specify, Design, Develop, Validate, Deploy), jeweils mit einem Skill und einem
-Quality Gate vor dem Abschluss. Der aktuelle Stand steht in
+Specify, Design, Develop, Validate, Deploy), Jede Phase hat einen Skill, und
+laut [`AGENTS.md`](AGENTS.md) endet jede Phase mit dem Quality Gate. Der aktuelle Stand steht in
 [`docs/TASKS.md`](docs/TASKS.md).
 
 | Werkzeug | Modell | Einsatz |

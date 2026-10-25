@@ -339,8 +339,8 @@ BASE_URL=http://localhost:8000 SMOKE_EMAIL=ma@mail.ch DEMO_PASSWORD=demo python 
 ## Use of AI
 
 The project was built following the AI-SDLC: phases 0 to 5 (bootstrap,
-specify, design, develop, validate, deploy), each with a skill and a quality
-gate before completion. The current state is in [`docs/TASKS.md`](docs/TASKS.md).
+specify, design, develop, validate, deploy), Each phase has a skill, and
+according to [`AGENTS.md`](AGENTS.md) every phase ends with the quality gate. The current state is in [`docs/TASKS.md`](docs/TASKS.md).
 
 | Tool | Model | Used for |
 |---|---|---|
