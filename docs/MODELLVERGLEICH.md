@@ -31,7 +31,23 @@ Modell Granite 4.1 aus dem LiteLLM.
 
 ## Ergebnisse
 
-Folgen nach den Läufen.
+### Lauf A: gpt-5.6-luna (High)
+
+| Messwert | Wert |
+|---|---|
+| Zeit | folgt |
+| Spend vorher / nachher | folgt |
+| Kosten | folgt |
+| Antwort | [antwort-lauf-a.md](modellvergleich/antwort-lauf-a.md) |
+| Bewertung | folgt (Sibslusi) |
+
+### Lauf B: ibm/granite4.1:3b
+
+Folgt.
+
+### Lauf C: gpt-5.6-luna (Low)
+
+Folgt.
 
 ## Einschränkungen des Versuchs
 
