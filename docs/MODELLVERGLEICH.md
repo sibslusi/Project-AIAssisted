@@ -5,12 +5,12 @@ begründen (Qualität, Zeit, Kosten).
 
 ## Einstellungen (Stand 26.10.2026)
 
-![Einstellungen: Copilot Chat im Modus Ask mit gpt-5.6-luna und Extra High, LiteLLM-Spend vor Lauf A im Terminal](images/modellvergleich-1-einstellungen.png)
+![Einstellungen: Copilot Chat im Modus Ask mit gpt-5.6-luna und High, LiteLLM-Spend vor Lauf A im Terminal](images/modellvergleich-1-einstellungen.png)
 
 | Punkt | Festlegung |
 |---|---|
 | Werkzeug | VS Code, GitHub Copilot Chat, Modus **Ask** (liest nur, ändert keine Dateien) |
-| Modell A | `gpt-5.6-luna` über LiteLLM (`litellm.engines.aisl.science`), Denkstufe **Extra High** |
+| Modell A | `gpt-5.6-luna` über LiteLLM (`litellm.engines.aisl.science`), Denkstufe **High** |
 | Modell B | folgt (gleiche Denkstufe wie Modell A) |
 | Kontext | Kein `#codebase`, keine angehängte Datei, keine MCP-Werkzeuge; nur der Prompt mit eingefügtem Code |
 | Chat | Für jedes Modell ein neuer Chat |
@@ -18,7 +18,7 @@ begründen (Qualität, Zeit, Kosten).
 | Zeit | Stoppuhr ab Abschicken bis Antwort fertig |
 | Kosten | Spend des LiteLLM-Keys vor und nach jedem Lauf über `GET /key/info` (Terminal, Funktion `spend`); das Dashboard zeigt nur 2 Nachkommastellen |
 
-Spend vor Lauf A: **5.541519720 USD** (Terminal im Screenshot, Key-Anfang geschwärzt).
+Spend vor Lauf A: **5.542206720 USD** (Terminal im Screenshot, Key-Anfang geschwärzt).
 
 ## Bekannte Fehler im geprüften Code (Lösungsschlüssel)
 
