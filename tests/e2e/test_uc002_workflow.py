@@ -151,6 +151,24 @@ def test_ac002_invalid_assignment_returns_422():
     assert len(client.get("/api/modules").json()) == before
 
 
+def test_ac002_due_date_before_today_returns_422():
+    client = make_client()
+    set_clock(datetime(2026, 10, 21, 12, tzinfo=ZURICH))
+    login(client, "ds@mail.ch")
+    before = len(client.get("/api/modules").json())
+    response = client.post(
+        "/api/assignments",
+        json={
+            "module_id": "module-soziale-dienste",
+            "department_id": "department-einwohnerdienste",
+            "due_date": "2026-10-20",
+        },
+        headers=csrf(client),
+    )
+    assert response.status_code == 422
+    assert len(client.get("/api/modules").json()) == before
+
+
 def test_ac003_personal_status_open():
     client = make_client()
     assignment = assign(client, "module-soziale-dienste")

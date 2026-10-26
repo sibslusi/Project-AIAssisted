@@ -20,6 +20,7 @@ from app.application.use_cases import (
     GetDisplayNames,
     GetOverallEvaluation,
     GetPersonalStatus,
+    InvalidRequest,
     ListAssignments,
 )
 from app.domain.models import AnswerOption, Assignment, GameRound, Scenario
@@ -137,7 +138,7 @@ def employee(role=Role.EMPLOYEE, department_id="department-a"):
 
 def test_assign_module_requires_officer_and_validates_references():
     assignments = FakeAssignments()
-    use_case = AssignModule(assignments, FakeModules(), FakeDepartments())
+    use_case = AssignModule(assignments, FakeModules(), FakeDepartments(), FakeClock())
 
     result = use_case.execute(
         employee(Role.DATA_PROTECTION_OFFICER),
@@ -149,6 +150,37 @@ def test_assign_module_requires_officer_and_validates_references():
     assert result.module_id == "module-a"
     with pytest.raises(AccessDenied):
         use_case.execute(employee(), "module-a", "department-a", date(2026, 12, 31))
+
+
+def test_assign_module_rejects_due_date_before_today_in_zurich():
+    assignments = FakeAssignments()
+    use_case = AssignModule(assignments, FakeModules(), FakeDepartments(), FakeClock())
+    officer = employee(Role.DATA_PROTECTION_OFFICER)
+
+    with pytest.raises(InvalidRequest):
+        use_case.execute(officer, "module-a", "department-a", date(2026, 10, 20))
+    assert assignments.items == []
+
+    today = use_case.execute(officer, "module-a", "department-a", date(2026, 10, 21))
+    assert today.due_date == date(2026, 10, 21)
+
+
+def test_assign_module_uses_zurich_date_of_clock():
+    class LateEveningUtc(ClockPort):
+        def now(self):
+            return datetime(2026, 10, 21, 22, 30, tzinfo=ZoneInfo("UTC"))
+
+    use_case = AssignModule(
+        FakeAssignments(), FakeModules(), FakeDepartments(), LateEveningUtc()
+    )
+
+    with pytest.raises(InvalidRequest):
+        use_case.execute(
+            employee(Role.DATA_PROTECTION_OFFICER),
+            "module-a",
+            "department-a",
+            date(2026, 10, 21),
+        )
 
 
 def test_personal_status_is_limited_to_own_assignments():

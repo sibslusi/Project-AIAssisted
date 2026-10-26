@@ -584,6 +584,30 @@ def test_html_data_protection_officer_can_submit_assignment_form():
     assert response.headers["location"] == "/datenschutz/zuweisungen"
 
 
+def test_html_assignment_form_rejects_due_date_in_the_past():
+    test_client = client()
+    _login(test_client, "ds@mail.ch")
+    test_client.get("/datenschutz/zuweisungen", headers=HTML_HEADERS)
+
+    response = test_client.post(
+        "/datenschutz/zuweisungen",
+        data={
+            "module_id": "module-finanzen-informatik",
+            "department_id": "department-finanzen-informatik",
+            "due_date": "2020-01-01",
+            "csrf_token": test_client.cookies["csrf_token"],
+        },
+        headers=HTML_HEADERS,
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 422
+    assert (
+        "2020-01-01"
+        not in test_client.get("/datenschutz/zuweisungen", headers=HTML_HEADERS).text
+    )
+
+
 def test_html_department_lead_page_has_status_without_individual_scores():
     test_client = client()
     _login(test_client, "chef@mail.ch")
