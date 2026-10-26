@@ -11,7 +11,7 @@ Modellwahl mit Beleg statt Bauchgefühl zu begründen.
 | Punkt | Festlegung |
 |---|---|
 | Werkzeug | VS Code, GitHub Copilot Chat (Local), Modus **Ask**, Standardwerkzeuge von Ask unverändert |
-| Lauf A | `gpt-5.6-luna` (Frontier), Denkstufe **High** |
+| Lauf A | `gpt-5.6-luna` (Frontier), Denkstufe **Extra High** |
 | Lauf B | `ibm/granite4.1:3b` (Open-Weight), keine Denkstufe wählbar |
 | Lauf C | `gpt-5.6-luna`, Denkstufe **Low** (Einfluss der Denkstufe) |
 | Prompt | [modellvergleich/prompt.md](modellvergleich/prompt.md), als Ganzes eingefügt, plus die Zeile `Führe den Code-Review aus dem angehängten Text aus. Antworte direkt, ohne /fix oder /tests.` |
@@ -31,9 +31,17 @@ Modell Granite 4.1 aus dem LiteLLM.
 
 ## Ergebnisse
 
-### Lauf A: gpt-5.6-luna (High)
+### Lauf A: gpt-5.6-luna (Extra High)
 
-Folgt.
+![Lauf A: Ende der Antwort von gpt-5.6-luna (Extra High), Spend vor und nach dem Lauf im Terminal](images/modellvergleich-lauf-a.png)
+
+| Messwert | Wert |
+|---|---|
+| Zeit | 2 min 48 s („Completed 2 steps in 2m 48s“) |
+| Spend vorher / nachher | 5.582388570 / 5.611272170 USD |
+| Kosten | **0.0289 USD** |
+| Antwort | [antwort-lauf-a.md](modellvergleich/antwort-lauf-a.md) |
+| Bewertung | folgt (Sibslusi) |
 
 ### Lauf B: ibm/granite4.1:3b
 
