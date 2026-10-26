@@ -379,3 +379,44 @@ def test_display_names_follow_role_visibility():
     }
     assert own.employees == {"employee-1": "Ada Muster"}
     assert own.modules == {"module-a": "Modul A"}
+
+
+class MixedRoleEmployees(FakeEmployees):
+    items = (
+        EmployeeRecord("lead-a", "department-a", role=Role.DEPARTMENT_LEAD),
+        EmployeeRecord("employee-1", "department-a"),
+        EmployeeRecord("officer", "department-b", role=Role.DATA_PROTECTION_OFFICER),
+        EmployeeRecord("employee-2", "department-b"),
+    )
+
+
+def test_department_status_lists_only_employees_who_must_train():
+    assignments = FakeAssignments(
+        [Assignment("a", "module-a", "department-a", date(2026, 12, 31))]
+    )
+    result = GetDepartmentStatus(
+        assignments, MixedRoleEmployees(), FakeRounds(), FakeClock()
+    ).execute(employee(Role.DEPARTMENT_LEAD), "department-a")
+
+    assert [person.employee_id for person in result.persons] == ["employee-1"]
+
+
+def test_overall_evaluation_lists_only_employees_who_must_train():
+    assignments = FakeAssignments(
+        [
+            Assignment("a", "module-a", "department-a", date(2026, 12, 31)),
+            Assignment("b", "module-a", "department-b", date(2026, 12, 31)),
+        ]
+    )
+    result = GetOverallEvaluation(
+        assignments,
+        MixedRoleEmployees(),
+        FakeDepartments(),
+        FakeRounds(),
+        FakeClock(),
+    ).execute(employee(Role.DATA_PROTECTION_OFFICER))
+
+    assert {
+        department.department_id: [person.employee_id for person in department.persons]
+        for department in result.departments
+    } == {"department-a": ["employee-1"], "department-b": ["employee-2"]}

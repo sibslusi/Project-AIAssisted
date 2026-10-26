@@ -254,6 +254,29 @@ def test_ac008_department_status_has_no_individual_scores():
         assert "score" not in person and "errors" not in person
 
 
+def test_department_and_overall_status_list_only_employees():
+    client = make_client()
+    login(client, "chef@mail.ch")
+    persons = client.get(
+        "/api/departments/department-einwohnerdienste/training-status"
+    ).json()["persons"]
+    assert "user-einwohnerdienste-leitung" not in {
+        person["employee_id"] for person in persons
+    }
+    assert len({person["employee_id"] for person in persons}) == 4
+
+    officer = make_client()
+    login(officer, "ds@mail.ch")
+    listed = {
+        person["employee_id"]
+        for department in officer.get("/api/training/evaluation").json()["departments"]
+        for person in department["persons"]
+    }
+    assert "user-datenschutzverantwortlich" not in listed
+    assert not any(item.endswith("-leitung") for item in listed)
+    assert len(listed) == 12
+
+
 def test_ac009_foreign_department_returns_403():
     client = make_client()
     login(client, "chef@mail.ch")
