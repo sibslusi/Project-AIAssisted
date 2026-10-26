@@ -65,6 +65,22 @@ impliziter Kontext). Für einen fairen Vergleich muss man diese Automatismen ken
 | Antwort | [antwort-modell-a.md](modellvergleich/antwort-modell-a.md) |
 | Bewertung | folgt (Sibslusi) |
 
-### Lauf B
+### Lauf B: ibm/granite4.1:3b (Open-Weight), 26.10.2026 ca. 11:54
 
-Folgt.
+Die SW3-Aufgabe nennt als Beispiel „a frontier model and an open-weight model“. Apertus (Swiss AI)
+war ohne Swiss-AI-Key nicht auswählbar, deshalb das offene Modell Granite 4.1 (3B) aus dem LiteLLM.
+
+| Messwert | Wert |
+|---|---|
+| Denkstufe | keine Auswahl (Modell bietet keine an) |
+| Zeit | folgt |
+| Kosten | folgt |
+| Antwort | [antwort-modell-b.md](modellvergleich/antwort-modell-b.md): nur ein JSON-Titel, kein Review |
+| Bewertung | folgt (Sibslusi) |
+
+### Einschränkungen des Versuchs
+
+- Copilot Ask hat standardmässig Lese- und Suchwerkzeuge für den Workspace aktiv (20 Werkzeuge).
+  Beide Modelle hätten also zusätzlich Dateien lesen können. Die Werkzeuge wurden für beide Läufe
+  gleich gelassen.
+- Pro Modell ein Lauf; Ergebnisse können bei Wiederholung abweichen.
