@@ -4,6 +4,8 @@ testpaths = ["tests"]
 
 [tool.ruff]
 target-version = "py312"
+# Wörtliche Prompts und Modellantworten des Modellvergleichs nicht umformatieren
+extend-exclude = ["docs/modellvergleich"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]

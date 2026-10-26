@@ -30,6 +30,7 @@ class EmployeeModel(Base):
     role: Mapped[str] = mapped_column(String(50))
     department_id: Mapped[str] = mapped_column(ForeignKey("departments.id"))
     password_hash: Mapped[str] = mapped_column(String(255))
+    session_version: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
 
 class ModuleModel(Base):

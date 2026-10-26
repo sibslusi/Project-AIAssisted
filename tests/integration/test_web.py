@@ -160,6 +160,23 @@ def test_home_page_redirects_logged_in_user_to_role_start_page():
     assert response.headers["location"] == "/abteilungsleitung/auswertung"
 
 
+def test_html_logout_invalidates_copied_session_cookie():
+    test_client = client()
+    _login(test_client, "ma@mail.ch")
+    old_session = test_client.cookies["session"]
+
+    test_client.post(
+        "/logout",
+        data={"csrf_token": test_client.cookies["csrf_token"]},
+        headers=HTML_HEADERS,
+        follow_redirects=False,
+    )
+    test_client.cookies.set("session", old_session)
+
+    response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
+    assert response.status_code == 401
+
+
 def test_html_logout_requires_csrf():
     test_client = client()
     test_client.get("/", headers=HTML_HEADERS)
@@ -582,6 +599,30 @@ def test_html_data_protection_officer_can_submit_assignment_form():
 
     assert response.status_code == 303
     assert response.headers["location"] == "/datenschutz/zuweisungen"
+
+
+def test_html_assignment_form_rejects_due_date_in_the_past():
+    test_client = client()
+    _login(test_client, "ds@mail.ch")
+    test_client.get("/datenschutz/zuweisungen", headers=HTML_HEADERS)
+
+    response = test_client.post(
+        "/datenschutz/zuweisungen",
+        data={
+            "module_id": "module-finanzen-informatik",
+            "department_id": "department-finanzen-informatik",
+            "due_date": "2020-01-01",
+            "csrf_token": test_client.cookies["csrf_token"],
+        },
+        headers=HTML_HEADERS,
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 422
+    assert (
+        "2020-01-01"
+        not in test_client.get("/datenschutz/zuweisungen", headers=HTML_HEADERS).text
+    )
 
 
 def test_html_department_lead_page_has_status_without_individual_scores():

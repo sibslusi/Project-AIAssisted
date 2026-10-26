@@ -21,6 +21,13 @@ Sessions über sichere `HttpOnly`, `Secure`, `SameSite`-Cookies geführt und
 schreibende Requests mit CSRF geschützt. `CurrentActorPort` liegt in
 Application; Session- und Passwortadapter liegen in Infrastructure.
 
+Präzisiert am 26.10.2026 (Abgleich mit dem Code): Ein eigener
+`CurrentActorPort` wurde nicht umgesetzt. Die Session ist ein mit
+`SESSION_SECRET` signiertes Cookie; die Interfaces-Schicht liest daraus den
+`Actor` und übergibt ihn jedem Use Case als Parameter. Der Passwortadapter liegt
+in Infrastructure (`infrastructure/auth.py`). Wie ein Logout das Cookie
+ungültig macht, regelt ADR-007.
+
 ## Konsequenzen
 
 Die E2E-Tests erhalten stabile fiktive Rollen. Eine öffentliche Registrierung

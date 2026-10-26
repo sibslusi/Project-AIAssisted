@@ -1,6 +1,6 @@
 # ADR-006: Deployment als geprüftes Image auf Render mit Neon
 
-Status: Proposed
+Status: Accepted (26.10.2026, nach erfolgreichem Release v0.1.1)
 Datum: 2026-10-22
 Entschieden von: Sibslusi (Zielbild vorgegeben), umgesetzt mit Claude Code
 

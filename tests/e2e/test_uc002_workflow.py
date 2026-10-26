@@ -151,6 +151,24 @@ def test_ac002_invalid_assignment_returns_422():
     assert len(client.get("/api/modules").json()) == before
 
 
+def test_ac002_due_date_before_today_returns_422():
+    client = make_client()
+    set_clock(datetime(2026, 10, 21, 12, tzinfo=ZURICH))
+    login(client, "ds@mail.ch")
+    before = len(client.get("/api/modules").json())
+    response = client.post(
+        "/api/assignments",
+        json={
+            "module_id": "module-soziale-dienste",
+            "department_id": "department-einwohnerdienste",
+            "due_date": "2026-10-20",
+        },
+        headers=csrf(client),
+    )
+    assert response.status_code == 422
+    assert len(client.get("/api/modules").json()) == before
+
+
 def test_ac003_personal_status_open():
     client = make_client()
     assignment = assign(client, "module-soziale-dienste")
@@ -196,6 +214,7 @@ def test_personal_status_shows_only_own_attempts():
 
 def test_ac005_overdue_status_is_returned():
     client = make_client()
+    set_clock(datetime(2026, 10, 19, 12, tzinfo=ZURICH))
     assignment = assign(client, "module-soziale-dienste", due_date="2026-10-20")
     login(client, "ma@mail.ch")
     set_clock(datetime(2026, 10, 21, 0, 0, tzinfo=ZURICH))
@@ -216,6 +235,7 @@ def test_ac005_overdue_status_is_returned():
 
 def test_ac006_late_status_is_returned():
     client = make_client()
+    set_clock(datetime(2026, 10, 19, 12, tzinfo=ZURICH))
     assignment = assign(client, "module-soziale-dienste", due_date="2026-10-20")
     set_clock(datetime(2026, 10, 21, 12, tzinfo=ZURICH))
     complete_round(client, "ma@mail.ch", "module-soziale-dienste")
@@ -252,6 +272,29 @@ def test_ac008_department_status_has_no_individual_scores():
         assert set(person) <= {"employee_id", "status", "assignment_id", "module_id"}
         assert person["status"] in allowed
         assert "score" not in person and "errors" not in person
+
+
+def test_department_and_overall_status_list_only_employees():
+    client = make_client()
+    login(client, "chef@mail.ch")
+    persons = client.get(
+        "/api/departments/department-einwohnerdienste/training-status"
+    ).json()["persons"]
+    assert "user-einwohnerdienste-leitung" not in {
+        person["employee_id"] for person in persons
+    }
+    assert len({person["employee_id"] for person in persons}) == 4
+
+    officer = make_client()
+    login(officer, "ds@mail.ch")
+    listed = {
+        person["employee_id"]
+        for department in officer.get("/api/training/evaluation").json()["departments"]
+        for person in department["persons"]
+    }
+    assert "user-datenschutzverantwortlich" not in listed
+    assert not any(item.endswith("-leitung") for item in listed)
+    assert len(listed) == 12
 
 
 def test_ac009_foreign_department_returns_403():
@@ -372,6 +415,7 @@ def test_ac014_department_lead_cannot_export_csv():
 
 def test_ac015_status_uses_controlled_clock_contract():
     client = make_client()
+    set_clock(datetime(2026, 10, 19, 12, tzinfo=ZURICH))
     assignment = assign(client, "module-soziale-dienste", due_date="2026-10-20")
     login(client, "ma@mail.ch")
     for current, expected in (
