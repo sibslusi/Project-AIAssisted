@@ -46,8 +46,8 @@ Folgt.
 | Messwert | Wert |
 |---|---|
 | Zeit | 28 s („Completed 2 steps in 28s“) |
-| Spend vorher / nachher | folgt |
-| Kosten | folgt |
+| Spend vorher / nachher | 5.578048570 / 5.582388570 USD |
+| Kosten | **0.0043 USD** |
 | Antwort | [antwort-lauf-c.md](modellvergleich/antwort-lauf-c.md) |
 | Bewertung | folgt (Sibslusi) |
 
