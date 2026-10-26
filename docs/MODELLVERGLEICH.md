@@ -59,6 +59,10 @@ Folgt.
 | Antwort | [antwort-lauf-c.md](modellvergleich/antwort-lauf-c.md) |
 | Bewertung | folgt (Sibslusi) |
 
+## Vergleich der beiden gpt-5.6-luna-Läufe
+
+Geprüfte Gegenüberstellung von Lauf A und Lauf C: [modellvergleich/vergleich-a-c.md](modellvergleich/vergleich-a-c.md).
+
 ## Einschränkungen des Versuchs
 
 - Copilot Ask hat standardmässig Lese- und Suchwerkzeuge für den Workspace aktiv. Die Modelle
