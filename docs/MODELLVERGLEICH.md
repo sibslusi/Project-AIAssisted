@@ -52,12 +52,21 @@ Modell Granite 4.1 aus dem LiteLLM.
 | Zeit | Abbruch nach **300 s** (LiteLLM-Timeout `litellm-vscode-chat.chat.timeout`), Antwort unvollständig |
 | Spend vorher / nachher | 5.611272170 / folgt |
 | Kosten | folgt |
-| Antwort | folgt |
+| Antwort | [antwort-lauf-b.md](modellvergleich/antwort-lauf-b.md) |
 | Bewertung | folgt (Sibslusi) |
 
-Auffällig: „Fix 2“ behauptet, `from datetime import date` importiere einen falschen `date`-Typ, und
-schlägt `from datetime import date as Date` vor. Das ist ein **Falschbefund**: Der Import ist korrekt,
-der Fix ändert nichts. Der zugehörige Test ist leer.
+Gegen den Code geprüft (Claude): Keiner der fünf Befunde trifft zu, B2 und B3 fehlen.
+
+| Befund von Granite | Prüfung |
+|---|---|
+| `_actor` ohne Cookie | Falsch: Ohne Cookie liefert `_actor` `None`, `_require_actor` antwortet korrekt mit 401. |
+| CSRF nur beim Logout geprüft | Falsch: `_check_csrf` läuft auch in `/api/assignments` und `start_round`. |
+| `from datetime import date` sei der falsche Typ | Falsch: Der Import ist korrekt; der Fix `date as Date` ändert nichts. |
+| DSV kann jeder Abteilung zuweisen | Kein Fehler: Die DSV ist laut Rollenmodell für alle Abteilungen zuständig. |
+| `fromisoformat` lehnt Datum mit Uhrzeit ab | Kein Fehler: 422 bei falschem Format ist gewollt. |
+
+Die Fixes verletzen zudem die Architektur (FastAPI-Import in der Domain, HTTP-Code im
+Application-Layer), und der Test zu Fix 2 ist leer.
 
 ### Lauf C: gpt-5.6-luna (Low)
 
