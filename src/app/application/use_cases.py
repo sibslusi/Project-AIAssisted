@@ -26,7 +26,12 @@ from app.application.ports import (
     ScenarioRepository,
 )
 from app.domain.models import Assignment, GameRound
-from app.domain.rules import best_attempt, team_aggregation, training_status
+from app.domain.rules import (
+    best_attempt,
+    due_date_has_passed,
+    team_aggregation,
+    training_status,
+)
 
 
 class AccessDenied(Exception):
@@ -47,10 +52,12 @@ class AssignModule:
         assignments: AssignmentRepository,
         modules: ModuleRepository,
         departments: DepartmentRepository,
+        clock: ClockPort,
     ):
         self.assignments = assignments
         self.modules = modules
         self.departments = departments
+        self.clock = clock
 
     def execute(
         self, actor: Actor, module_id: str, department_id: str, due_date
@@ -70,6 +77,8 @@ class AssignModule:
             )
         except (TypeError, ValueError) as error:
             raise InvalidRequest(str(error)) from error
+        if due_date_has_passed(assignment.due_date, self.clock.now()):
+            raise InvalidRequest("Die Frist darf nicht in der Vergangenheit liegen")
         return self.assignments.save(assignment)
 
 
@@ -193,13 +202,23 @@ class GetDepartmentStatus:
         assignments = self.assignments.for_department(department_id)
         persons = tuple(
             PersonStatus(employee.id, status, assignment.id, assignment.module_id)
-            for employee in self.employees.for_department(department_id)
+            for employee in _trainees(self.employees, department_id)
             for assignment in assignments
             for status in (
                 _person_status(employee, assignment, self.rounds, self.clock),
             )
         )
         return DepartmentStatus(department_id, persons)
+
+
+def _trainees(
+    employees: EmployeeRepository, department_id: str
+) -> tuple[EmployeeRecord, ...]:
+    return tuple(
+        employee
+        for employee in employees.for_department(department_id)
+        if employee.role is Role.EMPLOYEE
+    )
 
 
 def _person_status(employee: EmployeeRecord, assignment, rounds, clock) -> str:
@@ -286,7 +305,7 @@ class GetOverallEvaluation:
                         assignment.id,
                         assignment.module_id,
                     )
-                    for employee in self.employees.for_department(department.id)
+                    for employee in _trainees(self.employees, department.id)
                     for assignment in self.assignments.for_department(department.id)
                 ),
             )

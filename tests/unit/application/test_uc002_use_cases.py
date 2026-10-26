@@ -20,6 +20,7 @@ from app.application.use_cases import (
     GetDisplayNames,
     GetOverallEvaluation,
     GetPersonalStatus,
+    InvalidRequest,
     ListAssignments,
 )
 from app.domain.models import AnswerOption, Assignment, GameRound, Scenario
@@ -137,7 +138,7 @@ def employee(role=Role.EMPLOYEE, department_id="department-a"):
 
 def test_assign_module_requires_officer_and_validates_references():
     assignments = FakeAssignments()
-    use_case = AssignModule(assignments, FakeModules(), FakeDepartments())
+    use_case = AssignModule(assignments, FakeModules(), FakeDepartments(), FakeClock())
 
     result = use_case.execute(
         employee(Role.DATA_PROTECTION_OFFICER),
@@ -149,6 +150,37 @@ def test_assign_module_requires_officer_and_validates_references():
     assert result.module_id == "module-a"
     with pytest.raises(AccessDenied):
         use_case.execute(employee(), "module-a", "department-a", date(2026, 12, 31))
+
+
+def test_assign_module_rejects_due_date_before_today_in_zurich():
+    assignments = FakeAssignments()
+    use_case = AssignModule(assignments, FakeModules(), FakeDepartments(), FakeClock())
+    officer = employee(Role.DATA_PROTECTION_OFFICER)
+
+    with pytest.raises(InvalidRequest):
+        use_case.execute(officer, "module-a", "department-a", date(2026, 10, 20))
+    assert assignments.items == []
+
+    today = use_case.execute(officer, "module-a", "department-a", date(2026, 10, 21))
+    assert today.due_date == date(2026, 10, 21)
+
+
+def test_assign_module_uses_zurich_date_of_clock():
+    class LateEveningUtc(ClockPort):
+        def now(self):
+            return datetime(2026, 10, 21, 22, 30, tzinfo=ZoneInfo("UTC"))
+
+    use_case = AssignModule(
+        FakeAssignments(), FakeModules(), FakeDepartments(), LateEveningUtc()
+    )
+
+    with pytest.raises(InvalidRequest):
+        use_case.execute(
+            employee(Role.DATA_PROTECTION_OFFICER),
+            "module-a",
+            "department-a",
+            date(2026, 10, 21),
+        )
 
 
 def test_personal_status_is_limited_to_own_assignments():
@@ -379,3 +411,44 @@ def test_display_names_follow_role_visibility():
     }
     assert own.employees == {"employee-1": "Ada Muster"}
     assert own.modules == {"module-a": "Modul A"}
+
+
+class MixedRoleEmployees(FakeEmployees):
+    items = (
+        EmployeeRecord("lead-a", "department-a", role=Role.DEPARTMENT_LEAD),
+        EmployeeRecord("employee-1", "department-a"),
+        EmployeeRecord("officer", "department-b", role=Role.DATA_PROTECTION_OFFICER),
+        EmployeeRecord("employee-2", "department-b"),
+    )
+
+
+def test_department_status_lists_only_employees_who_must_train():
+    assignments = FakeAssignments(
+        [Assignment("a", "module-a", "department-a", date(2026, 12, 31))]
+    )
+    result = GetDepartmentStatus(
+        assignments, MixedRoleEmployees(), FakeRounds(), FakeClock()
+    ).execute(employee(Role.DEPARTMENT_LEAD), "department-a")
+
+    assert [person.employee_id for person in result.persons] == ["employee-1"]
+
+
+def test_overall_evaluation_lists_only_employees_who_must_train():
+    assignments = FakeAssignments(
+        [
+            Assignment("a", "module-a", "department-a", date(2026, 12, 31)),
+            Assignment("b", "module-a", "department-b", date(2026, 12, 31)),
+        ]
+    )
+    result = GetOverallEvaluation(
+        assignments,
+        MixedRoleEmployees(),
+        FakeDepartments(),
+        FakeRounds(),
+        FakeClock(),
+    ).execute(employee(Role.DATA_PROTECTION_OFFICER))
+
+    assert {
+        department.department_id: [person.employee_id for person in department.persons]
+        for department in result.departments
+    } == {"department-a": ["employee-1"], "department-b": ["employee-2"]}

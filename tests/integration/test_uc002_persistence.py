@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from app.application.models import EvidenceRow
+from app.application.models import EvidenceRow, Role
 from app.domain.models import Assignment
 from app.infrastructure.csv import TrainingEvidenceCsvAdapter
 from app.infrastructure.db import Base
@@ -80,6 +80,25 @@ def test_master_data_repositories_load_seed_entities():
             SqlAlchemyModuleRepository(session).get("module-einwohnerdienste")
             is not None
         )
+
+
+def test_employee_repository_provides_roles():
+    engine = database()
+    with Session(engine) as session:
+        load_seed_data(session, SEED_DIR)
+        repository = SqlAlchemyEmployeeRepository(session)
+        roles = {
+            item.id: item.role
+            for item in repository.for_department("department-einwohnerdienste")
+        }
+
+        assert roles["user-einwohnerdienste-leitung"] is Role.DEPARTMENT_LEAD
+        assert roles["user-einwohnerdienste-01"] is Role.EMPLOYEE
+        assert (
+            repository.get("user-datenschutzverantwortlich").role
+            is Role.DATA_PROTECTION_OFFICER
+        )
+        assert {item.role for item in repository.all()} == set(Role)
 
 
 def test_csv_adapter_uses_requested_evidence_format():

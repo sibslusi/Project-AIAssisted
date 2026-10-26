@@ -67,8 +67,8 @@ keine Einzelpunkte, sondern nur Teamwerte ab drei Personen.
 Mitarbeitende spielen ein zugewiesenes Modul mit fünf Fällen, bekommen pro
 Antwort Feedback mit Erklärung und Rechtsgrundlage und sehen am Ende Punktzahl,
 Bestehensstatus und Abzeichen. Eine abgebrochene Runde wird fortgesetzt;
-für den Status zählt der beste bestandene Versuch, frühere Versuche bleiben
-gespeichert.
+für den Status zählt der erste bestandene Versuch, für die Punktzahl der
+beste; frühere Versuche bleiben gespeichert.
 
 **UC-002: Schulung steuern** ([Spec](docs/specs/UC-002-SCHULUNG-STEUERN.md))
 Die Datenschutzverantwortliche weist einer Abteilung ein Modul mit Frist zu.
@@ -157,7 +157,9 @@ Die Schichtenregeln prüft [import-linter](.importlinter) in jeder CI.
 
 **Sicherheit:** Passwörter mit Argon2, Session-Cookie `HttpOnly`, `Secure`,
 `SameSite`, CSRF-Schutz für alle schreibenden Requests. Rolle und Abteilung
-kommen aus dem signierten Session-Cookie, nie aus Formularwerten. Fremde Module
+kommen aus dem signierten Session-Cookie, nie aus Formularwerten. Der Logout
+macht das Cookie sofort ungültig, auch auf anderen Geräten
+([ADR-007](docs/adr/ADR-007-SESSION-WIDERRUF.md)). Fremde Module
 ergeben 404, fremde Abteilungen 403
 ([ADR-005](docs/adr/ADR-005-FREMDE-ABTEILUNG.md)).
 
@@ -179,6 +181,7 @@ E2E-Tests verwenden, zum Beispiel `GET /health` (Status und Version),
 | [ADR-004](docs/adr/ADR-004-FRISTEN-CLOCKPORT.md) | Fristen über ClockPort und Europe/Zurich |
 | [ADR-005](docs/adr/ADR-005-FREMDE-ABTEILUNG.md) | Antworten für fremde Abteilungen |
 | [ADR-006](docs/adr/ADR-006-DEPLOYMENT.md) | Deployment als geprüftes Image auf Render mit Neon |
+| [ADR-007](docs/adr/ADR-007-SESSION-WIDERRUF.md) | Logout macht das Session-Cookie ungültig (Proposed) |
 
 ## Domain-Modell
 
@@ -281,10 +284,10 @@ wird.
 
 | Ebene | Ordner | Tests |
 |---|---|---|
-| Unit (Domain, Application, Konfiguration, Smoke-Test-Skript) | `tests/unit/` | 57 |
-| Integration (DB, Migrationen, Seed, HTTP, HTML) | `tests/integration/` | 62 |
-| End-to-End (Workflows UC-001, UC-002, Oberfläche über TestClient) | `tests/e2e/` | 35 |
-| **Total** | | **154, Coverage 96 %** |
+| Unit (Domain, Application, Konfiguration, Smoke-Test-Skript) | `tests/unit/` | 61 |
+| Integration (DB, Migrationen, Seed, HTTP, HTML) | `tests/integration/` | 69 |
+| End-to-End (Workflows UC-001, UC-002, Oberfläche über TestClient) | `tests/e2e/` | 37 |
+| **Total** | | **167, Coverage 97 %** |
 
 ```bash
 pytest --cov=src/app --cov-report=term-missing   # alle Tests mit Coverage
@@ -418,7 +421,7 @@ docs/
   AI-LOG.md        KI-Protokoll
   PROMPTS.md       Prompts pro Phase
   specs/           UC-001, UC-002
-  adr/             ADR-001 bis ADR-006
+  adr/             ADR-001 bis ADR-007
 skills/            AI-SDLC- und eigene Skills
 ```
 
