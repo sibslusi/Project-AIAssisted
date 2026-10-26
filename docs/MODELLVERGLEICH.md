@@ -20,6 +20,22 @@ begründen (Qualität, Zeit, Kosten).
 
 Spend vor Lauf A: **5.542206720 USD** (Terminal im Screenshot, Key-Anfang geschwärzt).
 
+## Beobachtungen bei der Durchführung
+
+- **Copilot wählt selbst einen Befehl.** Ein langer eingefügter Prompt wird zum Anhang
+  „Pasted text“, das Eingabefeld bleibt leer. Copilot hat daraus zweimal selbst einen Befehl
+  abgeleitet: zuerst `/fix` (keine Antwort), dann `/tests` (Fehler „To generate tests, open a file
+  and select code to test.“). Beide Versuche zählen nicht. Lösung: zusätzlich die Zeile
+  `Führe den Code-Review aus dem angehängten Text aus. Antworte direkt, ohne /fix oder /tests.`
+  ins Eingabefeld tippen, für beide Modelle gleich.
+- **Kontext wird automatisch angehängt.** Die offene Datei im Editor (hier `AI-LOG.md`) hing als
+  Kontext-Chip am Chat und musste entfernt werden, damit beide Modelle denselben Input bekommen.
+- **Denkstufe** wechselte zwischen den Versuchen von Extra High auf High; festgelegt ist High für
+  beide Modelle.
+
+Lernpunkt für die Reflexion: Auch im Modus Ask verändert das Werkzeug den Input (Intent-Erkennung,
+impliziter Kontext). Für einen fairen Vergleich muss man diese Automatismen kennen und ausschalten.
+
 ## Bekannte Fehler im geprüften Code (Lösungsschlüssel)
 
 - **B2:** Logout löscht nur die Cookies im Browser. Das signierte Session-Cookie bleibt bis
