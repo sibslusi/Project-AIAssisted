@@ -43,6 +43,8 @@ class Services:
     csv_adapter: Any
     clock: ClockPort
     authenticate: Callable[[Any, str, str], Actor | None]
+    session_version: Callable[[Any, str], int | None]
+    revoke_sessions: Callable[[Any, str], None]
     session_secret: str
     app_version: str = "dev"
 
@@ -88,9 +90,16 @@ def _csrf(response: Response) -> str:
     return token
 
 
-def _set_session_cookies(response: Response, actor: Actor, secret: str) -> None:
+def _set_session_cookies(
+    response: Response, actor: Actor, version: int, secret: str
+) -> None:
     session = URLSafeTimedSerializer(secret, salt="session").dumps(
-        {"id": actor.id, "role": actor.role, "department_id": actor.department_id}
+        {
+            "id": actor.id,
+            "role": actor.role,
+            "department_id": actor.department_id,
+            "version": version,
+        }
     )
     response.set_cookie(
         "session",
@@ -110,15 +119,25 @@ def _delete_session_cookies(response: Response) -> None:
     response.delete_cookie("csrf_token", secure=True, samesite="lax")
 
 
-def _actor(request: Request) -> Actor | None:
+def _session_data(request: Request) -> dict | None:
     value = request.cookies.get("session")
     if value is None:
         return None
     try:
-        data = URLSafeTimedSerializer(
+        return URLSafeTimedSerializer(
             _services(request).session_secret, salt="session"
         ).loads(value, max_age=SESSION_MAX_AGE)
     except BadSignature:
+        return None
+
+
+def _actor(request: Request) -> Actor | None:
+    data = _session_data(request)
+    if data is None or "version" not in data:
+        return None
+    with _session(request) as session:
+        current = _services(request).session_version(session, data["id"])
+    if current != data["version"]:
         return None
     return Actor(data["id"], Role(data["role"]), data["department_id"])
 
@@ -159,15 +178,17 @@ def login(
 ):
     if csrf_token is None or csrf_token != request.cookies.get("csrf_token"):
         raise HTTPExceptionResponse(403, "Ungültiger CSRF-Token")
+    services = _services(request)
     with _session(request) as session:
-        actor = _services(request).authenticate(session, email, password)
+        actor = services.authenticate(session, email, password)
+        version = None if actor is None else services.session_version(session, actor.id)
     if actor is None:
         raise HTTPExceptionResponse(401, "Ungültige Anmeldung")
     if "text/html" in request.headers.get("accept", ""):
         redirect = RedirectResponse(START_PAGES[actor.role], status_code=303)
-        _set_session_cookies(redirect, actor, _services(request).session_secret)
+        _set_session_cookies(redirect, actor, version, services.session_secret)
         return redirect
-    _set_session_cookies(response, actor, _services(request).session_secret)
+    _set_session_cookies(response, actor, version, services.session_secret)
     return {"status": "ok"}
 
 
@@ -182,6 +203,10 @@ def logout(
             raise HTTPExceptionResponse(403, "Ungültiger CSRF-Token")
     else:
         _check_csrf(request)
+    actor = _actor(request)
+    if actor is not None:
+        with _session(request) as session:
+            _services(request).revoke_sessions(session, actor.id)
     if "text/html" in request.headers.get("accept", ""):
         redirect = RedirectResponse("/", status_code=303)
         _delete_session_cookies(redirect)

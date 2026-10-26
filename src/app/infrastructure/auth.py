@@ -18,3 +18,14 @@ def authenticate(session: Session, email: str, password: str) -> Actor | None:
     except VerifyMismatchError:
         return None
     return Actor(employee.id, Role(employee.role), employee.department_id)
+
+
+def session_version(session: Session, employee_id: str) -> int | None:
+    employee = session.get(EmployeeModel, employee_id)
+    return None if employee is None else employee.session_version
+
+
+def revoke_sessions(session: Session, employee_id: str) -> None:
+    employee = session.get(EmployeeModel, employee_id)
+    if employee is not None:
+        employee.session_version += 1

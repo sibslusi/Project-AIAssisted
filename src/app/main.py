@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.infrastructure.auth import authenticate
+from app.infrastructure.auth import authenticate, revoke_sessions, session_version
 from app.infrastructure.clock import SystemClock
 from app.infrastructure.csv import TrainingEvidenceCsvAdapter
 from app.infrastructure.db import Base
@@ -53,6 +53,8 @@ def create_app():
             csv_adapter=TrainingEvidenceCsvAdapter(),
             clock=SystemClock(),
             authenticate=authenticate,
+            session_version=session_version,
+            revoke_sessions=revoke_sessions,
             session_secret=session_secret,
             app_version=os.environ.get("APP_VERSION") or "dev",
         )
