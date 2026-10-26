@@ -1,6 +1,6 @@
 # ADR-007: Logout macht das Session-Cookie ungültig
 
-Status: Proposed
+Status: Accepted (26.10.2026, Variante C von Sibslusi bestätigt)
 Datum: 2026-10-26
 Entschieden von: Sibslusi (Auftrag „lösen“ nach der Repo-Prüfung vom 25.10.),
 umgesetzt mit Claude Code

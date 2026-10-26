@@ -25,8 +25,8 @@ Phase 5 Deploy (UC-001/UC-002 live) und Korrekturen aus der Repo-Prüfung vom
   per Image-Digest mit Migration `0002_session_version` auf Neon und
   Smoke-Test gegen die Live-URL.
 - **Abschluss:** STATUS done am 26.10.2026 von Sibslusi bestätigt.
-- **Offen:** ADR-007 (Session-Widerruf) steht auf Proposed und wartet auf
-  Annahme durch Sibslusi.
+- **ADR-007:** Session-Widerruf (Variante C, `session_version`) am 26.10.2026
+  von Sibslusi angenommen, Status Accepted.
 
 ### Korrekturen aus der Repo-Prüfung vom 25.10.
 

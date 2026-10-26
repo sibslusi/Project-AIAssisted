@@ -181,7 +181,7 @@ E2E tests, for example `GET /health` (status and version), `POST /login`,
 | [ADR-004](docs/adr/ADR-004-FRISTEN-CLOCKPORT.md) | Due dates via ClockPort and Europe/Zurich |
 | [ADR-005](docs/adr/ADR-005-FREMDE-ABTEILUNG.md) | Responses for other departments |
 | [ADR-006](docs/adr/ADR-006-DEPLOYMENT.md) | Deployment as a validated image on Render with Neon |
-| [ADR-007](docs/adr/ADR-007-SESSION-WIDERRUF.md) | Logout invalidates the session cookie (Proposed) |
+| [ADR-007](docs/adr/ADR-007-SESSION-WIDERRUF.md) | Logout invalidates the session cookie |
 
 ## Domain model
 

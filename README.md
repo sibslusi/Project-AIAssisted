@@ -181,7 +181,7 @@ E2E-Tests verwenden, zum Beispiel `GET /health` (Status und Version),
 | [ADR-004](docs/adr/ADR-004-FRISTEN-CLOCKPORT.md) | Fristen über ClockPort und Europe/Zurich |
 | [ADR-005](docs/adr/ADR-005-FREMDE-ABTEILUNG.md) | Antworten für fremde Abteilungen |
 | [ADR-006](docs/adr/ADR-006-DEPLOYMENT.md) | Deployment als geprüftes Image auf Render mit Neon |
-| [ADR-007](docs/adr/ADR-007-SESSION-WIDERRUF.md) | Logout macht das Session-Cookie ungültig (Proposed) |
+| [ADR-007](docs/adr/ADR-007-SESSION-WIDERRUF.md) | Logout macht das Session-Cookie ungültig |
 
 ## Domain-Modell
 
