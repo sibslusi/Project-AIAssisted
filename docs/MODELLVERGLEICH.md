@@ -51,4 +51,17 @@ impliziter Kontext). Für einen fairen Vergleich muss man diese Automatismen ken
 
 ## Ergebnisse
 
-Folgt nach den beiden Läufen.
+### Lauf A: gpt-5.6-luna (High), 26.10.2026 11:42
+
+![Lauf A: Antwort von gpt-5.6-luna in Copilot Chat, Spend vor und nach dem Lauf im Terminal](images/modellvergleich-2-lauf-a.png)
+
+| Messwert | Wert |
+|---|---|
+| Zeit (laut Copilot „Completed 2 steps in …“) | 1 min 44 s |
+| Spend vorher / nachher | 5.550301720 / 5.568096120 USD |
+| Kosten | **0.0178 USD** |
+| Bewertung | folgt (Sibslusi) |
+
+### Lauf B
+
+Folgt.
