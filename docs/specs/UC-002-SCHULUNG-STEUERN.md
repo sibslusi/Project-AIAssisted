@@ -38,7 +38,10 @@ Abteilungsleitung, Mitarbeitende, Anwendung
 6. Die Datenschutzverantwortliche sieht den Status und aggregierte Ergebnisse
    aller Abteilungen.
 7. Die Abteilungsleitung sieht nur den Status pro Person der eigenen Abteilung.
-   Punkte und Fehler werden nur als Teamwerte aggregiert angezeigt.
+   Punkte und Fehler werden nur als Teamwerte aggregiert angezeigt. In allen
+   Statuslisten erscheinen nur Personen mit der Rolle Mitarbeitende;
+   Abteilungsleitungen und Datenschutzverantwortliche spielen keine Runden und
+   sind darum nicht schulungspflichtig.
 8. Teamwerte werden erst ab mindestens drei Personen mit abgeschlossenem
   Versuch angezeigt.
 9. Ausschliesslich die Datenschutzverantwortliche kann einen Schulungsnachweis
@@ -55,7 +58,8 @@ Abteilungsleitung, Mitarbeitende, Anwendung
 - Fremde Abteilung: Eine Abteilungsleitung kann keine Status- oder
   Detailauswertung einer anderen Abteilung abrufen.
 - Ungültige Eingabe: Ein fehlendes Modul, eine fehlende Abteilung oder eine
-  ungültige beziehungsweise fehlende Frist wird abgelehnt.
+  ungültige beziehungsweise fehlende Frist wird abgelehnt. Eine Frist vor dem
+  heutigen Datum (`Europe/Zurich`, vom `ClockPort`) ist ungültig.
 - Nicht gefunden: Ein unbekanntes Modul oder eine unbekannte Abteilung führt zu
   einer kontrollierten Fehlermeldung.
 - Zu kleine Gruppe: Teamwerte werden bei weniger als drei Personen nicht
@@ -75,7 +79,8 @@ Frist.
 ### AC-002: Zuweisung validieren
 
 **Given** eine neue Zuweisung  
-**When** Modul, Abteilung oder Frist fehlt oder ungültig ist  
+**When** Modul, Abteilung oder Frist fehlt oder ungültig ist, oder die Frist
+vor dem heutigen Datum in `Europe/Zurich` liegt  
 **Then** weist die Anwendung die Zuweisung ab und speichert sie nicht.
 
 ### AC-003: Status offen
@@ -115,8 +120,9 @@ Frist
 
 **Given** eine angemeldete Abteilungsleitung  
 **When** sie die Schulungsstatus ihrer Abteilung abfragt  
-**Then** sieht sie pro Person nur den Status `erledigt`, `offen`, `verspätet
-erledigt` oder `Frist überschritten`.
+**Then** sieht sie pro Person mit der Rolle Mitarbeitende nur den Status
+`erledigt`, `offen`, `verspätet erledigt` oder `Frist überschritten`; sie
+selbst erscheint nicht in der Liste.
 
 ### AC-009: Fremde Abteilung schützen
 
@@ -144,7 +150,8 @@ Teilnehmende`.
 
 **Given** eine angemeldete Datenschutzverantwortliche  
 **When** sie die Schulungsauswertung öffnet  
-**Then** sieht sie die zulässige Auswertung aller Abteilungen.
+**Then** sieht sie die zulässige Auswertung aller Abteilungen, mit allen
+Personen der Rolle Mitarbeitende.
 
 ### AC-013: CSV exportieren
 
@@ -178,15 +185,16 @@ aufzurufen.
 - `Assignment` bindet ein vorhandenes `Module` an genau eine `Department` und
   hält ein Fristdatum als lokales Kalenderdatum. `TrainingStatus` hat genau die
   Werte `offen`, `erledigt`, `verspätet erledigt` und `Frist überschritten`.
-  Die Zuweisungsregeln verlangen Modul, Zielabteilung und ein gültiges Datum;
-  fachlich wird vor dem Speichern geprüft.
+  Die Zuweisungsregeln verlangen Modul, Zielabteilung und ein gültiges Datum,
+  das nicht vor dem heutigen Datum in `Europe/Zurich` liegt; fachlich wird vor
+  dem Speichern geprüft.
 - Die Statusregel erhält einen Zeitpunkt als Argument. Das Fristdatum gilt in
   `Europe/Zurich` einschliesslich 23:59:59 Uhr am angegebenen lokalen Datum;
   der Zeitpunkt des Versuchsabschlusses wird vor dem Vergleich in diese
-  Zeitzone umgerechnet. Für den Status zählt der beste bestandene Versuch unter
-  den abgeschlossenen Versuchen der Person für die Zuweisung; bei gleicher
-  Punktzahl gilt der zuerst abgeschlossene bestandene Versuch. Bis zum
-  Fristende `erledigt`, danach `verspätet erledigt`. Gibt es keinen bestandenen
+  Zeitzone umgerechnet. Für den Status zählt der zuerst abgeschlossene
+  bestandene Versuch der Person für die Zuweisung (ADR-004); ein späterer,
+  auch besserer Versuch ändert den Status nicht. Bis zum Fristende
+  `erledigt`, danach `verspätet erledigt`. Gibt es keinen bestandenen
   Versuch, gilt bis zum Fristende `offen`, danach `Frist überschritten`.
 - Für persönliche Punkte/Fehler und Teamwerte werden je Person die Werte des
   abgeschlossenen Versuchs mit der höchsten Punktzahl verwendet; bei
@@ -209,7 +217,7 @@ Zugriffsregeln und validiert Eingaben vor dem Aufruf der Repository-Ports.
 
 | Service | Eingabe | Ausgabe |
 |---|---|---|
-| `AssignModule` | Principal, Modul-ID, Abteilungs-ID, Fristdatum (`YYYY-MM-DD`) | gespeicherte `Assignment` |
+| `AssignModule` | Principal, Modul-ID, Abteilungs-ID, Fristdatum (`YYYY-MM-DD`), Zeitpunkt vom Clock-Port | gespeicherte `Assignment` |
 | `GetPersonalStatus` | Principal, optional Zuweisungsfilter, Zeitpunkt vom Clock-Port | eigene Statuswerte und eigene beste Ergebnisse |
 | `GetDepartmentStatus` | Principal, angeforderte Abteilungs-ID, optional Zuweisungsfilter, Zeitpunkt | Status pro Person; keine Einzelpunkte oder Einzelfehler |
 | `CreateTeamAggregation` | Principal, Abteilungs-ID, optional Zuweisungsfilter | Aggregat aus Punkte- und Fehlerwerten oder `zu wenige Teilnehmende` |
@@ -284,17 +292,17 @@ Testdateien oder Implementierung an.
 | Kriterium | E2E-API-Fall und erwartetes Ergebnis |
 |---|---|
 | AC-001 | Als Datenschutzverantwortliche ein vorhandenes Modul mit Abteilung und gültiger Frist via `POST /api/assignments` zuweisen; `201`, danach enthält der Datensatz Modul, Abteilung und Frist. |
-| AC-002 | Je einen POST mit fehlender Modul-ID, Abteilungs-ID oder Fristdatum sowie ungültigem Datumsformat senden; alle liefern `422` und erzeugen keine Zuweisung. |
+| AC-002 | Je einen POST mit fehlender Modul-ID, Abteilungs-ID oder Fristdatum, ungültigem Datumsformat sowie einer Frist vor dem heutigen Datum (kontrollierte Uhr) senden; alle liefern `422` und erzeugen keine Zuweisung. |
 | AC-003 | Eine Zuweisung ohne bestandenen Versuch mit kontrollierter Zeit vor und genau am lokalen Fristende (23:59:59 Europe/Zurich) abfragen; beide Male `offen`. |
 | AC-004 | Eine Zuweisung mit bestandenem Versuch bis einschliesslich 23:59:59 Uhr am Fristdatum in `Europe/Zurich` abfragen; Status `erledigt`. |
 | AC-005 | Zuweisung ohne bestandenen Versuch ab dem Folgetag in `Europe/Zurich` abfragen, einmal ohne gestartete Runde und einmal mit nicht abgeschlossener Runde; Status jeweils `Frist überschritten`. |
 | AC-006 | Zuweisung ohne früheren bestandenen Versuch mit bestandenem Abschluss am Folgetag nach dem lokalen Fristdatum abfragen; Status `verspätet erledigt`. |
 | AC-007 | Als Mitarbeitende den eigenen Status abrufen und eine fremde Mitarbeiter-ID als Filter übermitteln; die Antwort enthält nur eigene Status- und Ergebnisdaten, der fremde Filter wird abgewiesen. Nicht angemeldet liefert `401`. |
-| AC-008 | Als Abteilungsleitung die eigene Abteilung abfragen; Antwort enthält pro Person nur einen der vier Statuswerte und keine individuellen Punkte oder Fehler. |
+| AC-008 | Als Abteilungsleitung die eigene Abteilung abfragen; Antwort enthält pro Person nur einen der vier Statuswerte und keine individuellen Punkte oder Fehler. Die Leitung selbst ist nicht in der Liste. |
 | AC-009 | Als Leitung von Abteilung A den Status von Abteilung B anfordern; `403` und keine Statusdaten von B. |
 | AC-010 | Für drei verschiedene Personen der eigenen Abteilung abgeschlossene Versuche bereitstellen und die Teamaggregation abrufen; aggregierte Punkte und Fehler erscheinen, keine Einzelwerte oder identifizierbaren Versuchsdaten. |
 | AC-011 | Aggregation zunächst mit zwei, dann mit null abgeschlossenen Personen abrufen; jeweils `200` mit `zu wenige Teilnehmende` und ohne Punkte- oder Fehlerwerte. |
-| AC-012 | Als Datenschutzverantwortliche Gesamtauswertung abrufen; Status und zulässige Auswertung enthalten alle fiktiven Abteilungen und Zuweisungen. |
+| AC-012 | Als Datenschutzverantwortliche Gesamtauswertung abrufen; Status und zulässige Auswertung enthalten alle fiktiven Abteilungen und Zuweisungen, aber keine Abteilungsleitungen und keine Datenschutzverantwortliche. |
 | AC-013 | Als Datenschutzverantwortliche für eine gültige Zuweisung CSV exportieren; `200`, `text/csv`, eine Zeile pro Versuch mit Namen, Abteilung, Modul, Punktzahl, Bestanden, Abschlusszeitpunkt und Szenario-IDs, auch für nicht bestandene Versuche. |
 | AC-014 | Als Abteilungsleitung denselben CSV-Endpunkt aufrufen; `403`, ohne CSV-Inhalt. |
 | AC-015 | Dieselbe Zuweisung ohne bestandenen Versuch mit kontrolliertem Zeitpunkt vor, genau am Fristende (23:59:59) und ab dem Folgetag in `Europe/Zurich` abfragen; der Status wechselt von `offen` zu `Frist überschritten`, ohne direkte Systemzeitabhängigkeit. |

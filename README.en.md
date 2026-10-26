@@ -69,8 +69,8 @@ only team values from three people.
 **UC-001: Play a scenario round** ([spec, German](docs/specs/UC-001-SZENARIO-RUNDE-SPIELEN.md))
 Employees play an assigned module of five cases, get feedback with explanation
 and legal basis after each answer and finally see score, pass status and badge.
-An interrupted round is resumed; the best passing attempt counts for the
-training status and earlier attempts are kept.
+An interrupted round is resumed; the first passing attempt counts for the
+training status, the best attempt for the score, and earlier attempts are kept.
 
 **UC-002: Manage training** ([spec, German](docs/specs/UC-002-SCHULUNG-STEUERN.md))
 The data protection officer assigns a module to a department with a due date.
@@ -158,6 +158,8 @@ The layer rules are checked by [import-linter](.importlinter) in every CI run.
 **Security:** Argon2 password hashes, session cookie with `HttpOnly`, `Secure`
 and `SameSite`, CSRF protection on all state-changing requests. Role and
 department come from the signed session cookie, never from form values.
+Logout invalidates the cookie at once, on other devices too
+([ADR-007](docs/adr/ADR-007-SESSION-WIDERRUF.md)).
 Modules of another department return 404, other departments' reports return
 403 ([ADR-005](docs/adr/ADR-005-FREMDE-ABTEILUNG.md)).
 
@@ -179,6 +181,7 @@ E2E tests, for example `GET /health` (status and version), `POST /login`,
 | [ADR-004](docs/adr/ADR-004-FRISTEN-CLOCKPORT.md) | Due dates via ClockPort and Europe/Zurich |
 | [ADR-005](docs/adr/ADR-005-FREMDE-ABTEILUNG.md) | Responses for other departments |
 | [ADR-006](docs/adr/ADR-006-DEPLOYMENT.md) | Deployment as a validated image on Render with Neon |
+| [ADR-007](docs/adr/ADR-007-SESSION-WIDERRUF.md) | Logout invalidates the session cookie (Proposed) |
 
 ## Domain model
 
@@ -278,10 +281,10 @@ acceptance criterion to a test that is written before the code.
 
 | Level | Folder | Tests |
 |---|---|---|
-| Unit (domain, application, configuration, smoke-test script) | `tests/unit/` | 57 |
-| Integration (DB, migrations, seed, HTTP, HTML) | `tests/integration/` | 62 |
-| End-to-end (UC-001, UC-002 and UI workflows via TestClient) | `tests/e2e/` | 35 |
-| **Total** | | **154, coverage 96 %** |
+| Unit (domain, application, configuration, smoke-test script) | `tests/unit/` | 61 |
+| Integration (DB, migrations, seed, HTTP, HTML) | `tests/integration/` | 69 |
+| End-to-end (UC-001, UC-002 and UI workflows via TestClient) | `tests/e2e/` | 37 |
+| **Total** | | **167, coverage 97 %** |
 
 ```bash
 pytest --cov=src/app --cov-report=term-missing   # all tests with coverage
@@ -414,7 +417,7 @@ docs/
   AI-LOG.md        AI log
   PROMPTS.md       prompts per phase
   specs/           UC-001, UC-002
-  adr/             ADR-001 to ADR-006
+  adr/             ADR-001 to ADR-007
 skills/            AI-SDLC and custom skills
 ```
 

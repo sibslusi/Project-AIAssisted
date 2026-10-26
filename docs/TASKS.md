@@ -1,13 +1,57 @@
 # TASKS.md
 
-PHASE: 4
+PHASE: 5
 STATUS: in-progress
 
 (0=Bootstrap | 1=Specify | 2=Design | 3=Develop | 4=Validate | 5=Deploy)
 
 ## Current Use Case
 
-Phase 4 Validate und Vorbereitung Phase 5 Deploy (CI/CD für UC-001/UC-002)
+Phase 5 Deploy (UC-001/UC-002 live) und Korrekturen aus der Repo-Prüfung vom
+25.10.2026
+
+### Phase 5: Deploy
+
+- **Umfang:** Neon-Datenbank, Render-Web-Service aus dem GHCR-Image
+  (Auto-Deploy aus), GitHub-Environment `production` mit Secrets
+  `RENDER_DEPLOY_HOOK_URL`, `DEMO_PASSWORD` und Variablen `CD_ENABLED`,
+  `RENDER_SERVICE_URL`, `SMOKE_EMAIL` (ADR-006, jetzt Accepted).
+- **Nachweis:** Tag `v0.1.1`, Release-Lauf 40194817567 am 25.10. grün: Tests,
+  E2E im Image, Smoke im Container, Push nach GHCR, GitHub-Release, Deploy per
+  Image-Digest und Smoke-Test gegen https://grenchen-datenschutz.onrender.com
+  (`/health` mit Version `v0.1.1`, Demo-Login).
+- **Offen:** Nach dem Merge der Korrekturen unten Release `v0.1.2` taggen; der
+  Deploy führt Migration `0002_session_version` auf Neon aus. STATUS done erst
+  nach Bestätigung durch Sibslusi.
+
+### Korrekturen aus der Repo-Prüfung vom 25.10.
+
+Keine Fast Track: B1 ändert Fachlogik, der Logout ist eine Sicherheits- und
+Datenänderung (Migration). Darum Specs, ADR-007 und TDD-Commits.
+
+- **B1:** Abteilungsleitungen und Datenschutzverantwortliche standen in den
+  Statuslisten und wären nach Fristende „Frist überschritten“, obwohl sie
+  keine Runden spielen dürfen. Jetzt nur Rolle Mitarbeitende (UC-002 Flow 7,
+  AC-008, AC-012).
+- **Logout:** Ein kopiertes Session-Cookie blieb nach dem Logout gültig. Jetzt
+  Session-Version pro Person (ADR-007, Migration `0002`).
+- **Frist:** Eine Frist vor dem heutigen Datum wurde angenommen. Jetzt 422
+  (UC-002 AC-002, Regel `due_date_has_passed` mit `ClockPort`).
+- **D1:** UC-001, UC-002 und PROJECT.md sagten „bester bestandener Versuch“
+  für den Friststatus; Code und ADR-004 verwenden den ersten. Doku angeglichen.
+- **D2:** `CurrentActorPort`, KI-Port und LiteLLM-Adapter standen in
+  PROJECT.md, ADR-001 und ADR-002, gibt es im Code aber nicht. Doku
+  angeglichen; `ENVIRONMENT` entfernt (wurde nie gelesen).
+- **Regressionstests:** `tests/unit/application/test_uc002_use_cases.py`,
+  `tests/integration/test_uc002_persistence.py`,
+  `tests/integration/test_http.py`, `tests/integration/test_web.py`,
+  `tests/integration/test_auth.py`, `tests/e2e/test_uc002_workflow.py`.
+- **Checks:** 167 Tests grün, Coverage 97 %, Ruff, Format, import-linter,
+  `alembic check` (SQLite im Test). PostgreSQL prüft der CI-Job `postgres`.
+- **Bekannt, nicht geändert:** Die Gesamtauswertung der
+  Datenschutzverantwortlichen zeigt nur Status pro Person, keine
+  Punkte-Aggregate (UC-002 Flow 6); die Abteilungsseite zeigt Punkte, aber
+  keine Fehler (AC-010, API liefert beide).
 
 ### Phase 4: Validate
 

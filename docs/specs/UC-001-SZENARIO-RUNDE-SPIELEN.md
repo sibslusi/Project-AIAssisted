@@ -48,9 +48,9 @@ Abteilungsleitung, Datenschutzverantwortliche, Anwendung
 10. Die Mitarbeitende kann das Modul später erneut spielen. Für die
     Punktanzeige zählt der Versuch mit der höchsten Punktzahl; bei gleicher
     Punktzahl der zuerst abgeschlossene Versuch. Für den Schulungsstatus zählt
-    der beste bestandene Versuch. Frühere Versuche bleiben erhalten.
+    der erste bestandene Versuch (ADR-004). Frühere Versuche bleiben erhalten.
 11. Ist die Frist des `Assignment` abgelaufen, darf die Mitarbeitende das Modul
-   weiterhin spielen. Für den Trainingsstatus zählt weiterhin der beste
+   weiterhin spielen. Für den Trainingsstatus zählt weiterhin der erste
    bestandene Versuch: Liegt dessen Abschluss nach Fristende, lautet der Status
    `verspätet erledigt`; ohne bestandenen Versuch lautet er
    `Frist überschritten`. Bewertung und Bestehensgrenze bleiben unverändert.
@@ -130,7 +130,7 @@ auf `GameRound`.
 **When** der Schulungsstatus angezeigt wird  
 **Then** verwendet die Anwendung für die Punktanzeige den Versuch mit der
 höchsten Punktzahl (bei Gleichstand den zuerst abgeschlossenen) und für den
-Schulungsstatus den besten bestandenen Versuch; frühere Versuche bleiben
+Schulungsstatus den ersten bestandenen Versuch; frühere Versuche bleiben
 unverändert.
 
 ### AC-008: Ungültige Antwort ablehnen
@@ -214,14 +214,14 @@ einem zuständigen späteren Use Case und wird hier nicht entworfen.
   Wiederholung erzeugt eine neue Runde mit der nächsten `attempt_number`;
   frühere Versuche und Antworten bleiben unverändert. Für die Punktanzeige
   zählt der abgeschlossene Versuch mit der höchsten Punktzahl; bei Gleichstand
-  der zuerst abgeschlossene. Für den Trainingsstatus zählt der beste
-  bestandene Versuch; bei gleicher Punktzahl der zuerst abgeschlossene
-  bestandene Versuch. Dessen Abschlusszeitpunkt bestimmt den Friststatus; ein
-  späterer Versuch mit gleicher Punktzahl ändert ihn nicht. Ein Abzeichen wird
-  aus dem besten bestandenen Versuch berechnet, nicht als eigene Entität
+  der zuerst abgeschlossene. Für den Trainingsstatus zählt der zuerst
+  abgeschlossene bestandene Versuch (ADR-004). Dessen Abschlusszeitpunkt
+  bestimmt den Friststatus; ein späterer, auch besserer Versuch ändert ihn
+  nicht. Ein Abzeichen erscheint, sobald ein Versuch bestanden ist (Status
+  `erledigt` oder `verspätet erledigt`), und wird nicht als eigene Entität
   gespeichert.
 - `GameRound.completed_at` wird beim Abschluss gesetzt. Der Status
-  `verspätet erledigt` wird anhand des Abschlusszeitpunkts des besten
+  `verspätet erledigt` wird anhand des Abschlusszeitpunkts des ersten
   bestandenen Versuchs bestimmt. Ohne bestandenen Versuch gilt bis zum
   Fristende `offen`, danach `Frist überschritten`. Das Fristdatum ist ein lokales
   Kalenderdatum in `Europe/Zurich` und gilt einschliesslich 23:59:59 Ortszeit.
@@ -256,8 +256,9 @@ einem zuständigen späteren Use Case und wird hier nicht entworfen.
   prüfen kann, und lädt für offene Runden gespeicherte Szenario-IDs unabhängig
   vom aktuellen Aktivstatus;
   `GameRoundRepository` lädt offene/beste Versuche und speichert Runde,
-  Antworten und Abschluss; `CurrentActorPort` liefert serverseitig
-  authentifizierte Person, Rolle und Abteilung; `ClockPort` liefert aktuelles
+  Antworten und Abschluss; jeder Use Case erhält den serverseitig
+  authentifizierten `Actor` (Person, Rolle, Abteilung) als Parameter;
+  `ClockPort` liefert aktuelles
   Datum bzw. aktuellen Zeitpunkt in der für Fristen festgelegten Zeitzone.
 
 ### Interfaces
@@ -288,9 +289,10 @@ wird in UC-001 kein Szenario-Verwaltungsendpunkt ergänzt.
 - SQLAlchemy-Adapter implementieren die Repository-Ports. PostgreSQL ist die
   Laufzeit-/Deployment-Datenbank; SQLite kann lokal und in automatisierten
   Tests verwendet werden.
-- Ein Session-/Authentifizierungsadapter implementiert `CurrentActorPort` und
-  liest die geschützte Session. Login- und Registrierungsabläufe sind nicht
-  Teil dieses UC. CSRF wird für die schreibende Antwortanfrage geprüft.
+- Die Interfaces-Schicht liest den `Actor` aus dem signierten Session-Cookie;
+  ein Authentifizierungsadapter in Infrastructure prüft Passwort und
+  Session-Version (ADR-002, ADR-007). Login- und Registrierungsabläufe sind
+  nicht Teil dieses UC. CSRF wird für die schreibende Antwortanfrage geprüft.
 - Ein Clock-Adapter implementiert `ClockPort`; die Application übergibt das
   gelieferte Datum bzw. den Zeitpunkt an die Domainregeln.
 

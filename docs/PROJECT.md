@@ -28,7 +28,9 @@ verwalten sowie den Schulungsstand der Gemeinde kontrollieren.
 3. Sofortige Bewertung mit Erklärung.
 4. Schulungsfortschritt und Abschlussstatus anzeigen.
 5. Aggregierte Abteilungsauswertung anzeigen.
-6. Fälle und Schulungsmodule verwalten.
+6. Schulungsmodule mit Frist zuweisen. Das Anlegen und Deaktivieren von
+	Fällen über die Oberfläche ist in V1 nicht umgesetzt (siehe „Verwaltung
+	von Fällen und Modulen“).
 
 ### Zielgruppe und Rollen
 
@@ -63,9 +65,10 @@ auch von anderen Gemeinden übernommen werden können.
 - UC-002: Module mit Frist zuweisen, Status anzeigen, aggregiert auswerten und
 	einen Schulungsnachweis als CSV exportieren.
 - Szenarien werden initial als Seed-Daten geladen. Veröffentlichte Szenarien und
-	ihre Antwortoptionen sind unveränderlich. Die Datenschutzverantwortliche kann
-	neue Szenarien anlegen und bestehende über `Scenario.active` deaktivieren.
-	Ein fehlerhafter Fall wird deaktiviert und durch ein neues Szenario ersetzt.
+	ihre Antwortoptionen sind unveränderlich. Ein fehlerhafter Fall wird über
+	`Scenario.active` deaktiviert und durch ein neues Szenario ersetzt. In V1
+	geschieht das über die Seed-Daten; eine Verwaltungsoberfläche dafür ist
+	eine spätere Erweiterung.
 - Neue Runden verwenden nur aktive Szenarien. Laufende Runden und alte
 	`RoundAnswer`-Einträge bleiben gültig, weil sich ihr Szenario nicht ändert.
 - `Module` und `Scenario` werden über `module_scenarios` verbunden. Die
@@ -79,8 +82,9 @@ auch von anderen Gemeinden übernommen werden können.
 - Eine separate Szenario-Versionierung ist nur eine mögliche spätere Erweiterung.
 - Es werden keine echten Personendaten verwendet.
 - Mitarbeitende dürfen eine Runde wiederholen. Für den Schulungsstatus zählt
-	der beste bestandene Versuch. Frühere Versuche bleiben gespeichert, damit
-	der Lernfortschritt nachvollziehbar bleibt.
+	der erste bestandene Versuch, für die Punktanzeige der beste Versuch
+	(ADR-004). Frühere Versuche bleiben gespeichert, damit der Lernfortschritt
+	nachvollziehbar bleibt.
 
 ### Auswertungsregeln
 
@@ -92,13 +96,21 @@ auch von anderen Gemeinden übernommen werden können.
 	Versuch eingeblendet, damit keine Rückschlüsse auf Einzelpersonen möglich
 	sind.
 - Datenschutzverantwortliche sehen die Auswertung aller Abteilungen.
+- Schulungspflichtig sind nur Personen mit der Rolle Mitarbeitende.
+	Abteilungsleitungen und Datenschutzverantwortliche spielen keine Runden und
+	erscheinen darum nicht in den Statuslisten.
 
 ### Verwaltung von Fällen und Modulen
 
-Datenschutzverantwortliche können neue Datenschutzfälle erstellen und bestehende
-Fälle deaktivieren. Veröffentlichte Szenarien und ihre Antwortoptionen werden
-nicht bearbeitet oder gelöscht. Sie können mehrere Fälle zu einem Schulungsmodul
-zusammenfassen, das Modul einer Abteilung zuweisen und eine Frist festlegen.
+Datenschutzverantwortliche weisen ein Modul einer Abteilung mit einer Frist zu.
+Die Frist darf nicht vor dem heutigen Datum liegen. Veröffentlichte Szenarien
+und ihre Antwortoptionen werden nicht bearbeitet oder gelöscht.
+
+Nicht in V1 umgesetzt: neue Fälle über die Oberfläche erstellen, Fälle
+deaktivieren und Fälle zu neuen Modulen zusammenfassen. Fälle und Module kommen
+aus den Seed-Daten (`data/seed/`). Die Regeln dafür (Unveränderlichkeit,
+Deaktivieren und Ersetzen, ADR-003) sind im Domain-Modell und in der Datenbank
+bereits angelegt.
 
 Fiktive Seed-Daten, automatisierte Tests und lokaler Betrieb mit PostgreSQL oder
 SQLite fuer die Entwicklung gehören zum Projektumfang.
@@ -162,9 +174,13 @@ E-Mail und Passwort; Passwörter werden mit Argon2 geprüft. Eine erfolgreiche
 Anmeldung erzeugt eine geschützte Session mit `HttpOnly`, `Secure` und
 `SameSite`-Cookie. Schreibende Requests verwenden CSRF-Schutz.
 
-Die Application-Schicht definiert `CurrentActorPort`; Infrastructure liest die
-serverseitige Session und liefert Benutzer, Rolle und Abteilung. Rollen und
-Abteilungen werden nie aus frei eingegebenen Formularwerten übernommen. Eine
+Das Session-Cookie ist mit `SESSION_SECRET` signiert und enthält Person, Rolle,
+Abteilung und eine Session-Version. Die Interfaces-Schicht liest daraus den
+`Actor` und übergibt ihn jedem Use Case als Parameter; einen eigenen
+`CurrentActorPort` gibt es nicht. Bei jeder Anfrage wird die Session-Version
+mit der Datenbank verglichen; der Logout erhöht sie und beendet damit alle
+Sessions der Person (ADR-007). Rollen und Abteilungen werden nie aus frei
+eingegebenen Formularwerten übernommen. Eine
 öffentliche Registrierung ist für V1 ausgeschlossen und als spätere
 Erweiterung vorgemerkt.
 
@@ -178,25 +194,31 @@ The application uses Clean Architecture. Dependencies always point inward:
   badge at 80 percent and team values from three people. It imports no
   FastAPI, SQLAlchemy, Jinja2 or HTTPX code.
 - **Application** contains use cases, access-control rules and ports for
-  repositories, the clock, CSV export and the optional KI integration.
-- **Interfaces** provides API endpoints, HTML pages with Jinja2 and CSV export.
+  repositories, the clock and CSV export. The logged-in `Actor` is passed to
+  every use case as a parameter.
+- **Interfaces** provides API endpoints, HTML pages with Jinja2 and CSV export,
+  and reads the `Actor` from the signed session cookie.
 - **Infrastructure** implements the ports: SQLAlchemy database access,
-  authentication, session management, system clock, CSV export and the
-  LiteLLM adapter.
+  password and session-version checks, system clock and CSV export.
+- `src/app/main.py` is the composition root that wires the adapters into the
+  interfaces.
+- A KI port and a LiteLLM adapter would only be added with the optional
+  UC-003, which is not implemented.
 
 ```mermaid
 flowchart LR
   Interfaces[Schnittstellen: FastAPI, Jinja2, CSV-Download] --> UseCases
   subgraph Application[Application]
-    UseCases[Use Cases und Zugriffsregeln] --> Ports[Ports: Repository, CurrentActor, Clock, KI, CSV-Export]
+    UseCases[Use Cases und Zugriffsregeln] --> Ports[Ports: Repository, Clock, CSV-Export]
   end
   UseCases --> Domain[Domain: Entitäten und Regeln]
-  Infrastructure[Infrastructure-Adapter: SQLAlchemy, Session/Auth, System Clock, LiteLLM, CSV-Export] -->|implementieren| Ports
+  Infrastructure[Infrastructure-Adapter: SQLAlchemy, Auth und Session-Version, System Clock, CSV-Export] -->|implementieren| Ports
 ```
 
 The dependency direction is checked automatically in CI. Important architecture
 decisions are documented as ADRs under `docs/adr/`, especially the choice of
-Python/FastAPI, PostgreSQL/SQLAlchemy with Neon and the replaceable KI port.
+Python/FastAPI, PostgreSQL/SQLAlchemy with Neon, deployment (ADR-006) and
+logout with a session version (ADR-007).
 
 The application is implemented as a web application with Python 3.12, FastAPI,
 Jinja2 and SQLAlchemy. Database migrations use Alembic. PostgreSQL is the
@@ -256,15 +278,16 @@ new scenario ID and deactivates the old scenario; no new position is created.
 `GameRound` stores the `attempt_number`, completion data, calculated score and
 whether the attempt passed. The score and pass status are stored when the round
 is completed, which simplifies department reports and CSV exports. If a module
-is played more than once, the best passing attempt determines the training
-status; attempts with the same score are ordered by completion time, earliest
-first.
+is played more than once, the first passing attempt determines the training
+status and its deadline status (ADR-004); the score shown is that of the best
+attempt, and attempts with the same score are ordered by completion time,
+earliest first.
 
 Created scenarios and their answer options are immutable. A faulty scenario
 is deactivated and replaced by a new scenario; new rounds use only active
 scenarios. Existing rounds and answers remain valid because their scenarios do
-not change. A badge is not stored as a separate entity; it is calculated from
-the best attempt when the score reaches 80 percent. Access rules are enforced
+not change. A badge is not stored as a separate entity; it is shown as soon
+as an attempt has passed (80 percent). Access rules are enforced
 in application use cases and covered by application-layer unit tests, not only
 in the web interface.
 
@@ -274,9 +297,13 @@ in the web interface.
 	a completed attempt.
 - The current date is supplied through a clock port; domain and application
 	code never call `datetime.now()` directly.
-- A repeated round is allowed. The best passing attempt determines training
-  status and badges; for equal scores, the first completed attempt wins. All
-  attempts remain available for error analysis.
+- A repeated round is allowed. The first passing attempt determines training
+  status and badges; a later, better attempt does not change the deadline
+  status. The score shown is the best attempt. All attempts remain available
+  for error analysis.
+- Only people with the role employee must complete training; department leads
+  and data protection officers are not listed in status reports.
+- A due date must not be before today's date in `Europe/Zurich`.
 - A created scenario cannot be edited or deleted; deactivation and a new
 	replacement scenario are used for corrections.
 - Passwords use Argon2. Forms use CSRF protection. Session cookies
@@ -406,7 +433,6 @@ Required configuration variable names:
 - `DATABASE_URL`
 - `SESSION_SECRET`
 - `DEMO_PASSWORD` (password of all fictional demo accounts)
-- `ENVIRONMENT`
 - `APP_VERSION` (optional, set by the image build; default `dev`)
 - `RUN_SEED` (optional, `true` loads the seed on container start)
 - `LLM_API_KEY` (only for optional UC-003)
