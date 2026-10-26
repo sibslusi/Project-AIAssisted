@@ -33,9 +33,11 @@ Modell Granite 4.1 aus dem LiteLLM.
 
 ### Lauf A: gpt-5.6-luna (High)
 
+![Lauf A: Anfang der Antwort mit Zeit und von Copilot automatisch verwendeten Referenzen](images/modellvergleich-lauf-a-antwort.png)
+
 | Messwert | Wert |
 |---|---|
-| Zeit | folgt |
+| Zeit | 28 s („Completed 2 steps in 28s“) |
 | Spend vorher / nachher | folgt |
 | Kosten | folgt |
 | Antwort | [antwort-lauf-a.md](modellvergleich/antwort-lauf-a.md) |
@@ -53,4 +55,8 @@ Folgt.
 
 - Copilot Ask hat standardmässig Lese- und Suchwerkzeuge für den Workspace aktiv. Die Modelle
   hätten also zusätzlich Dateien lesen können; die Werkzeuge sind für alle Läufe gleich.
+- **Copilot hängt Projekt-Instruktionen automatisch an.** Laut „Used 3 references“ las Copilot
+  `.github/copilot-instructions.md`, `AGENTS.md` und die Einstellung
+  `github.copilot.chat.codeGeneration.instructions` mit. Der Input war also nicht nur der Prompt,
+  aber für alle Läufe gleich.
 - Pro Modell ein Lauf; Ergebnisse können bei Wiederholung abweichen.
