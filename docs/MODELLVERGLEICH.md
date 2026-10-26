@@ -70,6 +70,8 @@ impliziter Kontext). Für einen fairen Vergleich muss man diese Automatismen ken
 Die SW3-Aufgabe nennt als Beispiel „a frontier model and an open-weight model“. Apertus (Swiss AI)
 war ohne Swiss-AI-Key nicht auswählbar, deshalb das offene Modell Granite 4.1 (3B) aus dem LiteLLM.
 
+![Lauf B: granite4.1:3b antwortet in Copilot Chat nur mit JSON-Titeln, Spend im Terminal unverändert](images/modellvergleich-3-lauf-b.png)
+
 | Messwert | Wert |
 |---|---|
 | Denkstufe | keine Auswahl (Modell bietet keine an) |
