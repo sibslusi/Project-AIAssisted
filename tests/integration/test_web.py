@@ -160,6 +160,23 @@ def test_home_page_redirects_logged_in_user_to_role_start_page():
     assert response.headers["location"] == "/abteilungsleitung/auswertung"
 
 
+def test_html_logout_invalidates_copied_session_cookie():
+    test_client = client()
+    _login(test_client, "ma@mail.ch")
+    old_session = test_client.cookies["session"]
+
+    test_client.post(
+        "/logout",
+        data={"csrf_token": test_client.cookies["csrf_token"]},
+        headers=HTML_HEADERS,
+        follow_redirects=False,
+    )
+    test_client.cookies.set("session", old_session)
+
+    response = test_client.get("/mitarbeitende/module", headers=HTML_HEADERS)
+    assert response.status_code == 401
+
+
 def test_html_logout_requires_csrf():
     test_client = client()
     test_client.get("/", headers=HTML_HEADERS)

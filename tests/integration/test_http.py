@@ -133,6 +133,48 @@ def test_logout_and_writing_without_csrf_are_rejected():
     assert client.get("/api/modules").status_code == 401
 
 
+def test_session_cookie_is_invalid_after_logout():
+    login("ma@mail.ch")
+    old_session = client.cookies["session"]
+    assert client.post("/logout", headers=csrf_headers()).status_code == 200
+
+    client.cookies.set("session", old_session)
+
+    assert client.get("/api/modules").status_code == 401
+
+
+def test_logout_ends_sessions_of_the_same_person_on_other_devices():
+    other_device = TestClient(app, base_url="https://testserver")
+    page = other_device.get("/login")
+    other_device.post(
+        "/login",
+        data={
+            "email": "ma@mail.ch",
+            "password": "demo-password",
+            "csrf_token": page.json()["csrf_token"],
+        },
+    )
+    login("ma@mail.ch")
+    assert other_device.get("/api/modules").status_code == 200
+
+    client.post("/logout", headers=csrf_headers())
+
+    assert other_device.get("/api/modules").status_code == 401
+
+
+def test_signed_session_cookie_without_version_is_rejected():
+    token = URLSafeTimedSerializer("test-session-secret", salt="session").dumps(
+        {
+            "id": "user-einwohnerdienste-01",
+            "role": "employee",
+            "department_id": "department-einwohnerdienste",
+        }
+    )
+    client.cookies.set("session", token)
+
+    assert client.get("/api/modules").status_code == 401
+
+
 def test_writing_without_csrf_cookie_and_header_is_rejected():
     login("ma@mail.ch")
     client.cookies.delete("csrf_token")
