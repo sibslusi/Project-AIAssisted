@@ -30,7 +30,11 @@ Aufgabe abgebrochen oder verworfen wurde.
    - **Ergebnis:** erstellte oder geänderte Dateien.
    - **Menschliche Korrektur:** was die Person korrigiert, verworfen oder
      entschieden hat. Schreibe `keine`, wenn nichts korrigiert wurde.
-   - **Lernerkenntnis:** immer `TODO Sibslusi`. Nie selbst ausfüllen.
+   - **Lernerkenntnis:** Verweis auf den Tagestext, zum Beispiel
+     `Siehe [Erkenntnisse 2026-10-26](ERKENNTNISSE.md#2026-10-26)`.
+     Die Erkenntnis selbst steht pro Tag in `docs/ERKENNTNISSE.md` und wird
+     von Sibslusi formuliert oder geprüft. Fehlt der Tag dort, lege die
+     Überschrift `## JJJJ-MM-TT` an und frage Sibslusi nach dem Text.
 4. Zeige der Person den neuen Eintrag, bevor du committen lässt oder selbst
    committen darfst.
 
@@ -40,4 +44,5 @@ Aufgabe abgebrochen oder verworfen wurde.
 - Keine Angaben erfinden. Was nicht sicher ist, als `unklar` markieren; beim
   Modell gilt stattdessen die Pflicht zur Rückfrage.
 - Pro Aufgabe genau ein Eintrag, auch wenn mehrere Dateien betroffen sind.
-- Bestehende Einträge nie nachträglich ändern oder löschen.
+- Bestehende Einträge nie nachträglich ändern oder löschen, ausser Sibslusi
+  verlangt es ausdrücklich; dann im neuen Eintrag festhalten, was geändert wurde.
