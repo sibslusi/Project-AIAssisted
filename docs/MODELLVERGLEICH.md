@@ -73,8 +73,9 @@ war ohne Swiss-AI-Key nicht auswählbar, deshalb das offene Modell Granite 4.1 (
 | Messwert | Wert |
 |---|---|
 | Denkstufe | keine Auswahl (Modell bietet keine an) |
-| Zeit | folgt |
-| Kosten | folgt |
+| Zeit | nicht gemessen (sehr kurze Antwort) |
+| Spend vorher / nachher | 5.568096120 / 5.568096120 USD (inkl. Nachfrage) |
+| Kosten | **0.0000 USD**; vermutlich ist für das selbst gehostete Modell kein Preis im LiteLLM hinterlegt (nicht geprüft) |
 | Antwort | [antwort-modell-b.md](modellvergleich/antwort-modell-b.md): nur ein JSON-Titel, kein Review |
 | Bewertung | folgt (Sibslusi) |
 
