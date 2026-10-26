@@ -302,6 +302,7 @@ async def assign_module(request: Request):
                 services.assignment_repository(session),
                 services.module_repository(session),
                 services.department_repository(session),
+                services.clock,
             ).execute(actor, module_id, department_id, due_date)
         except AccessDenied as error:
             raise HTTPExceptionResponse(403, str(error)) from error

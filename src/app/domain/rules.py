@@ -23,6 +23,10 @@ class TeamAggregation:
     total_errors: int
 
 
+def due_date_has_passed(due_date: date, current_at: datetime) -> bool:
+    return due_date < current_at.astimezone(ZURICH).date()
+
+
 def best_attempt(attempts: tuple[GameRound, ...]) -> GameRound:
     completed = [attempt for attempt in attempts if attempt.completed_at is not None]
     if not completed:

@@ -214,6 +214,7 @@ def test_personal_status_shows_only_own_attempts():
 
 def test_ac005_overdue_status_is_returned():
     client = make_client()
+    set_clock(datetime(2026, 10, 19, 12, tzinfo=ZURICH))
     assignment = assign(client, "module-soziale-dienste", due_date="2026-10-20")
     login(client, "ma@mail.ch")
     set_clock(datetime(2026, 10, 21, 0, 0, tzinfo=ZURICH))
@@ -234,6 +235,7 @@ def test_ac005_overdue_status_is_returned():
 
 def test_ac006_late_status_is_returned():
     client = make_client()
+    set_clock(datetime(2026, 10, 19, 12, tzinfo=ZURICH))
     assignment = assign(client, "module-soziale-dienste", due_date="2026-10-20")
     set_clock(datetime(2026, 10, 21, 12, tzinfo=ZURICH))
     complete_round(client, "ma@mail.ch", "module-soziale-dienste")
@@ -413,6 +415,7 @@ def test_ac014_department_lead_cannot_export_csv():
 
 def test_ac015_status_uses_controlled_clock_contract():
     client = make_client()
+    set_clock(datetime(2026, 10, 19, 12, tzinfo=ZURICH))
     assignment = assign(client, "module-soziale-dienste", due_date="2026-10-20")
     login(client, "ma@mail.ch")
     for current, expected in (

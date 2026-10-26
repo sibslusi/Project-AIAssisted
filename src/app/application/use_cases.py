@@ -26,7 +26,12 @@ from app.application.ports import (
     ScenarioRepository,
 )
 from app.domain.models import Assignment, GameRound
-from app.domain.rules import best_attempt, team_aggregation, training_status
+from app.domain.rules import (
+    best_attempt,
+    due_date_has_passed,
+    team_aggregation,
+    training_status,
+)
 
 
 class AccessDenied(Exception):
@@ -47,10 +52,12 @@ class AssignModule:
         assignments: AssignmentRepository,
         modules: ModuleRepository,
         departments: DepartmentRepository,
+        clock: ClockPort,
     ):
         self.assignments = assignments
         self.modules = modules
         self.departments = departments
+        self.clock = clock
 
     def execute(
         self, actor: Actor, module_id: str, department_id: str, due_date
@@ -70,6 +77,8 @@ class AssignModule:
             )
         except (TypeError, ValueError) as error:
             raise InvalidRequest(str(error)) from error
+        if due_date_has_passed(assignment.due_date, self.clock.now()):
+            raise InvalidRequest("Die Frist darf nicht in der Vergangenheit liegen")
         return self.assignments.save(assignment)
 
 

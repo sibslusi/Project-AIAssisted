@@ -323,6 +323,7 @@ def create_assignment(
                 services.assignment_repository(session),
                 services.module_repository(session),
                 services.department_repository(session),
+                services.clock,
             ).execute(_require_actor(request), module_id, department_id, parsed_date)
         except AccessDenied as error:
             raise HTTPExceptionResponse(403, str(error)) from error
