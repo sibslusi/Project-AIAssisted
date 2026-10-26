@@ -1,7 +1,7 @@
 # TASKS.md
 
 PHASE: 5
-STATUS: in-progress
+STATUS: done
 
 (0=Bootstrap | 1=Specify | 2=Design | 3=Develop | 4=Validate | 5=Deploy)
 
@@ -20,9 +20,13 @@ Phase 5 Deploy (UC-001/UC-002 live) und Korrekturen aus der Repo-Prüfung vom
   E2E im Image, Smoke im Container, Push nach GHCR, GitHub-Release, Deploy per
   Image-Digest und Smoke-Test gegen https://grenchen-datenschutz.onrender.com
   (`/health` mit Version `v0.1.1`, Demo-Login).
-- **Offen:** Nach dem Merge der Korrekturen unten Release `v0.1.2` taggen; der
-  Deploy führt Migration `0002_session_version` auf Neon aus. STATUS done erst
-  nach Bestätigung durch Sibslusi.
+- **Korrektur-Release:** PR #22 am 26.10. gemergt, Tag `v0.1.2` von Sibslusi
+  gesetzt. Release-Lauf 40316617386 grün: Tests, Image, GitHub-Release, Deploy
+  per Image-Digest mit Migration `0002_session_version` auf Neon und
+  Smoke-Test gegen die Live-URL.
+- **Abschluss:** STATUS done am 26.10.2026 von Sibslusi bestätigt.
+- **ADR-007:** Session-Widerruf (Variante C, `session_version`) am 26.10.2026
+  von Sibslusi angenommen, Status Accepted.
 
 ### Korrekturen aus der Repo-Prüfung vom 25.10.
 
