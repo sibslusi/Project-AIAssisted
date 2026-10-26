@@ -10,3 +10,14 @@ Unveränderte, vollständige Antwort:
 
 Kein Befund, kein Fix, kein Test. Vermutung (nicht geprüft): Das kleine Modell hat das Ausgabeformat
 einer internen Copilot-Anfrage (Chat-Titel als JSON) übernommen, statt den Review-Auftrag auszuführen.
+
+## Nachfrage im gleichen Chat
+
+Sibslusi fragte nach, wo die Antwort sei. Vollständige Antwort von Granite:
+
+```json
+{ "title": "Keine Befunde gefunden" }
+```
+
+Das ist eine falsche Aussage: Der Code enthält mindestens B2 (Logout) und B3 (vergangene Frist),
+siehe Lösungsschlüssel und Antwort von Modell A. Das Modell bleibt beim JSON-Titelformat.
