@@ -81,6 +81,21 @@ war ohne Swiss-AI-Key nicht auswählbar, deshalb das offene Modell Granite 4.1 (
 | Antwort | [antwort-modell-b.md](modellvergleich/antwort-modell-b.md): nur ein JSON-Titel, kein Review |
 | Bewertung | folgt (Sibslusi) |
 
+### Zusatzlauf: gpt-5.6-luna mit Denkstufe Low, 26.10.2026 ca. 12:00
+
+Gleiches Modell wie Lauf A, nur Denkstufe Low statt High: Wie stark hängt das Ergebnis von der
+Denkstufe ab?
+
+![Zusatzlauf: gpt-5.6-luna (Low) in Copilot Chat, Spend im Terminal](images/modellvergleich-4-lauf-a-low.png)
+
+| Messwert | Wert |
+|---|---|
+| Zeit | folgt |
+| Spend vorher / nachher | 5.568096120 / folgt |
+| Kosten | folgt |
+| Antwort | [antwort-modell-a-low.md](modellvergleich/antwort-modell-a-low.md) |
+| Bewertung | folgt (Sibslusi) |
+
 ### Einschränkungen des Versuchs
 
 - Copilot Ask hat standardmässig Lese- und Suchwerkzeuge für den Workspace aktiv (20 Werkzeuge).
