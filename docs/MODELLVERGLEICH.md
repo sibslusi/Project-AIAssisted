@@ -1,49 +1,27 @@
-# Modellvergleich: Code-Review mit zwei Modellen (SW3)
+# Modellvergleich: Code-Review mit mehreren Modellen (SW3)
 
-Gleicher Review-Prompt, gleicher Code, zwei Modelle. Ziel: Modellwahl mit Beleg statt Bauchgefühl
-begründen (Qualität, Zeit, Kosten).
+SW3-Aufgabe: „give the same small capstone task to two different models (e.g. a frontier model and
+an open-weight model) – Quality of the result? Time? Cost (see spend in LiteLLM)?“
 
-## Einstellungen (Stand 26.10.2026)
+Aufgabe hier: derselbe Code-Review-Prompt mit demselben Code an mehrere Modelle. Ziel ist, die
+Modellwahl mit Beleg statt Bauchgefühl zu begründen.
 
-![Einstellungen: Copilot Chat im Modus Ask mit gpt-5.6-luna und High, LiteLLM-Spend vor Lauf A im Terminal](images/modellvergleich-1-einstellungen.png)
+## Versuchsaufbau
 
 | Punkt | Festlegung |
 |---|---|
-| Werkzeug | VS Code, GitHub Copilot Chat, Modus **Ask** (liest nur, ändert keine Dateien) |
-| Modell A | `gpt-5.6-luna` über LiteLLM (`litellm.engines.aisl.science`), Denkstufe **High** |
-| Modell B | folgt (gleiche Denkstufe wie Modell A) |
-| Kontext | Kein `#codebase`, keine angehängte Datei, keine MCP-Werkzeuge; nur der Prompt mit eingefügtem Code |
-| Chat | Für jedes Modell ein neuer Chat |
+| Werkzeug | VS Code, GitHub Copilot Chat (Local), Modus **Ask**, Standardwerkzeuge von Ask unverändert |
+| Lauf A | `gpt-5.6-luna` (Frontier), Denkstufe **High** |
+| Lauf B | `ibm/granite4.1:3b` (Open-Weight), keine Denkstufe wählbar |
+| Lauf C | `gpt-5.6-luna`, Denkstufe **Low** (Einfluss der Denkstufe) |
+| Prompt | [modellvergleich/prompt.md](modellvergleich/prompt.md), als Ganzes eingefügt, plus die Zeile `Führe den Code-Review aus dem angehängten Text aus. Antworte direkt, ohne /fix oder /tests.` |
 | Code | `main` Commit `27e63a4` (= Release v0.1.1): Logout/Session-Handling in `src/app/interfaces/http.py`, Fristlogik in `AssignModule` und `Assignment` |
-| Zeit | Stoppuhr ab Abschicken bis Antwort fertig |
-| Kosten | Spend des LiteLLM-Keys vor und nach jedem Lauf über `GET /key/info` (Terminal, Funktion `spend`); das Dashboard zeigt nur 2 Nachkommastellen |
+| Kontext | Pro Lauf ein neuer Chat, keine angehängte Datei (Kontext-Chip entfernt) |
+| Zeit | Anzeige „Completed … in …“ in Copilot |
+| Kosten | Spend des LiteLLM-Keys über `GET /key/info` (Funktion `spend` im Terminal), vor dem Lauf und **3 Minuten nach** dem Lauf, weil LiteLLM verzögert verbucht |
 
-Prompt: [modellvergleich/prompt.md](modellvergleich/prompt.md).
-
-Spend vor Lauf A: **5.542206720 USD** (Terminal im Screenshot, Key-Anfang geschwärzt).
-
-## Beobachtungen bei der Durchführung
-
-- **Copilot wählt selbst einen Befehl.** Ein langer eingefügter Prompt wird zum Anhang
-  „Pasted text“, das Eingabefeld bleibt leer. Copilot hat daraus zweimal selbst einen Befehl
-  abgeleitet: zuerst `/fix` (keine Antwort), dann `/tests` (Fehler „To generate tests, open a file
-  and select code to test.“). Beide Versuche zählen nicht. Lösung: zusätzlich die Zeile
-  `Führe den Code-Review aus dem angehängten Text aus. Antworte direkt, ohne /fix oder /tests.`
-  ins Eingabefeld tippen, für beide Modelle gleich.
-- **Dritter Versuch bewertete den Prompt statt den Code** (gpt-5.6-luna, High, 33 s, 0.0081 USD).
-  Es war mehr als nur der Prompt im Chat gelandet, das Modell kannte deshalb den Lösungsschlüssel
-  und schrieb eine Kritik am Versuchsaufbau. Zählt nicht als Lauf A. Nützlich war ein Hinweis
-  daraus: Im Code-Ausschnitt fehlte die letzte Zeile von `assign_module`
-  (`return JSONResponse(...)`), das wurde korrigiert. Vorgeschlagene „verbindliche Anforderungen“
-  wurden nicht übernommen, weil sie B2 und B3 verraten würden. Seither liegt der Prompt allein in
-  einer eigenen Datei, die komplett kopiert wird.
-- **Kontext wird automatisch angehängt.** Die offene Datei im Editor (hier `AI-LOG.md`) hing als
-  Kontext-Chip am Chat und musste entfernt werden, damit beide Modelle denselben Input bekommen.
-- **Denkstufe** wechselte zwischen den Versuchen von Extra High auf High; festgelegt ist High für
-  beide Modelle.
-
-Lernpunkt für die Reflexion: Auch im Modus Ask verändert das Werkzeug den Input (Intent-Erkennung,
-impliziter Kontext). Für einen fairen Vergleich muss man diese Automatismen kennen und ausschalten.
+Warum kein Apertus: Apertus (Swiss AI) ist ohne Swiss-AI-Key nicht auswählbar, deshalb das offene
+Modell Granite 4.1 aus dem LiteLLM.
 
 ## Bekannte Fehler im geprüften Code (Lösungsschlüssel)
 
@@ -53,55 +31,10 @@ impliziter Kontext). Für einen fairen Vergleich muss man diese Automatismen ken
 
 ## Ergebnisse
 
-### Lauf A: gpt-5.6-luna (High), 26.10.2026 11:42
+Folgen nach den Läufen.
 
-![Lauf A: Antwort von gpt-5.6-luna in Copilot Chat, Spend vor und nach dem Lauf im Terminal](images/modellvergleich-2-lauf-a.png)
+## Einschränkungen des Versuchs
 
-| Messwert | Wert |
-|---|---|
-| Zeit (laut Copilot „Completed 2 steps in …“) | 1 min 44 s |
-| Spend vorher / nachher | 5.550301720 / 5.568096120 USD |
-| Kosten | **0.0178 USD** |
-| Antwort | [antwort-modell-a.md](modellvergleich/antwort-modell-a.md) |
-| Bewertung | folgt (Sibslusi) |
-
-### Lauf B: ibm/granite4.1:3b (Open-Weight), 26.10.2026 ca. 11:54
-
-Die SW3-Aufgabe nennt als Beispiel „a frontier model and an open-weight model“. Apertus (Swiss AI)
-war ohne Swiss-AI-Key nicht auswählbar, deshalb das offene Modell Granite 4.1 (3B) aus dem LiteLLM.
-
-![Lauf B: granite4.1:3b antwortet in Copilot Chat nur mit JSON-Titeln, Spend im Terminal unverändert](images/modellvergleich-3-lauf-b.png)
-
-| Messwert | Wert |
-|---|---|
-| Denkstufe | keine Auswahl (Modell bietet keine an) |
-| Zeit | nicht gemessen (sehr kurze Antwort) |
-| Spend vorher / nachher | 5.568096120 / 5.568096120 USD (inkl. Nachfrage) |
-| Kosten | **0.0000 USD**; vermutlich ist für das selbst gehostete Modell kein Preis im LiteLLM hinterlegt (nicht geprüft) |
-| Antwort | [antwort-modell-b.md](modellvergleich/antwort-modell-b.md): nur ein JSON-Titel, kein Review |
-| Bewertung | folgt (Sibslusi) |
-
-### Zusatzlauf: gpt-5.6-luna mit Denkstufe Low, 26.10.2026 ca. 12:00
-
-Gleiches Modell wie Lauf A, nur Denkstufe Low statt High: Wie stark hängt das Ergebnis von der
-Denkstufe ab?
-
-![Zusatzlauf: gpt-5.6-luna (Low) in Copilot Chat, Spend im Terminal](images/modellvergleich-4-lauf-a-low.png)
-
-| Messwert | Wert |
-|---|---|
-| Zeit | nicht abgelesen |
-| Spend vorher / nachher | 5.568096120 / 5.578048570 USD (Wert erst einige Minuten nach dem Lauf sichtbar) |
-| Kosten | **0.0100 USD**; kann theoretisch auch verspätet verbuchte Kosten von Lauf B enthalten |
-| Antwort | [antwort-modell-a-low.md](modellvergleich/antwort-modell-a-low.md) |
-| Bewertung | folgt (Sibslusi) |
-
-### Einschränkungen des Versuchs
-
-- Copilot Ask hat standardmässig Lese- und Suchwerkzeuge für den Workspace aktiv (20 Werkzeuge).
-  Beide Modelle hätten also zusätzlich Dateien lesen können. Die Werkzeuge wurden für beide Läufe
-  gleich gelassen.
-- **LiteLLM verbucht den Spend verzögert.** Direkt nach dem Low-Lauf stand der Spend noch unverändert,
-  erst ein paar Minuten später kam die Differenz. Die 0.0000 USD bei Granite sind deshalb nicht ganz
-  sicher. Für künftige Messungen: nach dem Lauf 2–3 Minuten warten, dann `spend`.
+- Copilot Ask hat standardmässig Lese- und Suchwerkzeuge für den Workspace aktiv. Die Modelle
+  hätten also zusätzlich Dateien lesen können; die Werkzeuge sind für alle Läufe gleich.
 - Pro Modell ein Lauf; Ergebnisse können bei Wiederholung abweichen.
