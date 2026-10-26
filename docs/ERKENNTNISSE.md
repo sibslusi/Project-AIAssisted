@@ -1,34 +1,59 @@
 # Erkenntnisse pro Arbeitstag
 
-Ergänzt [`AI-LOG.md`](AI-LOG.md): Das AI-LOG hält jeden Agentenauftrag fest,
-hier steht pro Tag, was ich daraus gelernt habe. Die Spalte „Lernpunkt“ im
-AI-LOG verweist auf den jeweiligen Tag.
+Diese Datei ergänzt das [AI-LOG](AI-LOG.md). Im AI-LOG sind die einzelnen
+Aufträge an die KI-Agenten dokumentiert. Hier halte ich fest, was ich an den
+jeweiligen Tagen gelernt habe, wo Probleme aufgetreten sind und was ich beim
+nächsten Mal anders machen würde.
 
-Die Texte hat Claude am 2026-10-26 auf meinen Wunsch aus den AI-LOG-Einträgen
-verdichtet. Die fünf Kernerkenntnisse und das Fazit im Gesamtteil habe ich
-selbst ausgewählt. Ich prüfe alle Texte vor der Abgabe und passe sie in meinen
-Worten an.
+Die erste Zusammenfassung wurde am 26.10.2026 mit Unterstützung von Claude aus
+meinen AI-LOG-Einträgen erstellt. Die wichtigsten Erkenntnisse und das Fazit
+habe ich selbst ausgewählt und anschliessend überarbeitet.
 
 ## 2026-10-19
 
-**Phasen 0–2, Seed-Daten und Tooling mit GitHub Copilot und Codex.**
+**Projektplanung und Vorbereitung**
 
-- Problem, Zielgruppe und Lösung habe ich mit Copilot Punkt für Punkt
-  abgestimmt. Das war langsam, aber danach waren UC-001 und UC-002 klar
-  genug, dass Codex daraus Design und Tests ableiten konnte. Spec-driven
-  lohnt sich, wenn die Spezifikation vor dem Code wirklich fertig ist.
-- Die ersten 30 Lernpunkte im AI-LOG hat Copilot selbst formuliert, ohne dass
-  ich es verlangt hatte. Ein Agent schreibt Reflexion ungefragt, wenn keine
-  Regel es verbietet. Diese Regel hätte von Anfang an in `AGENTS.md` gehört.
-- Zwei Design-Worktrees parallel waren schnell, aber beim Zusammenführen
-  entstanden Widersprüche (bester oder erster bestandener Versuch), die erst
-  am 25.10. auffielen. Parallele Agenten brauchen einen gemeinsamen Abgleich.
-- Entscheide als ADR festzuhalten hat sich bewährt: Später konnte jeder Agent
-  nachlesen, warum etwas so ist, statt es neu zu erfinden.
-- Beim Merge ging ein AI-LOG-Eintrag verloren. Konflikte in Protokolldateien
-  sind leicht zu übersehen.
-- Für die Seed-Daten habe ich verlangt, unsichere InfoDG-Artikel zu markieren
-  statt sie zu erfinden. So bleibt sichtbar, was noch rechtlich zu prüfen ist.
+An diesem Tag habe ich vor allem mit GitHub Copilot und Codex gearbeitet. Es
+ging darum, das Projekt zu planen, die Anforderungen festzulegen und die
+technische Grundlage vorzubereiten.
+
+- **Eine genaue Planung macht die spätere Arbeit einfacher.** Ich habe mit
+  Copilot zuerst das Problem, die Zielgruppe und die Funktionen der Anwendung
+  Schritt für Schritt besprochen. Das hat ziemlich viel Zeit gebraucht. Im
+  Nachhinein war es aber sinnvoll, weil die Anforderungen danach klarer waren
+  und Codex auf dieser Grundlage weiterarbeiten konnte. Ich habe dadurch besser
+  verstanden, was mit Spec-driven Development gemeint ist: Man beschreibt
+  zuerst möglichst genau, was die Anwendung können soll, und beginnt erst
+  danach mit dem Programmieren.
+- **Die KI übernimmt manchmal mehr, als ich eigentlich verlangt habe.** Copilot
+  hatte die ersten 30 Lernpunkte im AI-LOG selbst geschrieben, obwohl ich ihn
+  nicht darum gebeten hatte. Mir wurde dadurch bewusst, dass ich einem Agenten
+  nicht nur sagen muss, was er tun soll, sondern manchmal auch ausdrücklich,
+  was er nicht tun darf. Eine entsprechende Regel hätte ich bereits zu Beginn
+  in `AGENTS.md` festhalten können.
+- **Paralleles Arbeiten ist nicht immer einfacher.** Ich habe mit zwei
+  Worktrees gearbeitet, damit verschiedene Aufgaben getrennt bearbeitet werden
+  konnten. Ein Worktree ist vereinfacht gesagt ein zusätzlicher Arbeitsordner
+  für einen eigenen Git-Branch. Beim späteren Zusammenführen gab es jedoch
+  Widersprüche, beispielsweise bei der Frage, welcher bestandene Versuch für
+  den Schulungsstatus zählt. Diese Unstimmigkeiten wurden erst später entdeckt.
+  Ich habe daraus gelernt, dass getrennt erstellte Ergebnisse am Schluss
+  unbedingt miteinander verglichen werden müssen.
+- **Dokumentierte Entscheidungen helfen bei der Zusammenarbeit mit KI.** Wir
+  haben wichtige Architekturentscheidungen in sogenannten ADRs (Architecture
+  Decision Records) festgehalten. Dadurch konnten die verschiedenen Agenten
+  nachlesen, weshalb wir etwas so entschieden hatten. Ich fand das hilfreich,
+  weil nicht in jeder neuen Sitzung wieder dieselben Fragen geklärt werden
+  mussten.
+- **Bei Git muss ich genauer aufpassen.** Beim Zusammenführen von Änderungen
+  ging ein Eintrag im AI-LOG verloren. Mir war vorher nicht wirklich bewusst,
+  dass bei einem Merge auch Teile einer Dokumentation verloren gehen können.
+  Deshalb würde ich solche Dateien künftig nach einem Merge genauer
+  kontrollieren.
+- **KI-generierte Inhalte sind nicht automatisch richtig.** Bei den fiktiven
+  Datenschutzfällen habe ich verlangt, dass unsichere Gesetzesartikel
+  entsprechend gekennzeichnet werden. Gerade bei rechtlichen Themen möchte ich
+  nicht einfach Angaben übernehmen, nur weil die KI sie überzeugend formuliert.
 
 ## 2026-10-21
 
