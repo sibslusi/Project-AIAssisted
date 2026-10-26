@@ -18,6 +18,8 @@ begründen (Qualität, Zeit, Kosten).
 | Zeit | Stoppuhr ab Abschicken bis Antwort fertig |
 | Kosten | Spend des LiteLLM-Keys vor und nach jedem Lauf über `GET /key/info` (Terminal, Funktion `spend`); das Dashboard zeigt nur 2 Nachkommastellen |
 
+Prompt: [modellvergleich/prompt.md](modellvergleich/prompt.md).
+
 Spend vor Lauf A: **5.542206720 USD** (Terminal im Screenshot, Key-Anfang geschwärzt).
 
 ## Beobachtungen bei der Durchführung
@@ -60,6 +62,7 @@ impliziter Kontext). Für einen fairen Vergleich muss man diese Automatismen ken
 | Zeit (laut Copilot „Completed 2 steps in …“) | 1 min 44 s |
 | Spend vorher / nachher | 5.550301720 / 5.568096120 USD |
 | Kosten | **0.0178 USD** |
+| Antwort | [antwort-modell-a.md](modellvergleich/antwort-modell-a.md) |
 | Bewertung | folgt (Sibslusi) |
 
 ### Lauf B
