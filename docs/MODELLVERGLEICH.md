@@ -45,7 +45,19 @@ Modell Granite 4.1 aus dem LiteLLM.
 
 ### Lauf B: ibm/granite4.1:3b
 
-Folgt.
+![Lauf B: granite4.1:3b bricht nach 300 s mit LiteLLM-Timeout ab, davor ein erfundener Fix zum date-Import](images/modellvergleich-lauf-b.png)
+
+| Messwert | Wert |
+|---|---|
+| Zeit | Abbruch nach **300 s** (LiteLLM-Timeout `litellm-vscode-chat.chat.timeout`), Antwort unvollständig |
+| Spend vorher / nachher | 5.611272170 / folgt |
+| Kosten | folgt |
+| Antwort | folgt |
+| Bewertung | folgt (Sibslusi) |
+
+Auffällig: „Fix 2“ behauptet, `from datetime import date` importiere einen falschen `date`-Typ, und
+schlägt `from datetime import date as Date` vor. Das ist ein **Falschbefund**: Der Import ist korrekt,
+der Fix ändert nichts. Der zugehörige Test ist leer.
 
 ### Lauf C: gpt-5.6-luna (Low)
 
