@@ -50,8 +50,8 @@ Modell Granite 4.1 aus dem LiteLLM.
 | Messwert | Wert |
 |---|---|
 | Zeit | Abbruch nach **300 s** (LiteLLM-Timeout `litellm-vscode-chat.chat.timeout`), Antwort unvollständig |
-| Spend vorher / nachher | 5.611272170 / folgt |
-| Kosten | folgt |
+| Spend vorher / nachher | 5.611272170 / 5.611272170 USD (auch >10 min nach dem Lauf unverändert) |
+| Kosten | **0.0000 USD**; für das selbst gehostete Modell ist im LiteLLM offenbar kein Preis hinterlegt |
 | Antwort | [antwort-lauf-b.md](modellvergleich/antwort-lauf-b.md) |
 | Bewertung | folgt (Sibslusi) |
 
@@ -79,6 +79,16 @@ Application-Layer), und der Test zu Fix 2 ist leer.
 | Kosten | **0.0043 USD** |
 | Antwort | [antwort-lauf-c.md](modellvergleich/antwort-lauf-c.md) |
 | Bewertung | folgt (Sibslusi) |
+
+## Übersicht
+
+| Lauf | Modell | Zeit | Kosten | B2 | B3 | Falschbefunde |
+|---|---|---|---|---|---|---|
+| A | gpt-5.6-luna Extra High | 2 min 48 s | 0.0289 USD | nein | ja („unsicher“) | 0 |
+| B | ibm/granite4.1:3b | Abbruch nach 300 s | 0.0000 USD | nein | nein | 5 von 5 |
+| C | gpt-5.6-luna Low | 28 s | 0.0043 USD | nein | ja | 0 |
+
+Punkte und Fazit: folgen (Sibslusi).
 
 ## Vergleich der beiden gpt-5.6-luna-Läufe
 
