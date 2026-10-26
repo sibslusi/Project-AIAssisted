@@ -90,9 +90,9 @@ Denkstufe ab?
 
 | Messwert | Wert |
 |---|---|
-| Zeit | folgt |
-| Spend vorher / nachher | 5.568096120 / folgt |
-| Kosten | folgt |
+| Zeit | nicht abgelesen |
+| Spend vorher / nachher | 5.568096120 / 5.578048570 USD (Wert erst einige Minuten nach dem Lauf sichtbar) |
+| Kosten | **0.0100 USD**; kann theoretisch auch verspätet verbuchte Kosten von Lauf B enthalten |
 | Antwort | [antwort-modell-a-low.md](modellvergleich/antwort-modell-a-low.md) |
 | Bewertung | folgt (Sibslusi) |
 
@@ -101,4 +101,7 @@ Denkstufe ab?
 - Copilot Ask hat standardmässig Lese- und Suchwerkzeuge für den Workspace aktiv (20 Werkzeuge).
   Beide Modelle hätten also zusätzlich Dateien lesen können. Die Werkzeuge wurden für beide Läufe
   gleich gelassen.
+- **LiteLLM verbucht den Spend verzögert.** Direkt nach dem Low-Lauf stand der Spend noch unverändert,
+  erst ein paar Minuten später kam die Differenz. Die 0.0000 USD bei Granite sind deshalb nicht ganz
+  sicher. Für künftige Messungen: nach dem Lauf 2–3 Minuten warten, dann `spend`.
 - Pro Modell ein Lauf; Ergebnisse können bei Wiederholung abweichen.
