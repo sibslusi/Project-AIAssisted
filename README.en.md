@@ -382,9 +382,11 @@ view. Because of LiteLLM rate limits only one agent ran at a time.
     compares the same question without and with Context7, with screenshots of
     the tool calls.
 
-**Log:** [`docs/AI-LOG.md`](docs/AI-LOG.md) records phase, agent, model, result,
-human corrections and lessons learned for every agent task. The prompts used
-are in [`docs/PROMPTS.md`](docs/PROMPTS.md). Both are in German.
+**Log:** [`docs/AI-LOG.md`](docs/AI-LOG.md) records phase, agent, model, result
+and human corrections for every agent task.
+[`docs/ERKENNTNISSE.md`](docs/ERKENNTNISSE.md) sums up the lessons learned per
+working day. The prompts used are in [`docs/PROMPTS.md`](docs/PROMPTS.md). All
+three are in German.
 
 ## Limitations of version 1
 
@@ -415,6 +417,7 @@ docs/
   PROJECT.md       context, architecture, commands
   TASKS.md         phase, status, evidence
   AI-LOG.md        AI log
+  ERKENNTNISSE.md  lessons learned per day
   PROMPTS.md       prompts per phase
   specs/           UC-001, UC-002
   adr/             ADR-001 to ADR-007

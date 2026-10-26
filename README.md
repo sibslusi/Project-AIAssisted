@@ -386,7 +386,9 @@ ein Agent gleichzeitig.
     dieselbe Frage ohne und mit Context7, mit Screenshots der Aufrufe.
 
 **Protokoll:** [`docs/AI-LOG.md`](docs/AI-LOG.md) hält pro Agentenauftrag
-Phase, Agent, Modell, Ergebnis, menschliche Korrekturen und Lernpunkte fest.
+Phase, Agent, Modell, Ergebnis und menschliche Korrekturen fest.
+[`docs/ERKENNTNISSE.md`](docs/ERKENNTNISSE.md) fasst pro Arbeitstag zusammen,
+was ich daraus gelernt habe.
 Die verwendeten Prompts stehen in [`docs/PROMPTS.md`](docs/PROMPTS.md).
 
 ## Grenzen der Version 1
@@ -419,6 +421,7 @@ docs/
   PROJECT.md       Kontext, Architektur, Befehle
   TASKS.md         Phase, Status, Nachweise
   AI-LOG.md        KI-Protokoll
+  ERKENNTNISSE.md  Erkenntnisse pro Arbeitstag
   PROMPTS.md       Prompts pro Phase
   specs/           UC-001, UC-002
   adr/             ADR-001 bis ADR-007
