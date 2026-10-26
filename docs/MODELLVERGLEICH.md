@@ -33,15 +33,7 @@ Modell Granite 4.1 aus dem LiteLLM.
 
 ### Lauf A: gpt-5.6-luna (High)
 
-![Lauf A: Anfang der Antwort mit Zeit und von Copilot automatisch verwendeten Referenzen](images/modellvergleich-lauf-a-antwort.png)
-
-| Messwert | Wert |
-|---|---|
-| Zeit | 28 s („Completed 2 steps in 28s“) |
-| Spend vorher / nachher | folgt |
-| Kosten | folgt |
-| Antwort | [antwort-lauf-a.md](modellvergleich/antwort-lauf-a.md) |
-| Bewertung | folgt (Sibslusi) |
+Folgt.
 
 ### Lauf B: ibm/granite4.1:3b
 
@@ -49,7 +41,15 @@ Folgt.
 
 ### Lauf C: gpt-5.6-luna (Low)
 
-Folgt.
+![Lauf C: Anfang der Antwort mit Zeit und von Copilot automatisch verwendeten Referenzen](images/modellvergleich-lauf-c-antwort.png)
+
+| Messwert | Wert |
+|---|---|
+| Zeit | 28 s („Completed 2 steps in 28s“) |
+| Spend vorher / nachher | folgt |
+| Kosten | folgt |
+| Antwort | [antwort-lauf-c.md](modellvergleich/antwort-lauf-c.md) |
+| Bewertung | folgt (Sibslusi) |
 
 ## Einschränkungen des Versuchs
 

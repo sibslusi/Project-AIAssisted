@@ -1,4 +1,4 @@
-# Antwort Lauf A: gpt-5.6-luna (High)
+# Antwort Lauf C: gpt-5.6-luna (Low)
 
 GitHub Copilot Chat (Local), Modus Ask, 26.10.2026. Prompt: [prompt.md](prompt.md) plus Zusatzzeile.
 Unveränderte Antwort, mit dem Kopier-Symbol aus Copilot kopiert.
