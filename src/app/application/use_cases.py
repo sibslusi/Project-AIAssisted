@@ -193,13 +193,23 @@ class GetDepartmentStatus:
         assignments = self.assignments.for_department(department_id)
         persons = tuple(
             PersonStatus(employee.id, status, assignment.id, assignment.module_id)
-            for employee in self.employees.for_department(department_id)
+            for employee in _trainees(self.employees, department_id)
             for assignment in assignments
             for status in (
                 _person_status(employee, assignment, self.rounds, self.clock),
             )
         )
         return DepartmentStatus(department_id, persons)
+
+
+def _trainees(
+    employees: EmployeeRepository, department_id: str
+) -> tuple[EmployeeRecord, ...]:
+    return tuple(
+        employee
+        for employee in employees.for_department(department_id)
+        if employee.role is Role.EMPLOYEE
+    )
 
 
 def _person_status(employee: EmployeeRecord, assignment, rounds, clock) -> str:
@@ -286,7 +296,7 @@ class GetOverallEvaluation:
                         assignment.id,
                         assignment.module_id,
                     )
-                    for employee in self.employees.for_department(department.id)
+                    for employee in _trainees(self.employees, department.id)
                     for assignment in self.assignments.for_department(department.id)
                 ),
             )

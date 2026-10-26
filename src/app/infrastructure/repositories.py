@@ -3,7 +3,12 @@ from datetime import UTC, datetime
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.application.models import DepartmentRecord, EmployeeRecord, ModuleRecord
+from app.application.models import (
+    DepartmentRecord,
+    EmployeeRecord,
+    ModuleRecord,
+    Role,
+)
 from app.domain.models import AnswerOption, Assignment, GameRound, RoundAnswer, Scenario
 from app.infrastructure.models import (
     AssignmentModel,
@@ -101,33 +106,29 @@ class SqlAlchemyAssignmentRepository:
         )
 
 
+def _employee(row: EmployeeModel) -> EmployeeRecord:
+    return EmployeeRecord(
+        row.id, row.department_id, row.first_name, row.last_name, Role(row.role)
+    )
+
+
 class SqlAlchemyEmployeeRepository:
     def __init__(self, session: Session):
         self.session = session
 
     def get(self, employee_id: str) -> EmployeeRecord | None:
         row = self.session.get(EmployeeModel, employee_id)
-        return (
-            None
-            if row is None
-            else EmployeeRecord(
-                row.id, row.department_id, row.first_name, row.last_name
-            )
-        )
+        return None if row is None else _employee(row)
 
     def for_department(self, department_id: str) -> tuple[EmployeeRecord, ...]:
         rows = self.session.scalars(
             select(EmployeeModel).where(EmployeeModel.department_id == department_id)
         )
-        return tuple(
-            EmployeeRecord(row.id, row.department_id, row.first_name, row.last_name)
-            for row in rows
-        )
+        return tuple(_employee(row) for row in rows)
 
     def all(self) -> tuple[EmployeeRecord, ...]:
         return tuple(
-            EmployeeRecord(row.id, row.department_id, row.first_name, row.last_name)
-            for row in self.session.scalars(select(EmployeeModel))
+            _employee(row) for row in self.session.scalars(select(EmployeeModel))
         )
 
 

@@ -50,6 +50,7 @@ class EmployeeRecord:
     department_id: str
     first_name: str = ""
     last_name: str = ""
+    role: Role = Role.EMPLOYEE
 
 
 @dataclass(frozen=True)
