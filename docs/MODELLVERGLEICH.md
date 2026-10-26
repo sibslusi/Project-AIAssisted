@@ -51,7 +51,7 @@ Modell Granite 4.1 aus dem LiteLLM.
 |---|---|
 | Zeit | Abbruch nach **300 s** (LiteLLM-Timeout `litellm-vscode-chat.chat.timeout`), Antwort unvollständig |
 | Spend vorher / nachher | 5.611272170 / 5.611272170 USD (auch >10 min nach dem Lauf unverändert) |
-| Kosten | **0.0000 USD**; für das selbst gehostete Modell ist im LiteLLM offenbar kein Preis hinterlegt |
+| Kosten | **0.0000 USD**. Zwei mögliche Gründe: für das Modell ist im LiteLLM kein Preis hinterlegt, oder der abgebrochene Request wurde nicht verbucht. Für den ersten spricht, dass auch vollständige Granite-Antworten im Vorversuch 0 USD kosteten (nicht geprüft). |
 | Antwort | [antwort-lauf-b.md](modellvergleich/antwort-lauf-b.md) |
 | Bewertung | folgt (Sibslusi) |
 
