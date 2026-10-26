@@ -28,6 +28,13 @@ Spend vor Lauf A: **5.542206720 USD** (Terminal im Screenshot, Key-Anfang geschw
   and select code to test.“). Beide Versuche zählen nicht. Lösung: zusätzlich die Zeile
   `Führe den Code-Review aus dem angehängten Text aus. Antworte direkt, ohne /fix oder /tests.`
   ins Eingabefeld tippen, für beide Modelle gleich.
+- **Dritter Versuch bewertete den Prompt statt den Code** (gpt-5.6-luna, High, 33 s, 0.0081 USD).
+  Es war mehr als nur der Prompt im Chat gelandet, das Modell kannte deshalb den Lösungsschlüssel
+  und schrieb eine Kritik am Versuchsaufbau. Zählt nicht als Lauf A. Nützlich war ein Hinweis
+  daraus: Im Code-Ausschnitt fehlte die letzte Zeile von `assign_module`
+  (`return JSONResponse(...)`), das wurde korrigiert. Vorgeschlagene „verbindliche Anforderungen“
+  wurden nicht übernommen, weil sie B2 und B3 verraten würden. Seither liegt der Prompt allein in
+  einer eigenen Datei, die komplett kopiert wird.
 - **Kontext wird automatisch angehängt.** Die offene Datei im Editor (hier `AI-LOG.md`) hing als
   Kontext-Chip am Chat und musste entfernt werden, damit beide Modelle denselben Input bekommen.
 - **Denkstufe** wechselte zwischen den Versuchen von Extra High auf High; festgelegt ist High für
