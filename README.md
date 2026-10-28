@@ -85,8 +85,18 @@ als optionale Erweiterung beschrieben und nicht umgesetzt.
 
 **URL:** <https://grenchen-datenschutz.onrender.com> (Render, Datenbank auf Neon)
 
-Alle Konten sind fiktiv. Passwort für alle Konten auf der Live-Instanz:
-`demo`. Lokal ist es der Wert von `DEMO_PASSWORD`.
+Alle Konten sind fiktiv. Live und lokal gelten **dieselben E-Mail-Adressen**,
+weil beide Instanzen aus demselben Seed ([`data/seed/users.json`](data/seed/users.json))
+befüllt werden. Nur das Passwort hängt von der Instanz ab:
+
+| Instanz | Adresse | Passwort für alle Konten |
+|---|---|---|
+| Live | <https://grenchen-datenschutz.onrender.com> | `demo` |
+| Lokal | <http://localhost:8000> | Wert von `DEMO_PASSWORD` beim Seed: in [Lokal starten](#lokal-starten) Variante A `demo`, Variante B der Wert aus `.env` |
+
+Gross- und Kleinschreibung der E-Mail spielt keine Rolle: `MA@mail.ch` und
+`ma@mail.ch` melden dasselbe Konto an, weil Login und Seed die Adresse
+kleinschreiben (`normalize_email` in `src/app/application/models.py`).
 
 | Rolle | Konto | Einstieg |
 |---|---|---|
@@ -94,9 +104,9 @@ Alle Konten sind fiktiv. Passwort für alle Konten auf der Live-Instanz:
 | Abteilungsleitung (Einwohnerdienste) | `chef@mail.ch` | `/abteilungsleitung/auswertung` |
 | Datenschutzverantwortliche | `ds@mail.ch` | `/datenschutz/auswertung`, `/datenschutz/zuweisungen` |
 
-Weitere fiktive Mitarbeitende (`…@grenchen.example`) stehen in
-[`data/seed/users.json`](data/seed/users.json); ihr Passwort ist ebenfalls
-`DEMO_PASSWORD`. Der Seed enthält keine gespielten Runden: Damit die
+Weitere fiktive Konten (`…@grenchen.example`, je vier Mitarbeitende und eine
+Leitung für Einwohnerdienste, Soziale Dienste sowie Finanzen und Informatik)
+stehen ebenfalls in `data/seed/users.json` und nutzen dasselbe Passwort. Der Seed enthält keine gespielten Runden: Damit die
 Abteilungsleitung Teamwerte sieht, müssen zuerst drei Personen derselben
 Abteilung eine Runde abschliessen.
 

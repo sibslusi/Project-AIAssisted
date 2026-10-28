@@ -87,8 +87,19 @@ as an optional extension and is not implemented.
 
 **URL:** <https://grenchen-datenschutz.onrender.com> (Render, database on Neon)
 
-All accounts are fictional. Password for all accounts on the live instance:
-`demo`. Locally it is the value of `DEMO_PASSWORD`.
+All accounts are fictional. The live and local instances use **the same email
+addresses**, because both are filled from the same seed
+([`data/seed/users.json`](data/seed/users.json)). Only the password depends on
+the instance:
+
+| Instance | Address | Password for all accounts |
+|---|---|---|
+| Live | <https://grenchen-datenschutz.onrender.com> | `demo` |
+| Local | <http://localhost:8000> | value of `DEMO_PASSWORD` when seeding: in [Running locally](#running-locally) option A `demo`, option B the value from `.env` |
+
+Email addresses are case-insensitive: `MA@mail.ch` and `ma@mail.ch` log into
+the same account, because login and seed lower-case the address
+(`normalize_email` in `src/app/application/models.py`).
 
 | Role | Account | Start page |
 |---|---|---|
@@ -96,9 +107,9 @@ All accounts are fictional. Password for all accounts on the live instance:
 | Department lead (Einwohnerdienste) | `chef@mail.ch` | `/abteilungsleitung/auswertung` |
 | Data protection officer | `ds@mail.ch` | `/datenschutz/auswertung`, `/datenschutz/zuweisungen` |
 
-More fictional employees (`…@grenchen.example`) are listed in
-[`data/seed/users.json`](data/seed/users.json); their password is also
-`DEMO_PASSWORD`. The seed contains no played rounds: before the department lead
+More fictional accounts (`…@grenchen.example`, four employees and one lead each
+for Einwohnerdienste, Soziale Dienste and Finanzen und Informatik) are also in
+`data/seed/users.json` and use the same password. The seed contains no played rounds: before the department lead
 sees team values, three people of the same department must complete a round.
 
 | Login | Department lead | Data protection officer |
