@@ -87,8 +87,10 @@ as an optional extension and is not implemented.
 
 **URL:** <https://grenchen-datenschutz.onrender.com> (Render, database on Neon)
 
-All accounts are fictional. Password for all accounts on the live instance:
-`demo`. Locally it is the value of `DEMO_PASSWORD`.
+All accounts are fictional. **Password for all accounts: `demo`.** Locally the
+same accounts and password apply when `DEMO_PASSWORD=demo` is set (see
+[Running locally](#running-locally)). Email addresses are case-insensitive
+(`MA@mail.ch` = `ma@mail.ch`).
 
 | Role | Account | Start page |
 |---|---|---|
@@ -96,9 +98,9 @@ All accounts are fictional. Password for all accounts on the live instance:
 | Department lead (Einwohnerdienste) | `chef@mail.ch` | `/abteilungsleitung/auswertung` |
 | Data protection officer | `ds@mail.ch` | `/datenschutz/auswertung`, `/datenschutz/zuweisungen` |
 
-More fictional employees (`…@grenchen.example`) are listed in
-[`data/seed/users.json`](data/seed/users.json); their password is also
-`DEMO_PASSWORD`. The seed contains no played rounds: before the department lead
+More fictional accounts (`…@grenchen.example`, four employees and one lead each
+for Einwohnerdienste, Soziale Dienste and Finanzen und Informatik) are listed in
+[`data/seed/users.json`](data/seed/users.json) and use the same password. The seed contains no played rounds: before the department lead
 sees team values, three people of the same department must complete a round.
 
 | Login | Department lead | Data protection officer |
@@ -258,7 +260,7 @@ The seed can be run repeatedly and never overwrites existing data.
 ### Option B: Docker Compose with PostgreSQL
 
 ```bash
-cp .env.example .env   # replace the placeholders with your own values
+cp .env.example .env   # replace placeholders, DEMO_PASSWORD=demo for the same logins as live
 docker compose up --build
 ```
 
