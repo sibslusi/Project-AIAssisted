@@ -85,18 +85,10 @@ als optionale Erweiterung beschrieben und nicht umgesetzt.
 
 **URL:** <https://grenchen-datenschutz.onrender.com> (Render, Datenbank auf Neon)
 
-Alle Konten sind fiktiv. Live und lokal gelten **dieselben E-Mail-Adressen**,
-weil beide Instanzen aus demselben Seed ([`data/seed/users.json`](data/seed/users.json))
-befüllt werden. Nur das Passwort hängt von der Instanz ab:
-
-| Instanz | Adresse | Passwort für alle Konten |
-|---|---|---|
-| Live | <https://grenchen-datenschutz.onrender.com> | `demo` |
-| Lokal | <http://localhost:8000> | Wert von `DEMO_PASSWORD` beim Seed: in [Lokal starten](#lokal-starten) Variante A `demo`, Variante B der Wert aus `.env` |
-
-Gross- und Kleinschreibung der E-Mail spielt keine Rolle: `MA@mail.ch` und
-`ma@mail.ch` melden dasselbe Konto an, weil Login und Seed die Adresse
-kleinschreiben (`normalize_email` in `src/app/application/models.py`).
+Alle Konten sind fiktiv. **Passwort für alle Konten: `demo`.** Lokal gelten
+dieselben Konten und dasselbe Passwort, wenn `DEMO_PASSWORD=demo` gesetzt ist
+(siehe [Lokal starten](#lokal-starten)). Gross- und Kleinschreibung der E-Mail
+spielt keine Rolle (`MA@mail.ch` = `ma@mail.ch`).
 
 | Rolle | Konto | Einstieg |
 |---|---|---|
@@ -106,7 +98,7 @@ kleinschreiben (`normalize_email` in `src/app/application/models.py`).
 
 Weitere fiktive Konten (`…@grenchen.example`, je vier Mitarbeitende und eine
 Leitung für Einwohnerdienste, Soziale Dienste sowie Finanzen und Informatik)
-stehen ebenfalls in `data/seed/users.json` und nutzen dasselbe Passwort. Der Seed enthält keine gespielten Runden: Damit die
+stehen in [`data/seed/users.json`](data/seed/users.json) und nutzen dasselbe Passwort. Der Seed enthält keine gespielten Runden: Damit die
 Abteilungsleitung Teamwerte sieht, müssen zuerst drei Personen derselben
 Abteilung eine Runde abschliessen.
 
@@ -270,7 +262,7 @@ Der Seed lässt sich mehrfach ausführen und überschreibt nichts.
 ### Variante B: Docker Compose mit PostgreSQL
 
 ```bash
-cp .env.example .env   # Platzhalter durch eigene Werte ersetzen
+cp .env.example .env   # Platzhalter ersetzen, DEMO_PASSWORD=demo für dieselben Logins wie live
 docker compose up --build
 ```
 

@@ -87,19 +87,10 @@ as an optional extension and is not implemented.
 
 **URL:** <https://grenchen-datenschutz.onrender.com> (Render, database on Neon)
 
-All accounts are fictional. The live and local instances use **the same email
-addresses**, because both are filled from the same seed
-([`data/seed/users.json`](data/seed/users.json)). Only the password depends on
-the instance:
-
-| Instance | Address | Password for all accounts |
-|---|---|---|
-| Live | <https://grenchen-datenschutz.onrender.com> | `demo` |
-| Local | <http://localhost:8000> | value of `DEMO_PASSWORD` when seeding: in [Running locally](#running-locally) option A `demo`, option B the value from `.env` |
-
-Email addresses are case-insensitive: `MA@mail.ch` and `ma@mail.ch` log into
-the same account, because login and seed lower-case the address
-(`normalize_email` in `src/app/application/models.py`).
+All accounts are fictional. **Password for all accounts: `demo`.** Locally the
+same accounts and password apply when `DEMO_PASSWORD=demo` is set (see
+[Running locally](#running-locally)). Email addresses are case-insensitive
+(`MA@mail.ch` = `ma@mail.ch`).
 
 | Role | Account | Start page |
 |---|---|---|
@@ -108,8 +99,8 @@ the same account, because login and seed lower-case the address
 | Data protection officer | `ds@mail.ch` | `/datenschutz/auswertung`, `/datenschutz/zuweisungen` |
 
 More fictional accounts (`…@grenchen.example`, four employees and one lead each
-for Einwohnerdienste, Soziale Dienste and Finanzen und Informatik) are also in
-`data/seed/users.json` and use the same password. The seed contains no played rounds: before the department lead
+for Einwohnerdienste, Soziale Dienste and Finanzen und Informatik) are listed in
+[`data/seed/users.json`](data/seed/users.json) and use the same password. The seed contains no played rounds: before the department lead
 sees team values, three people of the same department must complete a round.
 
 | Login | Department lead | Data protection officer |
@@ -269,7 +260,7 @@ The seed can be run repeatedly and never overwrites existing data.
 ### Option B: Docker Compose with PostgreSQL
 
 ```bash
-cp .env.example .env   # replace the placeholders with your own values
+cp .env.example .env   # replace placeholders, DEMO_PASSWORD=demo for the same logins as live
 docker compose up --build
 ```
 
