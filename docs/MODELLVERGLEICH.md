@@ -91,7 +91,12 @@ Application-Layer), und der Test zu Fix 2 ist leer.
 ## Bewertung
 
 Punkte nach dem Lösungsschlüssel: B2 gefunden (0–2), B3 gefunden (0–2), Fix B2 (0–3),
-Fix B3 (0–3), max. 10. Vorschlag von Claude gegen den Code geprüft, von Sibslusi übernommen (28.10.2026).
+Fix B3 (0–3), max. 10.
+
+Entstehung der Bewertung (28.10.2026): Claude hat einen ersten Vorschlag gegen den Code geprüft.
+Sibslusi hat den Vorschlag geprüft und nachgefragt, wie sicher die Bewertung ist. Daraus sind die
+unten genannten Ermessensstellen entstanden. Danach hat Sibslusi die Punkte und das Fazit
+freigegeben und sich die Bewertung erklären lassen.
 
 | Kriterium | A: Extra High | C: Low | B: Granite |
 |---|---|---|---|
