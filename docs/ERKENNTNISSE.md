@@ -65,6 +65,10 @@ An diesem Tag ging es darum, die letzten gefundenen Fehler zu korrigieren, versc
 - **Wichtige Entscheidungen möchte ich selbst treffen.** Beim Abschluss von Phase 5 und bei ADR-007 wurden mir verschiedene Möglichkeiten erklärt. Die endgültige Entscheidung habe ich selbst getroffen. Ich finde es sinnvoll, die KI für Vorschläge und Erklärungen zu verwenden, aber Architekturentscheide und Freigaben nicht vollständig ihr zu überlassen.
 - **Die Reflexion pro Arbeitstag ist für mich übersichtlicher.** Im AI-LOG stehen viele einzelne Aufträge, bei denen sich die Lernpunkte teilweise wiederholen. Wenn ich meine Erkenntnisse pro Tag zusammenfasse, erkenne ich besser, welche Schwierigkeiten häufiger aufgetreten sind und was ich daraus mitgenommen habe.
 
+## 2026-10-28
+
+_Folgt (Sibslusi)._
+
 ## Gesamtfazit
 
 ### Meine fünf wichtigsten Erkenntnisse

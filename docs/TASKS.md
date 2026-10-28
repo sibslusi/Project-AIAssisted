@@ -53,9 +53,9 @@ Datenänderung (Migration). Darum Specs, ADR-007 und TDD-Commits.
 - **Checks:** 167 Tests grün, Coverage 97 %, Ruff, Format, import-linter,
   `alembic check` (SQLite im Test). PostgreSQL prüft der CI-Job `postgres`.
 - **Bekannt, nicht geändert:** Die Gesamtauswertung der
-  Datenschutzverantwortlichen zeigt nur Status pro Person, keine
-  Punkte-Aggregate (UC-002 Flow 6); die Abteilungsseite zeigt Punkte, aber
-  keine Fehler (AC-010, API liefert beide).
+  Datenschutzverantwortlichen zeigt nur Status pro Person (UC-002 Flow 6 am
+  28.10. an den Code angeglichen); die Abteilungsseite zeigt Punkte, aber
+  keine Fehler (AC-010, die API liefert beide).
 
 ### Phase 4: Validate
 
@@ -148,9 +148,9 @@ Datenänderung (Migration). Darum Specs, ADR-007 und TDD-Commits.
 
 ## Backlog
 
-- docs/specs/UC-001-SZENARIO-RUNDE-SPIELEN.md – Mitarbeitende spielen 5 Szenarien ihrer Abteilung, Punkte, Erklärung, Abzeichen ab 80 %
-- docs/specs/UC-002-SCHULUNG-STEUERN.md – Module mit Frist zuweisen, Status und Auswertung gemäss Rollenrechten
-- docs/specs/UC-003-KI-SZENARIO-ENTWURF.md – optional: KI-Entwurf aus Gesetzesartikel, Freigabe durch Datenschutzverantwortliche
+- UC-001 (`docs/specs/UC-001-SZENARIO-RUNDE-SPIELEN.md`) – erledigt, live seit v0.1.1
+- UC-002 (`docs/specs/UC-002-SCHULUNG-STEUERN.md`) – erledigt, live seit v0.1.1
+- UC-003 KI-Entwurf von Fällen – optional, nicht spezifiziert und nicht umgesetzt (Idee in `docs/PROJECT.md`)
 
 ## Meilensteine
 

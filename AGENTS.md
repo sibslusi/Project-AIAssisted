@@ -91,7 +91,7 @@ If requirements or architecture are unclear → ask the user.
 - Domain rules with unit tests: team aggregates only for groups of 3 or more
   completed attempts; current date passed in (clock port), never
   `datetime.now()` in domain/application; created scenarios and answer options
-  are immutable, and faulty scenarios are deactivated and replaced.
+  are immutable and can only be deactivated (replacement in V1 only via seed data).
 - Fictional data only. No real names, no real data of Stadt Grenchen.
 - Login: passwords hashed with Argon2, secure session cookie, CSRF protection on forms.
 - Secrets only in `.env` (gitignored) or GitHub Secrets; keep `.env.example` with placeholders.

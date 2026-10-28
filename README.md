@@ -185,7 +185,11 @@ E2E-Tests verwenden, zum Beispiel `GET /health` (Status und Version),
 
 ## Domain-Modell
 
-Acht Entitäten im Domain-Modell. Sieben davon haben eine eigene Tabelle
+Acht Entitäten im logischen Domain-Modell. `Scenario`, `AnswerOption`,
+`Assignment`, `GameRound` und `RoundAnswer` sind Klassen mit Regeln in
+`src/app/domain/models.py`; `Department`, `Employee` und `Module` haben kaum
+eigene Regeln und sind einfache Datensätze in `src/app/application/models.py`.
+Sieben Entitäten haben eine eigene Tabelle
 (ORM-Modelle in `src/app/infrastructure/models.py`, Migration in `alembic/`);
 `AnswerOption` wird als JSON-Spalte `options` in `scenarios` gespeichert.
 Dazu kommen die Verbindungstabellen `module_scenarios` und
@@ -329,7 +333,7 @@ flowchart LR
 | Workflow | Auslöser | Was er tut |
 |---|---|---|
 | [`ci.yml`](.github/workflows/ci.yml) | Push und PR auf `main` | Ruff, Format, import-linter, alle Tests mit Coverage (min. 90 %), `pip-audit`; Migrationen, `alembic check` und Seed (zweimal) gegen PostgreSQL 16; Docker-Build |
-| [`release.yml`](.github/workflows/release.yml) | Tag `v*` | Tests, Image mit Version bauen, 35 E2E-Tests im Image gegen PostgreSQL, Container starten und Smoke-Test; erst dann Push nach GHCR, GitHub-Release und Aufruf von `cd.yml` |
+| [`release.yml`](.github/workflows/release.yml) | Tag `v*` | Tests, Image mit Version bauen, alle E2E-Tests (`tests/e2e`) im Image gegen PostgreSQL, Container starten und Smoke-Test; erst dann Push nach GHCR, GitHub-Release und Aufruf von `cd.yml` |
 | [`cd.yml`](.github/workflows/cd.yml) | von `release.yml` | im Environment `production`: Render Deploy Hook mit dem geprüften Image-Digest, danach Smoke-Test gegen die Live-URL (Version und Login) |
 
 Render deployt also genau das Image, das vorher getestet wurde, und nicht
@@ -337,7 +341,8 @@ automatisch bei jedem Push ([ADR-006](docs/adr/ADR-006-DEPLOYMENT.md)).
 Die Datenbank läuft auf Neon. Beim Container-Start führt
 `scripts/docker-entrypoint.sh` `alembic upgrade head` und optional den Seed aus.
 
-Erster Release: [`v0.1.0`](https://github.com/sibslusi/Project-AIAssisted/releases/tag/v0.1.0).
+Erster Release: [`v0.1.0`](https://github.com/sibslusi/Project-AIAssisted/releases/tag/v0.1.0),
+aktueller Release: [`v0.1.2`](https://github.com/sibslusi/Project-AIAssisted/releases/tag/v0.1.2).
 **Live-URL:** <https://grenchen-datenschutz.onrender.com>
 
 Den Smoke-Test kann man auch lokal gegen eine laufende Instanz ausführen:
@@ -349,7 +354,7 @@ BASE_URL=http://localhost:8000 SMOKE_EMAIL=ma@mail.ch DEMO_PASSWORD=demo python 
 ## KI-Tooling
 
 Das Projekt wurde nach dem AI-SDLC entwickelt: Phasen 0 bis 5 (Bootstrap,
-Specify, Design, Develop, Validate, Deploy), Jede Phase hat einen Skill, und
+Specify, Design, Develop, Validate, Deploy). Jede Phase hat einen Skill, und
 laut [`AGENTS.md`](AGENTS.md) endet jede Phase mit dem Quality Gate. Der aktuelle Stand steht in
 [`docs/TASKS.md`](docs/TASKS.md).
 

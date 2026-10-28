@@ -27,7 +27,7 @@ Abteilungsleitung, Mitarbeitende, Anwendung
 
 ## Flow
 
-1. Die Datenschutzverantwortliche öffnet die Modulverwaltung.
+1. Die Datenschutzverantwortliche öffnet die Seite Zuweisungen.
 2. Sie wählt ein Modul, eine Abteilung und eine Frist aus.
 3. Die Anwendung prüft die Eingaben und speichert eine `Assignment`.
 4. Die zugewiesenen Mitarbeitenden sehen das Modul und ihren persönlichen
@@ -35,8 +35,8 @@ Abteilungsleitung, Mitarbeitende, Anwendung
 5. Die Anwendung berechnet den Status anhand des ersten bestandenen Versuchs
   und der Frist (Punktzahl: bester Versuch): `offen`, `erledigt`, `verspätet erledigt` oder
   `Frist überschritten`.
-6. Die Datenschutzverantwortliche sieht den Status und aggregierte Ergebnisse
-   aller Abteilungen.
+6. Die Datenschutzverantwortliche sieht den Status aller schulungspflichtigen
+   Personen in allen Abteilungen.
 7. Die Abteilungsleitung sieht nur den Status pro Person der eigenen Abteilung.
    Punkte und Fehler werden nur als Teamwerte aggregiert angezeigt. In allen
    Statuslisten erscheinen nur Personen mit der Rolle Mitarbeitende;
@@ -211,8 +211,9 @@ aufzurufen.
 ### Application
 
 Alle Services erhalten eine authentifizierte Principal-Identität. Rolle und
-Abteilung stammen aus serverseitig geladenen Employee-Daten, nie aus
-eingereichten Rollen- oder Abteilungswerten. Die Application erzwingt die
+Abteilung stammen aus dem signierten Session-Cookie, das beim Login aus den
+Employee-Daten der Datenbank erstellt wird, nie aus eingereichten Rollen- oder
+Abteilungswerten. Die Application erzwingt die
 Zugriffsregeln und validiert Eingaben vor dem Aufruf der Repository-Ports.
 
 | Service | Eingabe | Ausgabe |
@@ -221,7 +222,7 @@ Zugriffsregeln und validiert Eingaben vor dem Aufruf der Repository-Ports.
 | `GetPersonalStatus` | Principal, optional Zuweisungsfilter, Zeitpunkt vom Clock-Port | eigene Statuswerte und eigene beste Ergebnisse |
 | `GetDepartmentStatus` | Principal, angeforderte Abteilungs-ID, optional Zuweisungsfilter, Zeitpunkt | Status pro Person; keine Einzelpunkte oder Einzelfehler |
 | `CreateTeamAggregation` | Principal, Abteilungs-ID, optional Zuweisungsfilter | Aggregat aus Punkte- und Fehlerwerten oder `zu wenige Teilnehmende` |
-| `GetOverallEvaluation` | Principal, optional Filter, Zeitpunkt vom Clock-Port | Status und zulässige Auswertungen aller Abteilungen |
+| `GetOverallEvaluation` | Principal, Zeitpunkt vom Clock-Port | Status pro schulungspflichtiger Person und Zuweisung in allen Abteilungen |
 | `ExportTrainingEvidence` | Principal, Zuweisungs-ID | eine `EvidenceRow` pro Versuch mit Person, Abteilung, Modul, Versuch, Status, Punktzahl, Bestanden, Abschlusszeitpunkt, Szenario-IDs |
 
 `AssignModule` ist nur für Datenschutzverantwortliche erlaubt. Mitarbeitende
@@ -282,12 +283,12 @@ flowchart LR
   Adapters[Persistence-, Clock- und CSV-Adapter] --> Ports
 ```
 
-## Tests (Entwurf)
+## Tests
 
 Die folgenden konkreten E2E-API-Fälle decken die Akzeptanzkriterien ab. Sie
 verwenden ausschliesslich fiktive Mitarbeitende, Abteilungen, Module und Runden
-sowie kontrollierte Zeitpunkte; dies beschreibt Tests, legt aber keine
-Testdateien oder Implementierung an.
+sowie kontrollierte Zeitpunkte. Umgesetzt sind sie in
+`tests/e2e/test_uc002_workflow.py` (`test_ac001_…` bis `test_ac015_…`).
 
 | Kriterium | E2E-API-Fall und erwartetes Ergebnis |
 |---|---|

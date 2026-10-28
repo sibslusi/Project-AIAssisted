@@ -185,7 +185,11 @@ E2E tests, for example `GET /health` (status and version), `POST /login`,
 
 ## Domain model
 
-Eight entities in the domain model. Seven of them have their own table (ORM
+Eight entities in the logical domain model. `Scenario`, `AnswerOption`,
+`Assignment`, `GameRound` and `RoundAnswer` are classes with rules in
+`src/app/domain/models.py`; `Department`, `Employee` and `Module` have hardly
+any rules of their own and are plain records in `src/app/application/models.py`.
+Seven entities have their own table (ORM
 models in `src/app/infrastructure/models.py`, migration in `alembic/`);
 `AnswerOption` is stored as the JSON column `options` in `scenarios`. The join
 tables `module_scenarios` and `game_round_scenarios` come on top.
@@ -326,7 +330,7 @@ flowchart LR
 | Workflow | Trigger | What it does |
 |---|---|---|
 | [`ci.yml`](.github/workflows/ci.yml) | push and PR to `main` | Ruff, format, import-linter, all tests with coverage (min. 90 %), `pip-audit`; migrations, `alembic check` and seed (twice) against PostgreSQL 16; Docker build |
-| [`release.yml`](.github/workflows/release.yml) | tag `v*` | tests, build versioned image, 35 E2E tests inside the image against PostgreSQL, start container and smoke test; only then push to GHCR, create GitHub release and call `cd.yml` |
+| [`release.yml`](.github/workflows/release.yml) | tag `v*` | tests, build versioned image, all E2E tests (`tests/e2e`) inside the image against PostgreSQL, start container and smoke test; only then push to GHCR, create GitHub release and call `cd.yml` |
 | [`cd.yml`](.github/workflows/cd.yml) | called by `release.yml` | in environment `production`: Render deploy hook with the validated image digest, then smoke test against the live URL (version and login) |
 
 Render therefore deploys exactly the image that was tested before, not every
@@ -334,7 +338,8 @@ push automatically ([ADR-006](docs/adr/ADR-006-DEPLOYMENT.md)). The database
 runs on Neon. On container start `scripts/docker-entrypoint.sh` runs
 `alembic upgrade head` and, optionally, the seed.
 
-First release: [`v0.1.0`](https://github.com/sibslusi/Project-AIAssisted/releases/tag/v0.1.0).
+First release: [`v0.1.0`](https://github.com/sibslusi/Project-AIAssisted/releases/tag/v0.1.0),
+current release: [`v0.1.2`](https://github.com/sibslusi/Project-AIAssisted/releases/tag/v0.1.2).
 **Live URL:** <https://grenchen-datenschutz.onrender.com>
 
 The smoke test can also be run locally against a running instance:
