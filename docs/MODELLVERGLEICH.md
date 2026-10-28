@@ -41,7 +41,7 @@ Modell Granite 4.1 aus dem LiteLLM.
 | Spend vorher / nachher | 5.582388570 / 5.611272170 USD |
 | Kosten | **0.0289 USD** |
 | Antwort | [antwort-lauf-a.md](modellvergleich/antwort-lauf-a.md) |
-| Bewertung | folgt (Sibslusi) |
+| Bewertung | **6 / 10** (siehe [Bewertung](#bewertung)) |
 
 ### Lauf B: ibm/granite4.1:3b
 
@@ -53,7 +53,7 @@ Modell Granite 4.1 aus dem LiteLLM.
 | Spend vorher / nachher | 5.611272170 / 5.611272170 USD (auch >10 min nach dem Lauf unverändert) |
 | Kosten | **0.0000 USD**. Zwei mögliche Gründe: für das Modell ist im LiteLLM kein Preis hinterlegt, oder der abgebrochene Request wurde nicht verbucht. Für den ersten spricht, dass auch vollständige Granite-Antworten im Vorversuch 0 USD kosteten (nicht geprüft). |
 | Antwort | [antwort-lauf-b.md](modellvergleich/antwort-lauf-b.md) |
-| Bewertung | folgt (Sibslusi) |
+| Bewertung | **0 / 10** (siehe [Bewertung](#bewertung)) |
 
 Gegen den Code geprüft (Claude): Keiner der fünf Befunde trifft zu, B2 und B3 fehlen.
 
@@ -78,17 +78,56 @@ Application-Layer), und der Test zu Fix 2 ist leer.
 | Spend vorher / nachher | 5.578048570 / 5.582388570 USD |
 | Kosten | **0.0043 USD** |
 | Antwort | [antwort-lauf-c.md](modellvergleich/antwort-lauf-c.md) |
-| Bewertung | folgt (Sibslusi) |
+| Bewertung | **4 / 10** (siehe [Bewertung](#bewertung)) |
 
 ## Übersicht
 
-| Lauf | Modell | Zeit | Kosten | B2 | B3 | Falschbefunde |
-|---|---|---|---|---|---|---|
-| A | gpt-5.6-luna Extra High | 2 min 48 s | 0.0289 USD | nein | ja („unsicher“) | 0 |
-| B | ibm/granite4.1:3b | Abbruch nach 300 s | 0.0000 USD | nein | nein | 5 von 5 |
-| C | gpt-5.6-luna Low | 28 s | 0.0043 USD | nein | ja | 0 |
+| Lauf | Modell | Zeit | Kosten | B2 | B3 | Falschbefunde | Punkte |
+|---|---|---|---|---|---|---|---|
+| A | gpt-5.6-luna Extra High | 2 min 48 s | 0.0289 USD | nein | ja („unsicher“) | 0 | 6 / 10 |
+| B | ibm/granite4.1:3b | Abbruch nach 300 s | 0.0000 USD | nein | nein | 5 von 5 | 0 / 10 |
+| C | gpt-5.6-luna Low | 28 s | 0.0043 USD | nein | ja | 0 | 4 / 10 |
 
-Punkte und Fazit: folgen (Sibslusi).
+## Bewertung
+
+Punkte nach dem Lösungsschlüssel: B2 gefunden (0–2), B3 gefunden (0–2), Fix B2 (0–3),
+Fix B3 (0–3), max. 10. Vorschlag von Claude gegen den Code geprüft, von Sibslusi übernommen (28.10.2026).
+
+| Kriterium | A: Extra High | C: Low | B: Granite |
+|---|---|---|---|
+| B2 gefunden (0–2) | 0 | 0 | 0 |
+| B3 gefunden (0–2) | 2 | 2 | 0 |
+| Fix B2 (0–3) | 1 | 0 | 0 |
+| Fix B3 (0–3) | 3 | 2 | 0 |
+| **Total (max. 10)** | **6** | **4** | **0** |
+| Zusatzbefunde | Z1, Z2 | Z1, Z2 | keine |
+| Falschbefunde | 0 | 0 | 5 |
+| Tests sinnvoll | teilweise (falsche Importpfade) | teilweise (falsche Importpfade) | nein |
+
+Begründung:
+
+- **B2:** A und C sehen, dass das Cookie 8 h gültig bleibt, verbinden das aber nur mit
+  Rollenwechseln (Z1), nicht mit Logout oder einem kopierten Cookie.
+- **B3:** Beide nennen die Lücke klar mit Szenario (A mit `2020-01-01`).
+- **Fix B2:** A lädt Rolle und Abteilung serverseitig über Ports. Das löst Z1, nach dem Logout
+  bleibt das Cookie aber gültig („ungenügend“). C hat keinen Fix für die Session-Gültigkeit.
+- **Fix B3:** A nutzt den echten `ClockPort.now()` mit Europe/Zurich, `InvalidRequest` und einen
+  Fake-Clock-Test. C nimmt einen `ClockPort.today()` an, den es nicht gibt.
+- **B:** alle fünf Befunde falsch, Abbruch nach 300 s.
+
+Ermessensstellen: A bei B2 gefunden (0 oder 1, „vage“), A bei Fix B3 (3 oder 2, Test läuft wegen
+falscher Imports nicht direkt), C bei Fix B3 (2 oder 1, Code läuft erst mit ergänztem `today()`).
+Damit liegt A bei 5–7, C bei 3–4, B bei 0 Punkten. Die Reihenfolge A vor C vor B bleibt in jeder Variante gleich.
+
+## Fazit
+
+Ich habe dieselbe Code-Review-Aufgabe dreimal gestellt. gpt-5.6-luna mit Extra High (A) brauchte
+2:48 Minuten und 0.0289 USD und erreichte 6 von 10 Punkten. Mit Low (C) brauchte dasselbe Modell
+28 Sekunden und 0.0043 USD, also etwa siebenmal weniger. Es fand dieselben Fehler, schlug aber
+ungenauere Fixes vor (4 Punkte). Das kleine Open-Weight-Modell granite4.1:3b (B) brach nach
+300 Sekunden ab, und alle fünf Befunde waren falsch (0 Punkte). Die Logout-Lücke (B2) fand keines
+der Modelle. Für mich heisst das: Fürs Finden reicht ein günstiges Modell, für Fixes lohnt sich
+mehr Denkzeit, und eine KI-Review ersetzt keine eigene Prüfung.
 
 ## Vergleich der beiden gpt-5.6-luna-Läufe
 
