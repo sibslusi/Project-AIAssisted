@@ -62,23 +62,22 @@ auch von anderen Gemeinden übernommen werden können.
 - UC-001: eine Szenario-Runde spielen, Antworten bewerten, Erklaerungen und
 	ein Abzeichen ab 80 Prozent anzeigen. Ein Versuch gilt ab 80 Prozent
 	richtigen Antworten als bestanden.
-- UC-002: Module mit Frist zuweisen, Status anzeigen, aggregiert auswerten und
-	einen Schulungsnachweis als CSV exportieren.
+- UC-002: Module mit Frist zuweisen, Status anzeigen, Teamwerte für
+	Abteilungsleitungen auswerten und einen Schulungsnachweis als CSV exportieren.
 - Szenarien werden initial als Seed-Daten geladen. Veröffentlichte Szenarien und
 	ihre Antwortoptionen sind unveränderlich. Ein fehlerhafter Fall wird über
-	`Scenario.active` deaktiviert und durch ein neues Szenario ersetzt. In V1
-	geschieht das über die Seed-Daten; eine Verwaltungsoberfläche dafür ist
-	eine spätere Erweiterung.
+	`Scenario.active` deaktiviert. In V1 gibt es dafür keine Oberfläche und
+	keinen Use Case: Ein Ersatz geschieht nur über die Seed-Daten (neuer Fall in
+	`scenarios.json`, Verweis in `modules.json`).
 - Neue Runden verwenden nur aktive Szenarien. Laufende Runden und alte
 	`RoundAnswer`-Einträge bleiben gültig, weil sich ihr Szenario nicht ändert.
 - `Module` und `Scenario` werden über `module_scenarios` verbunden. Die
 	Kombination `(module_id, position)` ist eindeutig; ein Szenario kann in
 	mehreren Modulen vorkommen. Eine neue Runde startet nur bei genau fünf
 	Positionen, deren fünf Szenarien aktiv sind.
-- Beim Ersatz wird die bestehende `module_scenarios`-Zeile auf die neue
-	`scenario_id` umgestellt und das alte Szenario auf `active = false` gesetzt.
-	`game_round_scenarios` speichert pro Runde die fünf Szenario-IDs und
-	Positionen für historische Runden.
+- Beim Ersatz über den Seed wird die bestehende `module_scenarios`-Zeile auf
+	die neue `scenario_id` umgestellt. `game_round_scenarios` speichert pro
+	Runde die fünf Szenario-IDs und Positionen für historische Runden.
 - Eine separate Szenario-Versionierung ist nur eine mögliche spätere Erweiterung.
 - Es werden keine echten Personendaten verwendet.
 - Mitarbeitende dürfen eine Runde wiederholen. Für den Schulungsstatus zählt
@@ -95,7 +94,8 @@ auch von anderen Gemeinden übernommen werden können.
 - Die Auswertung wird erst ab mindestens drei Personen mit abgeschlossenem
 	Versuch eingeblendet, damit keine Rückschlüsse auf Einzelpersonen möglich
 	sind.
-- Datenschutzverantwortliche sehen die Auswertung aller Abteilungen.
+- Datenschutzverantwortliche sehen den Status aller schulungspflichtigen
+	Personen in allen Abteilungen und exportieren den Schulungsnachweis als CSV.
 - Schulungspflichtig sind nur Personen mit der Rolle Mitarbeitende.
 	Abteilungsleitungen und Datenschutzverantwortliche spielen keine Runden und
 	erscheinen darum nicht in den Statuslisten.
@@ -108,9 +108,9 @@ und ihre Antwortoptionen werden nicht bearbeitet oder gelöscht.
 
 Nicht in V1 umgesetzt: neue Fälle über die Oberfläche erstellen, Fälle
 deaktivieren und Fälle zu neuen Modulen zusammenfassen. Fälle und Module kommen
-aus den Seed-Daten (`data/seed/`). Die Regeln dafür (Unveränderlichkeit,
-Deaktivieren und Ersetzen, ADR-003) sind im Domain-Modell und in der Datenbank
-bereits angelegt.
+aus den Seed-Daten (`data/seed/`). Im Domain-Modell angelegt sind die
+Unveränderlichkeit und das Deaktivieren (`Scenario.deactivate()`); das Tabellen-
+modell trennt Module und Fälle über `module_scenarios` (ADR-003).
 
 Fiktive Seed-Daten, automatisierte Tests und lokaler Betrieb mit PostgreSQL oder
 SQLite fuer die Entwicklung gehören zum Projektumfang.
@@ -226,15 +226,16 @@ database for deployment on Neon; SQLite is permitted for local tests.
 
 Unit and integration tests use pytest. End-to-end tests for API endpoints and
 workflows use pytest with FastAPI TestClient and HTTPX in `tests/e2e/`.
-Playwright browser tests for important workflows, such as playing UC-001, are
-optional if time allows.
+Playwright browser tests are not part of the project; see `docs/TASKS.md`.
 Passwords are hashed with Argon2, and forms are protected against CSRF.
 Development takes place in the Dev Container. Deployment uses Neon for
 PostgreSQL and Render for the application.
 
 ### Domain model
 
-The domain model contains these entities:
+The logical domain model contains these entities. `Department`, `Employee`
+and `Module` are plain records in `src/app/application/models.py`; the others
+are classes in `src/app/domain/models.py`.
 
 1. `Department` - department of the municipality.
 2. `Employee` - person with a role who belongs to exactly one department.
@@ -272,8 +273,9 @@ erDiagram
 ordered scenario used by a module. A new round requires exactly five rows with
 active scenarios. `game_round_scenarios` stores the five scenario IDs and
 positions copied at round start, so deactivation or replacement cannot change
-historical rounds. Replacing a scenario updates the existing module row to the
-new scenario ID and deactivates the old scenario; no new position is created.
+historical rounds. In V1 a scenario is replaced only through the seed data: the
+seed updates the existing module row to the new scenario ID; no new position is
+created.
 
 `GameRound` stores the `attempt_number`, completion data, calculated score and
 whether the attempt passed. The score and pass status are stored when the round
@@ -284,7 +286,7 @@ attempt, and attempts with the same score are ordered by completion time,
 earliest first.
 
 Created scenarios and their answer options are immutable. A faulty scenario
-is deactivated and replaced by a new scenario; new rounds use only active
+can be deactivated (`Scenario.deactivate()`); new rounds use only active
 scenarios. Existing rounds and answers remain valid because their scenarios do
 not change. A badge is not stored as a separate entity; it is shown as soon
 as an attempt has passed (80 percent). Access rules are enforced
@@ -304,8 +306,8 @@ in the web interface.
 - Only people with the role employee must complete training; department leads
   and data protection officers are not listed in status reports.
 - A due date must not be before today's date in `Europe/Zurich`.
-- A created scenario cannot be edited or deleted; deactivation and a new
-	replacement scenario are used for corrections.
+- A created scenario cannot be edited or deleted; it can only be deactivated.
+	In V1 a replacement scenario is added through the seed data.
 - Passwords use Argon2. Forms use CSRF protection. Session cookies
 	are HttpOnly, Secure and SameSite. Die Zuordnung von Benutzer, Abteilung und
 	Rolle wird serverseitig geprüft und nicht aus frei eingegebenen Formularwerten
@@ -425,8 +427,7 @@ Die Präsentation und das README enthalten folgende überprüfbare Nachweise:
 The dependency manifest is `requirements.txt`. Runtime dependencies are
 FastAPI, Uvicorn, Jinja2, SQLAlchemy, Alembic, a PostgreSQL driver, Argon2
 support and HTTPX. Development dependencies include pytest, pytest-cov,
-import-linter and pip-audit. Playwright is an optional development dependency
-for browser tests.
+import-linter and pip-audit.
 
 Required configuration variable names:
 

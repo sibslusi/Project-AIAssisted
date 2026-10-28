@@ -178,8 +178,8 @@ Frage fort und bewertet sie erst nach der letzten Antwort.
 
 **When** eine Änderung oder Löschung fachlich angefordert wird
 
-**Then** weist die Domain-/Application-Regel sie ab; der Fall kann deaktiviert
-und durch ein neues Szenario ersetzt werden. Eine Verwaltungs-API gehört zu
+**Then** weist die Domain-/Application-Regel sie ab; der Fall kann nur
+deaktiviert werden, ein Ersatz kommt in V1 über die Seed-Daten. Eine Verwaltungs-API gehört zu
 einem zuständigen späteren Use Case und wird hier nicht entworfen.
 
 ## Architekturentwurf (Phase 2)
@@ -190,8 +190,8 @@ einem zuständigen späteren Use Case und wird hier nicht entworfen.
   Abteilungs-, Rollen-, Modul- und Fristkontext.
 - `Scenario` und `AnswerOption` bilden einen Datenschutzfall ab. Nach der
   Veröffentlichung sind Inhalt und Antwortoptionen unveränderlich; nur
-  `Scenario.active` kann zur Deaktivierung geändert werden. Fehlerhafte Fälle
-  werden deaktiviert und durch neue ersetzt.
+  `Scenario.active` kann zur Deaktivierung geändert werden. Ein Ersatz kommt
+  in V1 nur über die Seed-Daten.
 - `GameRound` gehört zu einer Person und einer Zuweisung an deren Abteilung.
   Die Zielabteilung der Zuweisung muss der Abteilung der Person entsprechen.
   Sie speichert
@@ -203,8 +203,8 @@ einem zuständigen späteren Use Case und wird hier nicht entworfen.
   dieser gespeicherten Liste fortgesetzt, auch wenn ein Szenario später
   deaktiviert wird.
 - `Module` und `Scenario` werden über `module_scenarios` verbunden. `(module_id,
-  position)` ist eindeutig. Ein Ersatz aktualisiert die bestehende Position auf
-  die neue Szenario-ID und deaktiviert das alte Szenario. Eine neue Runde
+  position)` ist eindeutig. Ein Ersatz über den Seed aktualisiert die bestehende
+  Position auf die neue Szenario-ID. Eine neue Runde
   startet nur bei genau fünf Positionen mit aktiven Szenarien. Die fünf
   Positionen werden zusätzlich in `game_round_scenarios` gespeichert.
 - `RoundAnswer` enthält Runde, Szenario-Position, gewählte Option und
@@ -240,10 +240,11 @@ einem zuständigen späteren Use Case und wird hier nicht entworfen.
 - `SubmitRoundAnswer` erhält Actor, Runden-ID, Szenario-Position und Options-ID.
   Die Ausgabe enthält richtig/falsch, Erklärung, Rechtsgrundlage und entweder
   die nächste Position oder das abgeschlossene Ergebnis samt Trainingsstatus.
-- `GetTrainingProgress` erhält Actor und Modul-/Zuweisungs-ID. Es liefert
-  Mitarbeitenden den eigenen Status; Abteilungsleitungen den Status ihrer
-  Abteilung samt Einzelstatus und Punkt-/Fehleraggregaten erst ab drei
-  Personen; Datenschutzverantwortlichen die Gesamtsicht gemäss Projektregeln.
+- `GetTrainingProgress` erhält Actor und Modul-ID. Es liefert Mitarbeitenden
+  den eigenen Status und die beste eigene Punktzahl; Abteilungsleitungen und
+  Datenschutzverantwortlichen nur die Summe der besten Punktzahlen, und erst ab
+  drei Personen mit abgeschlossenem Versuch. Der Status pro Person kommt aus
+  UC-002.
 - Die Application prüft alle Zugriffe serverseitig. Mitarbeitende spielen nur
   Module aus Zuweisungen an ihre eigene Abteilung und sehen nur eigene Ergebnisse;
   Abteilungsleitungen bleiben auf ihre Abteilung beschränkt und sehen Punkte
@@ -307,8 +308,8 @@ flowchart LR
 
 ## Tests
 
-Die folgenden Fälle beschreiben E2E-API-Prüfungen. In Phase 2 werden keine
-Testdateien oder Testimplementierungen erstellt.
+Die folgenden Fälle beschreiben E2E-API-Prüfungen. Umgesetzt sind sie in
+`tests/e2e/test_uc001_workflow.py`; jede Test-Docstring nennt ihr Kriterium.
 
 | Kriterium | API-Fall und erwartetes Ergebnis |
 |---|---|

@@ -23,6 +23,11 @@ Szenario auf `active = false`. Eine neue Runde startet nur bei genau fünf
 Positionen mit aktiven Szenarien. `game_round_scenarios` speichert die fünf
 Szenario-IDs und Positionen als unveränderlichen Runden-Snapshot.
 
+Präzisiert am 28.10.2026 (Abgleich mit dem Code): V1 hat keinen Use Case und
+keine Oberfläche zum Ersetzen oder Deaktivieren. Ein Ersatz geschieht nur über
+die Seed-Daten; der Seed stellt die Zeile in `module_scenarios` um und ändert
+bestehende Szenarien nicht. In der Domain gibt es `Scenario.deactivate()`.
+
 ## Konsequenzen
 
 Ein Szenario kann in mehreren Modulen vorkommen. Alte Runden bleiben gültig;
