@@ -67,7 +67,15 @@ An diesem Tag ging es darum, die letzten gefundenen Fehler zu korrigieren, versc
 
 ## 2026-10-28
 
-_Folgt (Sibslusi)._
+**Letzter Abgleich vor der Abgabe**
+
+Am Tag vor der Abgabe habe ich die gesamte Dokumentation noch einmal mit dem tatsächlichen Code vergleichen lassen: README, PROJECT.md, Spezifikationen, ADRs, TASKS.md und AGENTS.md.
+
+- **Die Frage «Ist alles vorhanden?» reicht nicht.** Ich hatte in den letzten Tagen mehrmals nachgefragt, ob alles vollständig ist und zusammenpasst. Trotzdem wurden beim letzten Abgleich noch Lücken gefunden. In UC-002 stand zum Beispiel, dass die Datenschutzverantwortliche aggregierte Ergebnisse aller Abteilungen sieht. Im Code gibt es nur den Status pro Person. In ADR-003 war beschrieben, wie ein Szenario ersetzt wird, obwohl es dafür keinen Code gibt. Im README stand «35 E2E-Tests», obwohl es inzwischen 37 waren, und TASKS.md verwies auf eine UC-003-Spezifikation, die nie erstellt wurde. Ich habe daraus gelernt, dass eine allgemeine Ja-Nein-Frage zu einer allgemeinen, meist zu optimistischen Antwort führt. Besser ist ein konkreter Auftrag: jede Aussage in der Dokumentation mit einer Datei oder einer Codezeile belegen.
+- **Dokumentation veraltet still.** Die meisten Widersprüche waren am Anfang keine Fehler. Die Spezifikationen wurden in Phase 1 und 2 geschrieben, und der Code hat sich danach weiterentwickelt, zum Beispiel durch Reviews, Korrekturen und neue Tests. Die Beschreibung wurde dabei nicht immer mitgeändert. Beim nächsten Projekt würde ich darauf achten, dass ein Pull Request, der den Code ändert, auch die betroffenen Specs und ADRs anpasst und nicht erst ein späterer Abgleich.
+- **Lieber streichen als etwas versprechen, das nicht existiert.** Ich habe entschieden, die nicht umgesetzten Punkte aus der Dokumentation zu entfernen oder ausdrücklich als «in V1 nicht umgesetzt» zu kennzeichnen, statt sie kurz vor der Abgabe noch schnell zu programmieren. Für die Bewertung ist wichtig, dass Beschreibung und Code übereinstimmen. Eine kleinere, aber ehrlich beschriebene Anwendung ist mir lieber als eine Dokumentation, die mehr verspricht, als die Anwendung kann.
+- **Auch eine KI-Prüfung prüft nur, was sie sieht.** Copilot hat bei einem Review einen Fehler gemeldet, der bereits behoben war, weil im Prompt noch ein alter Codeausschnitt stand. Eine andere KI hat mein Projekt nur anhand der Dokumentation beurteilt und konnte deshalb nicht sagen, ob es wirklich fünf Entitäten im Code gibt. Das hat mir gezeigt, dass ich immer wissen muss, auf welchem Stand eine Prüfung gemacht wurde. Belastbar ist ein Befund erst, wenn er gegen den aktuellen Code geprüft ist, zum Beispiel mit Dateipfad, Commit oder Testlauf.
+- **Begriffe müssen klar sein, bevor man zählt.** Bei der Frage nach der Anzahl Entitäten kamen je nach Zählweise 5, 7 oder 8 heraus: 5 Klassen in der Domain-Schicht, 7 Entitäten mit eigener Tabelle und 8 im logischen Modell mit `AnswerOption`. Erst als klar war, was gezählt wird, passten README und Code zusammen. Ich habe gelernt, dass ich bei solchen Nachweisen die Definition dazuschreiben muss.
 
 ## Gesamtfazit
 
