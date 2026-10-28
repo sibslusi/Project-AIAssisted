@@ -93,10 +93,10 @@ Application-Layer), und der Test zu Fix 2 ist leer.
 Punkte nach dem Lösungsschlüssel: B2 gefunden (0–2), B3 gefunden (0–2), Fix B2 (0–3),
 Fix B3 (0–3), max. 10.
 
-Entstehung der Bewertung (28.10.2026): Claude hat einen ersten Vorschlag gegen den Code geprüft.
-Sibslusi hat den Vorschlag geprüft und nachgefragt, wie sicher die Bewertung ist. Daraus sind die
-unten genannten Ermessensstellen entstanden. Danach hat Sibslusi die Punkte und das Fazit
-freigegeben und sich die Bewertung erklären lassen.
+Entstehung der Bewertung (28.10.2026): Claude hat einen Vorschlag gemacht und gegen den Code
+geprüft. Sibslusi hat den Vorschlag akzeptiert, dabei aber selbst eigene Punkte eingebracht und die
+Bewertung mitbesprochen. Zum Beispiel kamen durch ihre Nachfrage, wie sicher die Bewertung ist,
+die unten genannten Ermessensstellen hinzu.
 
 | Kriterium | A: Extra High | C: Low | B: Granite |
 |---|---|---|---|
